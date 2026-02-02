@@ -20,34 +20,23 @@ def _short_model_tag(model_name: str) -> str:
 
 
 def _short_dataset_tag(parquet_paths: Iterable[str]) -> str:
-    bases = [Path(p).stem for p in parquet_paths]
-    tokens = [b.split("_") for b in bases]
+    paths = list(parquet_paths)
+    n = len(paths)
+    if n == 0:
+        return "ds_n0"
+
+    # Compute a stable short hash over basenames (order-independent).
+    bases = sorted(Path(p).stem for p in paths)
+    digest = hashlib.sha1("|".join(bases).encode("utf-8")).hexdigest()[:6]
 
     # Heuristic: names like HVN_15000_NR_plain_...
-    groups: dict[tuple[str, str], list[str]] = {}
-    leftovers: list[str] = []
-    for t, base in zip(tokens, bases):
-        if len(t) >= 3 and t[1].isdigit():
-            key = (t[0], t[2])
-            groups.setdefault(key, []).append(t[1])
-        else:
-            leftovers.append(base)
+    t0 = bases[0].split("_")
+    if len(t0) >= 3 and t0[1].isdigit():
+        prefix = t0[0].lower()
+        scenario = t0[2].lower()
+        return f"{prefix}_{scenario}_n{n}_{digest}"
 
-    parts: list[str] = []
-    for (prefix, tag), ids in sorted(groups.items()):
-        ids_sorted = sorted(ids, key=lambda x: int(x) if x.isdigit() else x)
-        parts.append(f"{prefix}_{tag}_{'-'.join(ids_sorted)}")
-
-    for base in sorted(leftovers):
-        # keep only first ~24 chars for safety
-        parts.append(base[:24])
-
-    if not parts:
-        return "dataset"
-
-    out = "_".join(parts)
-    out = re.sub(r"[^A-Za-z0-9]+", "_", out).strip("_")
-    return out.lower()
+    return f"ds_n{n}_{digest}"
 
 
 def make_run_slug(
@@ -81,8 +70,8 @@ def make_run_slug(
 
 
 def make_run_id(*, run_slug: str) -> str:
-    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
-    h = hashlib.sha1(run_slug.encode("utf-8")).hexdigest()[:6]
+    ts = datetime.now().strftime("%y%m%d-%H%M%S")
+    h = hashlib.sha1(run_slug.encode("utf-8")).hexdigest()[:4]
     return f"{ts}_{h}"
 
 

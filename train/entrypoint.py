@@ -246,4 +246,15 @@ def main(argv: list[str] | None = None) -> int:
                 except Exception:
                     pass
 
+                # Optionally generate plots from history and log them.
+                if history is not None:
+                    try:
+                        from .plotting import plot_history
+
+                        plots_dir = stage / "plots"
+                        plot_history(history=history, pinn=cfg.pinn, plots_dir=str(plots_dir))
+                        mlf.log_artifacts(str(plots_dir), artifact_path="plots")
+                    except Exception:
+                        pass
+
     return 0

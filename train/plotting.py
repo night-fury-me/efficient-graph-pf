@@ -3,6 +3,9 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
+import matplotlib
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from .loop import TrainHistory
