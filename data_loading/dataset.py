@@ -1,5 +1,6 @@
 import ast, functools, json
 import hashlib
+import logging
 from pathlib import Path
 from typing import Dict, List, Any, Tuple, Union, Optional, Sequence
 
@@ -9,6 +10,8 @@ import torch
 from torch.utils.data import Dataset
 from .npy_decode import decode_columns_mp_columnwise
 import time
+
+log = logging.getLogger("simplegnn")
 
 FLOAT_DTYPE = np.float32
 COMPLEX_DTYPE = np.complex64
@@ -135,14 +138,14 @@ class ChanghunDataset(Dataset):
         ]
         # Filter for columns that actually exist in the dataframe to avoid errors
         binary_cols_exist = [col for col in binary_cols if col in df.columns]
-        print(f"Columns to be decoded: {binary_cols_exist}")
+        log.info("Columns to be decoded: %s", binary_cols_exist)
 
         start_time = time.time()
         df = decode_columns_mp_columnwise(df, binary_cols_exist)
         colwise_time = time.time() - start_time
-        print(f"Method 3: New MP (column-wise) time: {colwise_time:.2f} seconds")
+        log.info("Method 3: New MP (column-wise) time: %.2f seconds", colwise_time)
 
-        print("Parquet read →", df.shape)
+        log.info("Parquet read -> %s", df.shape)
 
         # vectorised decode list-columns
         for col in self._LIST_COLS:
@@ -154,7 +157,7 @@ class ChanghunDataset(Dataset):
             keep = ~df["u_newton"].map(_is_zero_complex_list)
             if not keep.all():
                 df = df[keep].reset_index(drop=True)
-                print(f"Removed {(~keep).sum()} diverged rows → {df.shape}")
+                log.info("Removed %s diverged rows -> %s", int((~keep).sum()), df.shape)
 
         # ------------------------------------------------------------------
         # remove per-unit outliers in u_newton (IQR, aggregated across rows)
@@ -181,7 +184,7 @@ class ChanghunDataset(Dataset):
             arr = np.asarray(data, dtype=float)
             arr = arr[np.isfinite(arr)]
             if arr.size == 0:
-                print(f"No per-unit {name} data to analyze.")
+                log.info("No per-unit %s data to analyze.", name)
                 return
             q1, q3 = np.percentile(arr, [25, 75])
             iqr = q3 - q1
@@ -189,15 +192,23 @@ class ChanghunDataset(Dataset):
             mask_out = (arr < lower) | (arr > upper)
             n_out = int(mask_out.sum())
             frac_out = n_out / arr.size * 100 if arr.size else 0.0
-            print(f"\n>>> Per-Unit {name} Outlier Analysis <<<")
-            print(f"  Samples: {arr.size},  Q1={q1:.3e}, Q3={q3:.3e}, IQR={iqr:.3e}")
-            print(f"  Bounds = [{lower:.3e}, {upper:.3e}]")
-            print(f"  Outliers = {n_out} ({frac_out:.2f}%)")
-            print(f"  Span = [{arr.min():.3e}, {arr.max():.3e}]")
+            log.info(">>> Per-Unit %s Outlier Analysis <<< Samples=%s Q1=%.3e Q3=%.3e IQR=%.3e Bounds=[%.3e, %.3e] Outliers=%s (%.2f%%) Span=[%.3e, %.3e]",
+                     name,
+                     int(arr.size),
+                     float(q1),
+                     float(q3),
+                     float(iqr),
+                     float(lower),
+                     float(upper),
+                     int(n_out),
+                     float(frac_out),
+                     float(arr.min()),
+                     float(arr.max()),
+            )
 
         if "u_newton" in df.columns:
             if "U_base" not in df.columns:
-                print("⚠️  Skipping per-unit outlier removal: 'U_base' column not found.")
+                log.warning("Skipping per-unit outlier removal: 'U_base' column not found.")
             else:
                 # Gather per-unit samples across the dataset
                 u_bases = df["U_base"].astype(float).to_numpy()
@@ -227,7 +238,7 @@ class ChanghunDataset(Dataset):
                 b_imag = _iqr_bounds(all_imag_pu, OUTLIER_K)
 
                 if b_real is None and b_imag is None:
-                    print("No per-unit data available to define outlier bounds; skipping row removal.")
+                    log.info("No per-unit data available to define outlier bounds; skipping row removal.")
                 else:
                     lr, ur = b_real if b_real is not None else (-np.inf, np.inf)
                     li, ui = b_imag if b_imag is not None else (-np.inf, np.inf)
@@ -255,9 +266,9 @@ class ChanghunDataset(Dataset):
                     n_bad = int(mask_row_outlier.sum())
                     if n_bad > 0:
                         df = df[~mask_row_outlier].reset_index(drop=True)
-                        print(f"Removed {n_bad} per-unit outlier rows → {df.shape}")
+                        log.info("Removed %s per-unit outlier rows -> %s", int(n_bad), df.shape)
                     else:
-                        print("No rows contained per-unit u_newton outliers; nothing removed.")
+                        log.info("No rows contained per-unit u_newton outliers; nothing removed.")
 
 
         # ---------- convert to tensors --------------------------------------------

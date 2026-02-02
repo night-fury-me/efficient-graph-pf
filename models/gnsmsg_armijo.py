@@ -3,6 +3,9 @@ from torch_scatter import scatter_add
 from itertools import combinations          # (or torch.combinations)
 import math
 import torch.nn.functional as F
+import logging
+
+log = logging.getLogger("simplegnn")
 
 # -----------------------------------------------------------------------
 
@@ -275,9 +278,9 @@ class GNSMsg(nn.Module):
             # 5) check for NaNs or Infs
             for name, tensor in {'θ': θ, 'v': v, 'm': m}.items():
                 if torch.isnan(tensor).any():
-                    print(f"iter {k} NaN detected in {name}")
+                    log.warning("iter %s NaN detected in %s", k, name)
                 if torch.isinf(tensor).any():
-                    print(f"iter {k} Inf detected in {name}")
+                    log.warning("iter %s Inf detected in %s", k, name)
 
             # ---- physics loss (discounted) ---------------------------------
             if self.pinn:

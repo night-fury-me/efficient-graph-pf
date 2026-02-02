@@ -58,3 +58,12 @@ optimizer:
 
 misc:
   adj_mode: cplx
+
+mlflow:
+  enabled: false
+  # Tracking URI examples:
+  # - local sqlite (requested): sqlite:///mlflow.db
+  # - local file store: file:./mlruns
+  # - server: http://localhost:5000
+  tracking_uri: sqlite:///mlflow.db
+  experiment: SimpleGNN

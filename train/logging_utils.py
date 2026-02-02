@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 import sys
 from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
 
 
 class TeeStdout:
@@ -25,14 +27,26 @@ class TeeStdout:
 
 @dataclass(frozen=True)
 class RunPaths:
-    results_dir: str = "./results"
-    ckpt_dir: str = "./results/ckpt"
-    plots_dir: str = "./results/plots"
+    run_dir: str
+    ckpt_dir: str
+    plots_dir: str
+    artifacts_dir: str
 
 
-def ensure_run_dirs(paths: RunPaths = RunPaths()) -> None:
+def make_run_paths(*, run_id: str, base_dir: str = "./results/runs") -> RunPaths:
+    run_dir = os.path.join(base_dir, run_id)
+    return RunPaths(
+        run_dir=run_dir,
+        ckpt_dir=os.path.join(run_dir, "ckpt"),
+        plots_dir=os.path.join(run_dir, "plots"),
+        artifacts_dir=os.path.join(run_dir, "artifacts"),
+    )
+
+
+def ensure_run_dirs(paths: RunPaths) -> None:
     os.makedirs(paths.ckpt_dir, exist_ok=True)
     os.makedirs(paths.plots_dir, exist_ok=True)
+    os.makedirs(paths.artifacts_dir, exist_ok=True)
 
 
 def redirect_stdout_to_log(runname: str, results_dir: str = "./results") -> str:

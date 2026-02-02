@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from .loop import TrainHistory
 
 
-def plot_history(*, history: TrainHistory, runname: str, pinn: bool, plots_dir: str = "./results/plots") -> None:
+def plot_history(*, history: TrainHistory, pinn: bool, plots_dir: str) -> None:
     os.makedirs(plots_dir, exist_ok=True)
 
     epochs = range(1, len(history.train_loss) + 1)
@@ -23,7 +23,7 @@ def plot_history(*, history: TrainHistory, runname: str, pinn: bool, plots_dir: 
         plt.title("PINN: Physics Loss")
         plt.legend()
         plt.tight_layout()
-        plt.savefig(f"{plots_dir}/{runname}_physics_loss.png")
+        plt.savefig(f"{plots_dir}/physics_loss.png")
         plt.clf()
 
     plt.figure(figsize=(6, 4))
@@ -35,7 +35,7 @@ def plot_history(*, history: TrainHistory, runname: str, pinn: bool, plots_dir: 
     plt.title("Supervised RMSE")
     plt.legend()
     plt.tight_layout()
-    plt.savefig(f"{plots_dir}/{runname}_rmse_total.png")
+    plt.savefig(f"{plots_dir}/rmse_total.png")
     plt.clf()
 
     fig, ax = plt.subplots(1, 2, figsize=(10, 4))
@@ -56,5 +56,5 @@ def plot_history(*, history: TrainHistory, runname: str, pinn: bool, plots_dir: 
 
     fig.suptitle("Magnitude vs Angle RMSE")
     fig.tight_layout()
-    fig.savefig(f"{plots_dir}/{runname}_rmse_components.png")
+    fig.savefig(f"{plots_dir}/rmse_components.png")
     plt.close(fig)

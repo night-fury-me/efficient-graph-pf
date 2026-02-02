@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 import time
 from dataclasses import dataclass
-from typing import Optional
+from typing import Callable, Optional
 
 import torch
 
@@ -130,7 +130,10 @@ class TrainHistory:
     val_rmse: list[float]
     val_rmse_mag: list[float]
     val_rmse_ang_deg: list[float]
-    best_val_loss: float
+    best_epoch: int
+    best_score: float
+    best_val_rmse_mag: float
+    best_val_rmse_ang_deg: float
 
 
 def train_validate(
@@ -145,8 +148,8 @@ def train_validate(
     scheduler,
     epochs: int,
     val_every: int,
-    runname: str,
-    ckpt_dir: str = "./results/ckpt",
+    best_ckpt_path: str | None = None,
+    on_epoch_metrics: Callable[[int, str, EpochMetrics], None] | None = None,
     show_progress: bool = True,
 ) -> TrainHistory:
     train_loss_hist: list[float] = []
@@ -159,7 +162,10 @@ def train_validate(
     val_rmse_mag_hist: list[float] = []
     val_rmse_ang_hist_deg: list[float] = []
 
-    best_val_loss = float("inf")
+    best_epoch = 0
+    best_score = float("inf")
+    best_val_rmse_mag = float("inf")
+    best_val_rmse_ang_deg = float("inf")
 
     log.info("Initial metrics before training:")
     m_train0 = run_epoch(
@@ -196,6 +202,19 @@ def train_validate(
         m_val0.rmse_ang_deg,
     )
 
+    if on_epoch_metrics is not None:
+        on_epoch_metrics(0, "train", m_train0)
+        on_epoch_metrics(0, "val", m_val0)
+
+    # Treat epoch 0 as candidate best as well
+    score0 = m_val0.rmse_mag + m_val0.rmse_ang_deg
+    best_epoch = 0
+    best_score = float(score0)
+    best_val_rmse_mag = float(m_val0.rmse_mag)
+    best_val_rmse_ang_deg = float(m_val0.rmse_ang_deg)
+    if best_ckpt_path is not None:
+        torch.save(model.state_dict(), best_ckpt_path)
+
     for epoch in range(1, epochs + 1):
         t0 = time.time()
 
@@ -217,6 +236,9 @@ def train_validate(
         train_rmse_mag_hist.append(m_train.rmse_mag)
         train_rmse_ang_hist_deg.append(m_train.rmse_ang_deg)
 
+        if on_epoch_metrics is not None:
+            on_epoch_metrics(epoch, "train", m_train)
+
         if epoch % val_every == 0 or epoch == epochs:
             m_val = run_epoch(
                 model=model,
@@ -234,6 +256,9 @@ def train_validate(
             val_rmse_mag_hist.append(m_val.rmse_mag)
             val_rmse_ang_hist_deg.append(m_val.rmse_ang_deg)
 
+            if on_epoch_metrics is not None:
+                on_epoch_metrics(epoch, "val", m_val)
+
             log.info(
                 "Epoch %3d | train loss %.4e  rmse %.4e (mag %.4e, ang %.4e°) | valid loss %.4e  rmse %.4e (mag %.4e, ang %.4e°) | time %.2fs",
                 epoch,
@@ -248,11 +273,16 @@ def train_validate(
                 time.time() - t0,
             )
 
-            if m_val.loss < best_val_loss:
-                best_val_loss = m_val.loss
-                ckpt_path = f"{ckpt_dir}/{runname}_{epochs}_best_model.ckpt"
-                torch.save(model.state_dict(), ckpt_path)
-                log.info("checkpoint saved to %s", ckpt_path)
+            # Select best checkpoint by combined val RMSE components.
+            score = m_val.rmse_mag + m_val.rmse_ang_deg
+            if score < best_score:
+                best_epoch = epoch
+                best_score = float(score)
+                best_val_rmse_mag = float(m_val.rmse_mag)
+                best_val_rmse_ang_deg = float(m_val.rmse_ang_deg)
+                if best_ckpt_path is not None:
+                    torch.save(model.state_dict(), best_ckpt_path)
+                    log.info("best checkpoint updated (%s) -> %s", best_epoch, best_ckpt_path)
         else:
             log.info(
                 "Epoch %3d | train loss %.4e  rmse %.4e (mag %.4e, ang %.4e°) | time %.2fs",
@@ -273,7 +303,10 @@ def train_validate(
         val_rmse=val_rmse_hist,
         val_rmse_mag=val_rmse_mag_hist,
         val_rmse_ang_deg=val_rmse_ang_hist_deg,
-        best_val_loss=best_val_loss,
+        best_epoch=int(best_epoch),
+        best_score=float(best_score),
+        best_val_rmse_mag=float(best_val_rmse_mag),
+        best_val_rmse_ang_deg=float(best_val_rmse_ang_deg),
     )
 
 

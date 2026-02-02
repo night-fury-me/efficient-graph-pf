@@ -1,4 +1,5 @@
 import io
+import logging
 import os
 import time
 import multiprocessing as mp
@@ -7,6 +8,8 @@ from typing import List
 
 import numpy as np
 import pandas as pd
+
+log = logging.getLogger("simplegnn")
 
 
 # --- Helper functions ---
@@ -80,17 +83,18 @@ def decode_columns_mp_columnwise(df: pd.DataFrame, cols: List[str], workers: int
 
 # ======== Main Execution Block ========
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     # Load your data
     try:
         df_orig = pd.read_parquet("../datasets/HVN_150000_PQrangeFixed_4_to_32_bus_grid_Ybus.parquet")
     except FileNotFoundError:
-        print("Parquet file not found. Creating a dummy DataFrame for demonstration.")
+        log.warning("Parquet file not found. Creating a dummy DataFrame for demonstration.")
         num_rows = 150000
         binary_cols_list = ['bus_typ', 'Y_matrix', 'S_newton']
         data = {col: [np.random.rand(8).tobytes()] * num_rows for col in binary_cols_list}
         df_orig = pd.DataFrame(data)
 
-    print(f"DataFrame loaded with {len(df_orig)} rows.")
+    log.info("DataFrame loaded with %s rows.", len(df_orig))
 
     binary_cols = [
         'bus_typ', 'Y_Lines', 'Y_C_Lines', 'Lines_connected',
@@ -98,52 +102,52 @@ if __name__ == "__main__":
     ]
     # Filter for columns that actually exist in the dataframe to avoid errors
     binary_cols_exist = [col for col in binary_cols if col in df_orig.columns]
-    print(f"Columns to be decoded: {binary_cols_exist}")
+    log.info("Columns to be decoded: %s", binary_cols_exist)
 
     # --- 1. Time the simple, single-core version ---
     start_time = time.time()
     df_single = decode_columns_single_core(df_orig, binary_cols_exist)
     simple_time = time.time() - start_time
-    print(f"\nMethod 1: Simple (single-core) time: {simple_time:.2f} seconds")
+    log.info("Method 1: Simple (single-core) time: %.2f seconds", simple_time)
 
     # --- 2. Time the corrected chunking version ---
     start_time = time.time()
     df_chunked = decode_columns_mp_chunked(df_orig, binary_cols_exist)
     chunked_time = time.time() - start_time
-    print(f"Method 2: Corrected MP (chunking) time: {chunked_time:.2f} seconds")
+    log.info("Method 2: Corrected MP (chunking) time: %.2f seconds", chunked_time)
 
     # --- 3. Time the new column-wise version ---
     start_time = time.time()
     df_colwise = decode_columns_mp_columnwise(df_orig, binary_cols_exist)
     colwise_time = time.time() - start_time
-    print(f"Method 3: New MP (column-wise) time: {colwise_time:.2f} seconds")
+    log.info("Method 3: New MP (column-wise) time: %.2f seconds", colwise_time)
 
-    print("\n--- Verification ---")
+    log.info("--- Verification ---")
     try:
         # Using a custom comparison because pandas testing can be slow on large object-dtype frames
         # We just check the first element of the first decoded column
         assert np.array_equal(df_single[binary_cols_exist[0]].iloc[0], df_chunked[binary_cols_exist[0]].iloc[0])
-        print("✅ Corrected chunking method produced the correct result.")
+        log.info("Corrected chunking method produced the correct result.")
     except AssertionError:
-        print("❌ Corrected chunking method produced an INCORRECT result.")
+        log.error("Corrected chunking method produced an INCORRECT result.")
 
     try:
         assert np.array_equal(df_single[binary_cols_exist[0]].iloc[0], df_colwise[binary_cols_exist[0]].iloc[0])
-        print("✅ New column-wise method produced the correct result.")
+        log.info("New column-wise method produced the correct result.")
     except AssertionError:
-        print("❌ New column-wise method produced an INCORRECT result.")
+        log.error("New column-wise method produced an INCORRECT result.")
 
-    print("\n--- Results ---")
+    log.info("--- Results ---")
     best_time = min(simple_time, chunked_time, colwise_time)
     if best_time == colwise_time and colwise_time < simple_time:
         speedup = simple_time / colwise_time
-        print(f"🏆 The new column-wise method was fastest, with a {speedup:.2f}x speedup over single-core.")
+        log.info("The new column-wise method was fastest: %.2fx speedup over single-core.", speedup)
     elif best_time == chunked_time and chunked_time < simple_time:
         speedup = simple_time / chunked_time
-        print(f"🏆 The corrected chunking method was fastest, with a {speedup:.2f}x speedup.")
+        log.info("The corrected chunking method was fastest: %.2fx speedup.", speedup)
     else:
-        print("⚠️ Multiprocessing did not provide a speedup. The single-core version was fastest.")
-        print("   This can happen on machines with few cores or very fast memory/storage.")
+        log.warning("Multiprocessing did not provide a speedup; single-core was fastest.")
+        log.info("This can happen on machines with few cores or very fast memory/storage.")
 
     pd.testing.assert_frame_equal(df_single, df_colwise)
-    print("\nVerification successful: All methods produce the same result.")
+    log.info("Verification successful: All methods produce the same result.")

@@ -41,6 +41,11 @@ DEFAULTS = {
     "VAL_EVERY": 1,
     "PARQUET": ["./datasets/HVN_15000_NR_plain_4_to_32_buses.parquet"],
     "seed_value": 42,
+
+    # MLflow
+    "mlflow": False,
+    "mlflow_tracking_uri": "sqlite:///mlflow.db",
+    "mlflow_experiment": "SimpleGNN",
 }
 
 
@@ -118,6 +123,26 @@ def build_parser(*, suppress_defaults: bool = False) -> argparse.ArgumentParser:
         help="Path to Parquet data file(s)",
     )
 
+    # MLflow
+    parser.add_argument(
+        "--mlflow",
+        action="store_true",
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["mlflow"]),
+        help="Enable MLflow logging",
+    )
+    parser.add_argument(
+        "--mlflow_tracking_uri",
+        type=str,
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["mlflow_tracking_uri"]),
+        help="MLflow tracking URI (e.g. sqlite:///mlflow.db, file:./mlruns, http://localhost:5000)",
+    )
+    parser.add_argument(
+        "--mlflow_experiment",
+        type=str,
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["mlflow_experiment"]),
+        help="MLflow experiment name",
+    )
+
     parser.add_argument("--seed_value", type=int, default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["seed_value"]), help="Random seed")
     return parser
 
@@ -140,6 +165,11 @@ class TrainConfig:
     split_mode: str
     train_ratio: float
     valid_ratio: float
+
+    # MLflow
+    mlflow: bool
+    mlflow_tracking_uri: str | None
+    mlflow_experiment: str
 
     # Model
     model_name: str
@@ -173,8 +203,9 @@ class TrainConfig:
 def config_from_args(args: argparse.Namespace) -> TrainConfig:
     # Backwards-compatible path: args already includes defaults.
     dataset_name = _short_dataset_name(args.PARQUET)
-    split_tag = "Equal3" if getattr(args, "split_mode", "ratio") == "equal3" else f"TrainRatio{args.train_ratio}"
-    runname = f"{dataset_name}_K{args.K}_d{args.d}_dhi{args.d_hi}_ep{args.EPOCHS}_{split_tag}"
+    split_tag = "eq3" if getattr(args, "split_mode", "ratio") == "equal3" else f"tr{args.train_ratio:g}"
+    model_tag = str(args.model).replace("GNSMsg_", "")
+    runname = f"{dataset_name}_{model_tag}_k{args.K}_d{args.d}_h{args.d_hi}_ep{args.EPOCHS}_{split_tag}"
     return TrainConfig(
         runname=runname,
         seed=int(args.seed_value),
@@ -183,6 +214,9 @@ def config_from_args(args: argparse.Namespace) -> TrainConfig:
         split_mode=str(getattr(args, "split_mode", DEFAULTS["split_mode"])),
         train_ratio=float(args.train_ratio),
         valid_ratio=float(args.valid_ratio),
+        mlflow=bool(getattr(args, "mlflow", False)),
+        mlflow_tracking_uri=getattr(args, "mlflow_tracking_uri", None),
+        mlflow_experiment=str(getattr(args, "mlflow_experiment", DEFAULTS["mlflow_experiment"])),
         model_name=str(args.model),
         d=int(args.d),
         d_hi=int(args.d_hi),
@@ -268,6 +302,11 @@ def parse_train_config(argv: list[str] | None = None) -> tuple[TrainConfig, str 
 
         merged["ADJ_MODE"] = get(raw, ("misc", "adj_mode"), merged["ADJ_MODE"])
 
+        # MLflow
+        merged["mlflow"] = bool(get(raw, ("mlflow", "enabled"), merged["mlflow"]))
+        merged["mlflow_tracking_uri"] = get(raw, ("mlflow", "tracking_uri"), merged["mlflow_tracking_uri"])
+        merged["mlflow_experiment"] = str(get(raw, ("mlflow", "experiment"), merged["mlflow_experiment"]))
+
         # CLI overrides (only what the user explicitly provided)
         for k, v in vars(args).items():
             if k == "config":
@@ -281,8 +320,9 @@ def parse_train_config(argv: list[str] | None = None) -> tuple[TrainConfig, str 
             merged_runname = str(runname)
         else:
             dataset_name = _short_dataset_name(merged["PARQUET"])  # type: ignore[arg-type]
-            split_tag = "Equal3" if str(merged.get("split_mode", "ratio")) == "equal3" else f"TrainRatio{merged['train_ratio']}"
-            merged_runname = f"{dataset_name}_K{merged['K']}_d{merged['d']}_dhi{merged['d_hi']}_ep{merged['EPOCHS']}_{split_tag}"
+            split_tag = "eq3" if str(merged.get("split_mode", "ratio")) == "equal3" else f"tr{float(merged['train_ratio']):g}"
+            model_tag = str(merged["model"]).replace("GNSMsg_", "")
+            merged_runname = f"{dataset_name}_{model_tag}_k{merged['K']}_d{merged['d']}_h{merged['d_hi']}_ep{merged['EPOCHS']}_{split_tag}"
 
         cfg = TrainConfig(
             runname=merged_runname,
@@ -292,6 +332,9 @@ def parse_train_config(argv: list[str] | None = None) -> tuple[TrainConfig, str 
             split_mode=str(merged.get("split_mode", DEFAULTS["split_mode"])),
             train_ratio=float(merged["train_ratio"]),
             valid_ratio=float(merged["valid_ratio"]),
+            mlflow=bool(merged.get("mlflow", False)),
+            mlflow_tracking_uri=(str(merged["mlflow_tracking_uri"]) if merged.get("mlflow_tracking_uri") else None),
+            mlflow_experiment=str(merged.get("mlflow_experiment", DEFAULTS["mlflow_experiment"])),
             model_name=str(merged["model"]),
             d=int(merged["d"]),
             d_hi=int(merged["d_hi"]),
