@@ -73,6 +73,8 @@ def main(argv: list[str] | None = None) -> int:
         gamma=cfg.gamma,
         v_limit=cfg.vlimit,
         use_armijo=cfg.use_armijo,
+        dtheta_max=cfg.dtheta_max,
+        dvm_frac=cfg.dvm_frac,
         num_attn_layers=cfg.num_attn_layers,
         device=device,
     )

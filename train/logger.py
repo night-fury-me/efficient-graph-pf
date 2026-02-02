@@ -67,6 +67,18 @@ def configure_logging(
     if log_file:
         _add_file_handler(logger, log_file)
 
+    # Silence chatty third-party loggers (MLflow uses Alembic/SQLAlchemy which
+    # can spam INFO on startup).
+    if os.getenv("QUIET_THIRD_PARTY", "1") not in {"0", "false", "False"}:
+        for noisy in (
+            "alembic",
+            "alembic.runtime.migration",
+            "alembic.runtime.plugins",
+            "sqlalchemy",
+            "mlflow",
+        ):
+            logging.getLogger(noisy).setLevel(logging.WARNING)
+
     setattr(logger, "_rich_configured", True)
     return logger
 

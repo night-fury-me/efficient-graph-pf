@@ -11,6 +11,29 @@ from typing import Iterable, Optional
 log = logging.getLogger("simplegnn")
 
 
+def _quiet_mlflow_deps() -> None:
+    """Reduce verbosity of MLflow's dependencies (Alembic/SQLAlchemy).
+
+    MLflow can emit a burst of INFO logs on startup (esp. when using
+    sqlite:///...), which tends to drown out training logs.
+    """
+
+    if os.getenv("QUIET_THIRD_PARTY", "1") in {"0", "false", "False"}:
+        return
+
+    for noisy in (
+        "alembic",
+        "alembic.runtime.migration",
+        "alembic.runtime.plugins",
+        "sqlalchemy",
+        "mlflow",
+        "mlflow.store",
+        "mlflow.store.db",
+        "mlflow.store.db.utils",
+    ):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
+
+
 def _try_import_mlflow():
     try:
         import mlflow  # type: ignore
@@ -80,6 +103,9 @@ def mlflow_run(
     if not enabled or mlflow is None:
         yield None
         return
+
+    # MLflow (or its deps) may configure logging; enforce our desired noise level.
+    _quiet_mlflow_deps()
 
     if tracking_uri:
         mlflow.set_tracking_uri(tracking_uri)

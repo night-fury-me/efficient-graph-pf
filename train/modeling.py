@@ -5,8 +5,7 @@ from typing import Iterable, List
 import torch
 import torch.nn as nn
 
-from models.gnsmsg_armijo import GNSMsg
-from models.gnsmsg_edge_selfattn_armijo import GNSMsg_EdgeSelfAttn
+from models.gnsmsg_edge_selfattn import GNSMsg_EdgeSelfAttn
 
 
 def create_model(
@@ -19,20 +18,12 @@ def create_model(
     gamma: float,
     v_limit: bool,
     use_armijo: bool,
+    dtheta_max: float,
+    dvm_frac: float,
     num_attn_layers: int,
     device: torch.device,
 ) -> nn.Module:
-    if model_name == "GNSMsg":
-        model = GNSMsg(
-            d=d,
-            d_hi=d_hi,
-            K=K,
-            pinn=pinn,
-            gamma=gamma,
-            v_limit=v_limit,
-            use_armijo=use_armijo,
-        ).to(device)
-    elif model_name == "GNSMsg_EdgeSelfAttn":
+    if model_name == "GNSMsg_EdgeSelfAttn":
         model = GNSMsg_EdgeSelfAttn(
             d=d,
             d_hi=d_hi,
@@ -41,10 +32,14 @@ def create_model(
             gamma=gamma,
             v_limit=v_limit,
             use_armijo=use_armijo,
+            dtheta_max=dtheta_max,
+            dvm_frac=dvm_frac,
             num_attn_layers=num_attn_layers,
         ).to(device)
     else:
-        raise ValueError(f"Unknown model: {model_name}")
+        raise ValueError(
+            f"Unknown model: {model_name}. Available: GNSMsg_EdgeSelfAttn (models/gnsmsg_armijo.py was removed)."
+        )
 
     return model
 

@@ -180,6 +180,8 @@ class TrainConfig:
     gamma: float
     vlimit: bool
     use_armijo: bool
+    dtheta_max: float
+    dvm_frac: float
 
     # Training
     batch_size: int
@@ -225,6 +227,8 @@ def config_from_args(args: argparse.Namespace) -> TrainConfig:
         gamma=float(args.gamma),
         vlimit=bool(args.vlimit),
         use_armijo=bool(args.use_armijo),
+        dtheta_max=float(getattr(args, "DthetaMax", DEFAULTS["DthetaMax"])),
+        dvm_frac=float(getattr(args, "DvmFrac", DEFAULTS["DvmFrac"])),
         batch_size=int(args.BATCH),
         epochs=int(args.EPOCHS),
         lr=float(args.LR),
@@ -288,6 +292,8 @@ def parse_train_config(argv: list[str] | None = None) -> tuple[TrainConfig, str 
         merged["gamma"] = float(get(raw, ("model", "gamma"), merged["gamma"]))
         merged["vlimit"] = bool(get(raw, ("model", "vlimit"), merged["vlimit"]))
         merged["use_armijo"] = bool(get(raw, ("model", "use_armijo"), merged["use_armijo"]))
+        merged["DthetaMax"] = float(get(raw, ("model", "DthetaMax"), merged["DthetaMax"]))
+        merged["DvmFrac"] = float(get(raw, ("model", "DvmFrac"), merged["DvmFrac"]))
 
         merged["BATCH"] = int(get(raw, ("train", "batch_size"), merged["BATCH"]))
         merged["EPOCHS"] = int(get(raw, ("train", "epochs"), merged["EPOCHS"]))
@@ -343,6 +349,8 @@ def parse_train_config(argv: list[str] | None = None) -> tuple[TrainConfig, str 
             gamma=float(merged["gamma"]),
             vlimit=bool(merged.get("vlimit", False)),
             use_armijo=bool(merged.get("use_armijo", False)),
+            dtheta_max=float(merged.get("DthetaMax", DEFAULTS["DthetaMax"])),
+            dvm_frac=float(merged.get("DvmFrac", DEFAULTS["DvmFrac"])),
             batch_size=int(merged["BATCH"]),
             epochs=int(merged["EPOCHS"]),
             lr=float(merged["LR"]),
