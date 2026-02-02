@@ -1,0 +1,60 @@
+# Training configuration for SimpleGNN
+#
+# Run with:
+#   ./.venv/bin/python train_valid_test2.py --config config.yaml
+#
+# Any CLI flags you pass will override values here.
+
+run:
+  # Optional; if omitted, a name is auto-generated from parquet files + hyperparams
+  name: null
+  mode: train_test         # train_test | train | valid | test
+  seed: 42
+
+split:
+  # mode: ratio | equal3
+  # - ratio: uses train_ratio/valid_ratio, remainder goes to test
+  # - equal3: splits into ~1/3 each (difference <= 1), ignores train_ratio/valid_ratio
+  mode: ratio
+  train_ratio: 0.8
+  valid_ratio: 0.1
+
+data:
+  parquet_paths:
+    - ./datasets/HVN_15000_NR_plain_4_to_32_buses.parquet
+    - ./datasets/HVN_15010_NR_plain_4_to_32_buses.parquet
+    - ./datasets/HVN_15020_NR_plain_4_to_32_buses.parquet
+  per_unit: true
+
+flags:
+  pinn: true
+  block_diag: true
+  normalize: false
+  mag_ang_mse: true
+  float64: false
+
+model:
+  name: GNSMsg_EdgeSelfAttn
+  d: 4
+  d_hi: 16
+  num_attn_layers: 1
+  K: 40
+  gamma: 0.9
+  vlimit: true
+  use_armijo: true
+
+train:
+  batch_size: 16
+  epochs: 100
+  lr: 1.0e-4
+  val_every: 1
+
+optimizer:
+  weight_init: sd0.02
+  bias_init: 0.0
+  weight_decay: 1.0e-3
+  lr_scheduler: CosineAnnealingLR  # CosineAnnealingLR | default
+  cosine_restart_epoch: 20
+
+misc:
+  adj_mode: cplx

@@ -1,0 +1,25 @@
+[project]
+name = "gnn-load-flow"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10,<3.11"
+dependencies = [
+    "matplotlib>=3.10.8",
+    "numpy<2",
+    "pandas>=2.3.3",
+    "pyarrow>=23.0.0",
+    "pyyaml>=6.0.1",
+    "rich>=13.7.1",
+]
+
+[project.scripts]
+gnn-load-flow-train = "train.entrypoint:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["train*", "models*", "data_loading*"]
