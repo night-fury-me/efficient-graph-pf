@@ -3,8 +3,9 @@ from __future__ import annotations
 import logging
 import os
 import subprocess
+import warnings
 import zipfile
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from pathlib import Path
 from typing import Iterable, Optional
 
@@ -34,12 +35,17 @@ def _quiet_mlflow_deps() -> None:
         logging.getLogger(noisy).setLevel(logging.WARNING)
 
 
-def _try_import_mlflow():
+def _try_import_mlflow(*, strict: bool = False):
     try:
         import mlflow  # type: ignore
 
         return mlflow
     except Exception as e:
+        if strict:
+            raise RuntimeError(
+                "MLflow was enabled, but could not be imported. "
+                "Fix your environment or disable MLflow."
+            ) from e
         log.warning("MLflow is not available (%s). Proceeding without MLflow.", e)
         return None
 
@@ -94,12 +100,14 @@ def snapshot_code(*, repo_root: Path, out_zip: Path, include_globs: Iterable[str
 def mlflow_run(
     *,
     enabled: bool,
+    strict: bool = False,
     tracking_uri: Optional[str],
     experiment: str,
+    artifact_location: Optional[str] = None,
     run_name: str,
     tags: Optional[dict[str, str]] = None,
 ):
-    mlflow = _try_import_mlflow()
+    mlflow = _try_import_mlflow(strict=strict)
     if not enabled or mlflow is None:
         yield None
         return
@@ -107,19 +115,70 @@ def mlflow_run(
     # MLflow (or its deps) may configure logging; enforce our desired noise level.
     _quiet_mlflow_deps()
 
-    if tracking_uri:
-        mlflow.set_tracking_uri(tracking_uri)
+    file_backend_selected = bool(
+        tracking_uri
+        and (
+            str(tracking_uri).startswith("file:")
+            or ("://" not in str(tracking_uri))
+        )
+    )
 
-    mlflow.set_experiment(experiment)
+    warn_ctx = warnings.catch_warnings() if file_backend_selected else nullcontext()
+    with warn_ctx:
+        if file_backend_selected:
+            warnings.filterwarnings(
+                "ignore",
+                message=r"^The filesystem tracking backend .*",
+                category=FutureWarning,
+            )
 
-    with mlflow.start_run(run_name=run_name):
-        if tags:
-            for k, v in tags.items():
+        if tracking_uri:
+            mlflow.set_tracking_uri(tracking_uri)
+
+        if file_backend_selected:
+            log.warning(
+                "MLflow filesystem tracking backend is deprecated; consider using a database URI like "
+                "sqlite:///mlflow.db (artifacts can still live on disk)."
+            )
+
+        # Ensure experiment exists with the desired artifact location.
+        # Note: MLflow cannot change artifact_location of an existing experiment.
+        try:
+            exp = mlflow.get_experiment_by_name(experiment)
+        except Exception:
+            exp = None
+
+        if exp is None:
+            if artifact_location:
                 try:
-                    mlflow.set_tag(k, v)
+                    mlflow.create_experiment(experiment, artifact_location=artifact_location)
                 except Exception:
                     pass
-        yield mlflow
+            # Fall back to default creation behavior if needed.
+        else:
+            try:
+                current_loc = getattr(exp, "artifact_location", None)
+                if artifact_location and current_loc and str(current_loc) != str(artifact_location):
+                    log.warning(
+                        "MLflow experiment '%s' already exists with artifact_location=%s; requested %s will be ignored. "
+                        "Use a new experiment name or delete the existing experiment to change it.",
+                        experiment,
+                        current_loc,
+                        artifact_location,
+                    )
+            except Exception:
+                pass
+
+        mlflow.set_experiment(experiment)
+
+        with mlflow.start_run(run_name=run_name):
+            if tags:
+                for k, v in tags.items():
+                    try:
+                        mlflow.set_tag(k, v)
+                    except Exception:
+                        pass
+            yield mlflow
 
 
 def log_run_artifacts(

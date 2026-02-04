@@ -21,6 +21,13 @@ Preferred:
 
 - `python -m train --config configs/default.yaml --EPOCHS=1 ...`
 
+MLflow (recommended: sqlite tracking backend):
+
+- `python -m train --config configs/default.yaml --mlflow --mlflow_tracking_uri sqlite:///mlflow.db --mlflow_experiment SimpleGNN --EPOCHS=1 ...`
+- UI: `mlflow ui --backend-store-uri sqlite:///mlflow.db`
+
+Note: MLflow's filesystem tracking backend (e.g. `file:./mlruns`) is deprecated in recent MLflow releases (Feb 2026 timeframe). Use sqlite for the tracking backend to avoid the warning.
+
 Also supported:
 
 - `python run_train.py --config configs/default.yaml ...`

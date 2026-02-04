@@ -36,6 +36,7 @@ def _segmented_softmax(logits_b_e_h: torch.Tensor, dst_e: torch.Tensor, num_node
     alpha = (x / (denom_g + 1e-12)).reshape(B, E, H)         # (B,E,H)
     return alpha
 
+
 def _batched_mismatch_inf_norm(Y, v, th, P_set, Q_set, slack_mask, pv_mask):
     """
     Compute ∞-norm of power mismatch for (possibly) batched candidate voltages.
@@ -61,13 +62,16 @@ def _batched_mismatch_inf_norm(Y, v, th, P_set, Q_set, slack_mask, pv_mask):
     DQ_max = DQ.abs().amax(dim=-1)
     return torch.maximum(DP_max, DQ_max).amax()
 
+
 # --------------------- attention block -----------------------
+
 
 class EdgeSelfAttnBlock(nn.Module):
     """
     Sparse graph self-attention with edge bias.
     Uses segmented-softmax (vectorized) over incoming edges per (batch, head, node).
     """
+
     def __init__(self, d_model: int, n_heads: int, edge_feat_dim: int, ffn_hidden: int = None, dropout: float = 0.0):
         super().__init__()
         assert d_model % n_heads == 0
@@ -135,7 +139,9 @@ class EdgeSelfAttnBlock(nn.Module):
         z = self.drop(self.ffn(z))
         return x + z
 
+
 # ------------------ main model ------------------
+
 
 class GNSMsg_EdgeSelfAttn(nn.Module):
     def __init__(

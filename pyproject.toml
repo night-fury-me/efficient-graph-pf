@@ -8,7 +8,7 @@ dependencies = [
     "matplotlib>=3.10.8",
     "numpy<2",
     "pandas>=2.3.3",
-    "pyarrow>=23.0.0",
+    "pyarrow>=12,<23",
     "pyyaml>=6.0.1",
     "rich>=13.7.1",
     "mlflow>=2.12.0",

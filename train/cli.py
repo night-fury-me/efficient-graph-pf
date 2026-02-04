@@ -44,8 +44,16 @@ DEFAULTS = {
 
     # MLflow
     "mlflow": False,
-    "mlflow_tracking_uri": "sqlite:///mlflow.db",
+    # Keep MLflow tracking DB + artifacts under results/ by default.
+    "mlflow_tracking_uri": "sqlite:///results/mlflow.db",
     "mlflow_experiment": "SimpleGNN",
+    "mlflow_artifact_location": "file:./results/mlruns",
+    # Upload local run folder under this subdirectory in MLflow's artifact tree.
+    "mlflow_artifact_path": "run",
+    # If false and MLflow is enabled, run artifacts are staged temporarily and deleted after upload.
+    "mlflow_keep_local_run_dir": False,
+    # If true, enabling MLflow fails loudly when MLflow isn't importable.
+    "mlflow_strict": True,
 }
 
 
@@ -137,6 +145,30 @@ def build_parser(*, suppress_defaults: bool = False) -> argparse.ArgumentParser:
         help="MLflow tracking URI (e.g. sqlite:///mlflow.db, file:./mlruns, http://localhost:5000)",
     )
     parser.add_argument(
+        "--mlflow_artifact_location",
+        type=str,
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["mlflow_artifact_location"]),
+        help="MLflow experiment artifact location (e.g. file:./results/mlruns). Only used when creating a new experiment.",
+    )
+    parser.add_argument(
+        "--mlflow_artifact_path",
+        type=str,
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["mlflow_artifact_path"]),
+        help="Artifact path prefix in MLflow (e.g. 'run').",
+    )
+    parser.add_argument(
+        "--mlflow_keep_local_run_dir",
+        action="store_true",
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["mlflow_keep_local_run_dir"]),
+        help="Keep local results/runs/<run_id> directory even when MLflow is enabled (default: stage+delete).",
+    )
+    parser.add_argument(
+        "--no_mlflow_strict",
+        action="store_true",
+        default=(argparse.SUPPRESS if suppress_defaults else False),
+        help="Disable strict MLflow mode (if MLflow import fails, continue without MLflow).",
+    )
+    parser.add_argument(
         "--mlflow_experiment",
         type=str,
         default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["mlflow_experiment"]),
@@ -170,6 +202,10 @@ class TrainConfig:
     mlflow: bool
     mlflow_tracking_uri: str | None
     mlflow_experiment: str
+    mlflow_artifact_location: str | None
+    mlflow_artifact_path: str
+    mlflow_keep_local_run_dir: bool
+    mlflow_strict: bool
 
     # Model
     model_name: str
@@ -219,6 +255,14 @@ def config_from_args(args: argparse.Namespace) -> TrainConfig:
         mlflow=bool(getattr(args, "mlflow", False)),
         mlflow_tracking_uri=getattr(args, "mlflow_tracking_uri", None),
         mlflow_experiment=str(getattr(args, "mlflow_experiment", DEFAULTS["mlflow_experiment"])),
+        mlflow_artifact_location=getattr(args, "mlflow_artifact_location", None),
+        mlflow_artifact_path=str(getattr(args, "mlflow_artifact_path", DEFAULTS["mlflow_artifact_path"])),
+        mlflow_keep_local_run_dir=bool(
+            getattr(args, "mlflow_keep_local_run_dir", DEFAULTS["mlflow_keep_local_run_dir"])
+        ),
+        mlflow_strict=bool(
+            DEFAULTS["mlflow_strict"] if getattr(args, "no_mlflow_strict", False) is False else False
+        ),
         model_name=str(args.model),
         d=int(args.d),
         d_hi=int(args.d_hi),
@@ -312,10 +356,29 @@ def parse_train_config(argv: list[str] | None = None) -> tuple[TrainConfig, str 
         merged["mlflow"] = bool(get(raw, ("mlflow", "enabled"), merged["mlflow"]))
         merged["mlflow_tracking_uri"] = get(raw, ("mlflow", "tracking_uri"), merged["mlflow_tracking_uri"])
         merged["mlflow_experiment"] = str(get(raw, ("mlflow", "experiment"), merged["mlflow_experiment"]))
+        merged["mlflow_artifact_location"] = get(
+            raw, ("mlflow", "artifact_location"), merged.get("mlflow_artifact_location")
+        )
+        merged["mlflow_artifact_path"] = str(
+            get(raw, ("mlflow", "artifact_path"), merged.get("mlflow_artifact_path", DEFAULTS["mlflow_artifact_path"]))
+        )
+        merged["mlflow_keep_local_run_dir"] = bool(
+            get(
+                raw,
+                ("mlflow", "keep_local_run_dir"),
+                merged.get("mlflow_keep_local_run_dir", DEFAULTS["mlflow_keep_local_run_dir"]),
+            )
+        )
+        merged["mlflow_strict"] = bool(
+            get(raw, ("mlflow", "strict"), merged.get("mlflow_strict", DEFAULTS["mlflow_strict"]))
+        )
 
         # CLI overrides (only what the user explicitly provided)
         for k, v in vars(args).items():
             if k == "config":
+                continue
+            if k == "no_mlflow_strict":
+                merged["mlflow_strict"] = False
                 continue
             merged[k] = v
 
@@ -341,6 +404,14 @@ def parse_train_config(argv: list[str] | None = None) -> tuple[TrainConfig, str 
             mlflow=bool(merged.get("mlflow", False)),
             mlflow_tracking_uri=(str(merged["mlflow_tracking_uri"]) if merged.get("mlflow_tracking_uri") else None),
             mlflow_experiment=str(merged.get("mlflow_experiment", DEFAULTS["mlflow_experiment"])),
+            mlflow_artifact_location=(
+                str(merged["mlflow_artifact_location"]) if merged.get("mlflow_artifact_location") else None
+            ),
+            mlflow_artifact_path=str(merged.get("mlflow_artifact_path", DEFAULTS["mlflow_artifact_path"])),
+            mlflow_keep_local_run_dir=bool(
+                merged.get("mlflow_keep_local_run_dir", DEFAULTS["mlflow_keep_local_run_dir"])
+            ),
+            mlflow_strict=bool(merged.get("mlflow_strict", DEFAULTS["mlflow_strict"])),
             model_name=str(merged["model"]),
             d=int(merged["d"]),
             d_hi=int(merged["d_hi"]),

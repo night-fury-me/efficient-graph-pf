@@ -15,15 +15,15 @@ split:
   # mode: ratio | equal3
   # - ratio: uses train_ratio/valid_ratio, remainder goes to test
   # - equal3: splits into ~1/3 each (difference <= 1), ignores train_ratio/valid_ratio
-  mode: ratio
+  mode: equal3
   train_ratio: 0.8
   valid_ratio: 0.1
 
 data:
   parquet_paths:
-    - ./datasets/HVN_15000_NR_plain_4_to_32_buses.parquet
-    - ./datasets/HVN_15010_NR_plain_4_to_32_buses.parquet
-    - ./datasets/HVN_15020_NR_plain_4_to_32_buses.parquet
+    - ./datasets/MVN_30000_NR_plain_4_to_32_buses.parquet
+    - ./datasets/MVN_30010_NR_plain_4_to_32_buses.parquet
+    - ./datasets/MVN_30020_NR_plain_4_to_32_buses.parquet
   per_unit: true
 
 flags:
@@ -35,16 +35,16 @@ flags:
 
 model:
   name: GNSMsg_EdgeSelfAttn
-  d: 4
-  d_hi: 16
-  num_attn_layers: 1
+  d: 8
+  d_hi: 32
+  num_attn_layers: 8
   K: 40
   gamma: 0.9
   vlimit: true
   use_armijo: true
 
 train:
-  batch_size: 16
+  batch_size: 512
   epochs: 100
   lr: 1.0e-4
   val_every: 1
@@ -60,10 +60,21 @@ misc:
   adj_mode: cplx
 
 mlflow:
-  enabled: false
+  enabled: true
   # Tracking URI examples:
   # - local sqlite (requested): sqlite:///mlflow.db
   # - local file store: file:./mlruns
   # - server: http://localhost:5000
-  tracking_uri: sqlite:///mlflow.db
-  experiment: SimpleGNN
+  tracking_uri: sqlite:///results/mlflow.db
+  # Where MLflow stores run artifacts for this experiment (local file URI).
+  # This prevents creating a top-level ./mlruns directory.
+  artifact_location: file:./results/mlruns
+  experiment: baseline_w_mv
+  # Where the local run folder is uploaded under the MLflow run's artifacts.
+  artifact_path: run
+  # When MLflow is enabled:
+  # - false: stage artifacts temporarily and delete after MLflow upload (MLflow is the source of truth)
+  # - true: keep the local run directory under results/runs/<run_id>
+  keep_local_run_dir: false
+  # Fail loudly if MLflow is enabled but can't be imported.
+  strict: true
