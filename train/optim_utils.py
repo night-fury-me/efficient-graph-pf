@@ -22,7 +22,8 @@ def build_optimizer_and_scheduler(
     cosine_restart_epoch: int,
     steps_per_epoch: int,
 ) -> OptimBundle:
-    optim = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
+    trainable_params = [p for p in model.parameters() if p.requires_grad]
+    optim = torch.optim.AdamW(trainable_params, lr=lr, weight_decay=weight_decay)
 
     scheduler = None
     if lr_scheduler == "CosineAnnealingLR":

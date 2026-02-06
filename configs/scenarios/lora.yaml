@@ -1,0 +1,31 @@
+# Scenario overlay: LoRA fine-tuning
+#
+# Usage:
+#   python scripts/run_sweep.py --base configs/default.yaml --scenario configs/scenarios/lora.yaml --seeds 42 43 44
+
+mlflow:
+  enabled: true
+  experiment: lora_ft
+
+peft:
+  enabled: true
+  method: lora
+  # LoRA hyperparams
+  lora_r: 8
+  lora_alpha: 16
+  lora_dropout: 0.05
+  # These are attribute names of Linear layers inside the attention block.
+  # In this repo's EdgeSelfAttnBlock they are: q, k, v, out
+  lora_target_modules: ["q", "k", "v", "out"]
+  # If false: freeze the base model and train only LoRA params.
+  train_base: false
+  # Optional: load a pretrained base ckpt BEFORE applying LoRA.
+  # Example: results/runs/<run_id>/ckpt/best.ckpt
+  base_ckpt_path: null
+
+# Optional: compare performance vs a baseline MLflow run.
+# This logs deltas as % and x to both console and MLflow under `compare/*`.
+compare:
+  enabled: true
+  baseline_run_id: 0a83691312394f0599189c399cdfb667
+  metrics: ["test/rmse", "test/rmse_mag", "test/rmse_ang_deg"]

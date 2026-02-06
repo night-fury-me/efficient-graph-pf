@@ -75,4 +75,4 @@ def init_weights(model: nn.Module, *, weight_init: str, bias_init: float, exclud
 
 
 def count_parameters(model: nn.Module) -> int:
-    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+    return sum(p.numel() for p in model.parameters())

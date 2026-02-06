@@ -1,0 +1,10 @@
+# Scenario overlay: Baseline (no adaptation)
+#
+# Usage:
+#   python scripts/run_sweep.py --base configs/default.yaml --scenario configs/scenarios/baseline.yaml --seeds 42-44
+#
+# This file is intentionally minimal; it mainly sets a distinct MLflow experiment.
+
+mlflow:
+  enabled: true
+  experiment: baseline_w_mv

@@ -19,6 +19,7 @@ from pathlib import Path
 from .mlflow_utils import add_basic_tags, log_params_safe, log_run_artifacts, mlflow_run, snapshot_code
 from .run_naming import make_run_id, make_run_slug, safe_param_dict
 from .logging_utils import ensure_run_dirs, make_run_paths
+from .peft_utils import apply_lora_to_linear_modules, count_trainable_params, freeze_all_except_lora
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -115,8 +116,73 @@ def main(argv: list[str] | None = None) -> int:
             num_attn_layers=cfg.num_attn_layers,
             device=device,
         )
-        init_weights(model, weight_init=cfg.weight_init, bias_init=cfg.bias_init, exclude_modules=[])
-        log.info("Total number of parameters: %s", count_parameters(model))
+
+        # Optional: initialize from a pretrained/base checkpoint before training.
+        # - Full fine-tuning: set run.init_ckpt_path
+        # - PEFT/LoRA: either set run.init_ckpt_path or peft.base_ckpt_path
+        ckpt_path = None
+        if getattr(cfg, "init_ckpt_path", None):
+            ckpt_path = str(getattr(cfg, "init_ckpt_path"))
+        elif bool(getattr(cfg, "peft", False)) and getattr(cfg, "peft_base_ckpt_path", None):
+            ckpt_path = str(getattr(cfg, "peft_base_ckpt_path"))
+
+        if ckpt_path:
+            try:
+                sd = torch.load(ckpt_path, map_location="cpu")
+                if isinstance(sd, dict) and "state_dict" in sd and isinstance(sd["state_dict"], dict):
+                    sd = sd["state_dict"]
+                model.load_state_dict(sd, strict=True)
+                log.info("Loaded checkpoint: %s", ckpt_path)
+            except Exception as e:
+                log.exception("Failed to load checkpoint '%s': %s", ckpt_path, e)
+                raise
+        else:
+            init_weights(model, weight_init=cfg.weight_init, bias_init=cfg.bias_init, exclude_modules=[])
+
+        # Optional: apply PEFT (LoRA)
+        if bool(getattr(cfg, "peft", False)):
+            method = str(getattr(cfg, "peft_method", "lora")).lower().strip()
+            if method != "lora":
+                raise ValueError(f"Unsupported peft_method: {method}. Supported: lora")
+
+            wrapped = apply_lora_to_linear_modules(
+                model,
+                target_module_names=list(getattr(cfg, "lora_target_modules", ["q", "k", "v", "out"])),
+                r=int(getattr(cfg, "lora_r", 8)),
+                alpha=int(getattr(cfg, "lora_alpha", 16)),
+                dropout=float(getattr(cfg, "lora_dropout", 0.0)),
+            )
+            log.info("Applied LoRA to %d Linear modules", len(wrapped))
+            if wrapped:
+                log.info("LoRA wrapped modules (first 12): %s", wrapped[:12])
+
+            train_base = bool(getattr(cfg, "peft_train_base", False))
+            if not train_base:
+                freeze_all_except_lora(model)
+
+        total_params = int(count_parameters(model))
+        trainable_params = int(count_trainable_params(model))
+        trainable_frac = (float(trainable_params) / float(total_params)) if total_params > 0 else 0.0
+        trainable_pct = 100.0 * trainable_frac
+        reduction_pct = 100.0 * (1.0 - trainable_frac)
+        reduction_x = (float(total_params) / float(trainable_params)) if trainable_params > 0 else float("inf")
+
+        log.info("Total parameters: %s", total_params)
+        log.info("Trainable parameters: %s", trainable_params)
+        log.info(
+            "Parameter efficiency: trainable %.2f%% | reduced %.2f%% | %.2fx fewer trainable params",
+            trainable_pct,
+            reduction_pct,
+            reduction_x,
+        )
+
+        param_eff = {
+            "params_total": float(total_params),
+            "params_trainable": float(trainable_params),
+            "params_trainable_pct": float(trainable_pct),
+            "params_reduction_pct": float(reduction_pct),
+            "params_reduction_x": float(reduction_x),
+        }
 
         optim_bundle = build_optimizer_and_scheduler(
             model=model,
@@ -130,6 +196,31 @@ def main(argv: list[str] | None = None) -> int:
         tags = add_basic_tags(repo_root=repo_root)
         tags.update({"device": str(device)})
         tags.update({"run_id": run_id, "run_slug": run_slug})
+        tags.update({"seed": str(cfg.seed)})
+        if config_path:
+            tags.update({"config": str(config_path)})
+
+        # PEFT tags
+        if bool(getattr(cfg, "peft", False)):
+            tags.update({
+                "peft": "true",
+                "peft_method": str(getattr(cfg, "peft_method", "lora")),
+                "lora_r": str(getattr(cfg, "lora_r", "")),
+                "lora_alpha": str(getattr(cfg, "lora_alpha", "")),
+                "lora_dropout": str(getattr(cfg, "lora_dropout", "")),
+                "peft_train_base": str(bool(getattr(cfg, "peft_train_base", False))).lower(),
+            })
+
+        # Always tag param efficiency for filtering/aggregation.
+        tags.update(
+            {
+                "params_total": str(total_params),
+                "params_trainable": str(trainable_params),
+                "params_trainable_pct": f"{trainable_pct:.4f}",
+                "params_reduction_pct": f"{reduction_pct:.4f}",
+                "params_reduction_x": f"{reduction_x:.6f}",
+            }
+        )
 
         # Persist basic run metadata locally (staged if MLflow-only mode).
         try:
@@ -162,6 +253,13 @@ def main(argv: list[str] | None = None) -> int:
 
                 # Log hparams (no dataset contents; only config values/paths).
                 log_params_safe(mlf, safe_param_dict(cfg))
+
+                # Log parameter efficiency metrics (single-value, step-less).
+                try:
+                    for k, v in param_eff.items():
+                        mlf.log_metric(k, float(v))
+                except Exception:
+                    pass
 
                 # Log config file used (artifact) if provided.
                 if config_path:
@@ -217,6 +315,8 @@ def main(argv: list[str] | None = None) -> int:
             best_ckpt_path = str(Path(paths.ckpt_dir) / "best.ckpt")
             history = None
 
+            final_metrics: dict[str, float] = {}
+
             if "train" in cfg.mode:
                 history = train_validate(
                     model=model,
@@ -242,6 +342,11 @@ def main(argv: list[str] | None = None) -> int:
                     except Exception:
                         pass
 
+                final_metrics["best/epoch"] = float(history.best_epoch)
+                final_metrics["best/score"] = float(history.best_score)
+                final_metrics["best/val_rmse_mag"] = float(history.best_val_rmse_mag)
+                final_metrics["best/val_rmse_ang_deg"] = float(history.best_val_rmse_ang_deg)
+
             if "test" in cfg.mode:
                 m_test = evaluate_test(
                     model=model,
@@ -258,6 +363,84 @@ def main(argv: list[str] | None = None) -> int:
                         mlf.log_metric("test/rmse_ang_deg", float(m_test.rmse_ang_deg))
                     except Exception:
                         pass
+
+                final_metrics["test/loss"] = float(m_test.loss)
+                final_metrics["test/rmse"] = float(m_test.rmse)
+                final_metrics["test/rmse_mag"] = float(m_test.rmse_mag)
+                final_metrics["test/rmse_ang_deg"] = float(m_test.rmse_ang_deg)
+
+            # Optional: compare metrics vs a baseline MLflow run.
+            if (
+                mlf is not None
+                and bool(getattr(cfg, "compare", False))
+                and getattr(cfg, "compare_baseline_run_id", None)
+            ):
+                baseline_run_id = str(getattr(cfg, "compare_baseline_run_id"))
+                metric_keys = list(getattr(cfg, "compare_metrics", []))
+
+                try:
+                    from mlflow.tracking import MlflowClient  # type: ignore
+
+                    client = MlflowClient()
+                    base_run = client.get_run(baseline_run_id)
+                    base_metrics = dict(getattr(base_run.data, "metrics", {}) or {})
+
+                    log.info("Comparing metrics vs baseline MLflow run_id=%s", baseline_run_id)
+                    try:
+                        mlf.set_tag("compare_baseline_run_id", baseline_run_id)
+                    except Exception:
+                        pass
+
+                    for key in metric_keys:
+                        if key not in final_metrics:
+                            continue
+                        if key not in base_metrics:
+                            continue
+
+                        cur = float(final_metrics[key])
+                        base = float(base_metrics[key])
+                        if base == 0.0 or not (base == base) or not (cur == cur):
+                            continue
+
+                        # Coherent convention:
+                        # - For RMSE-like metrics, LOWER is better.
+                        # - We report signed percent change: (cur-base)/base * 100.
+                        #     negative => improved (reduced RMSE)
+                        #     positive => worse (increased RMSE)
+                        # - We also report a signed factor (x):
+                        #     negative magnitude => how many times LOWER (base/cur)
+                        #     positive magnitude => how many times HIGHER (cur/base)
+                        # Example: -3.36x means 3.36x reduction in RMSE.
+
+                        if base == 0.0:
+                            continue
+
+                        pct_change = 100.0 * ((cur - base) / base)
+                        if cur == 0.0:
+                            factor_x = float("-inf") if pct_change < 0 else float("inf")
+                        else:
+                            factor_x = -abs(base / cur) if cur < base else abs(cur / base)
+
+                        log.info(
+                            "Compare %s | base=%.6g cur=%.6g | rmse_change=%+.2f%% | rmse_factor=%+.3fx",
+                            key,
+                            base,
+                            cur,
+                            pct_change,
+                            factor_x,
+                        )
+
+                        safe_key = str(key).replace("/", "_")
+                        try:
+                            mlf.log_metric(f"compare/{safe_key}/base", base)
+                            mlf.log_metric(f"compare/{safe_key}/cur", cur)
+                            mlf.log_metric(f"compare/{safe_key}/rmse_change_pct", pct_change)
+                            mlf.log_metric(f"compare/{safe_key}/rmse_factor_x", factor_x)
+                        except Exception:
+                            pass
+
+                except Exception as e:
+                    log.warning("Baseline comparison skipped (%s)", e)
 
             try:
                 hist_csv = Path(paths.artifacts_dir) / "history.csv"

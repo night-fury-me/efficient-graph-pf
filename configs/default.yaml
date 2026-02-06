@@ -9,7 +9,7 @@ run:
   # Optional; if omitted, a name is auto-generated from parquet files + hyperparams
   name: null
   mode: train_test         # train_test | train | valid | test
-  seed: 42
+  seed: 43
 
 split:
   # mode: ratio | equal3

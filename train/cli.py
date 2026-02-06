@@ -42,6 +42,26 @@ DEFAULTS = {
     "PARQUET": ["./datasets/HVN_15000_NR_plain_4_to_32_buses.parquet"],
     "seed_value": 42,
 
+    # Initialization
+    # Optional checkpoint to load before training (works for both full fine-tuning and PEFT).
+    "init_ckpt_path": None,
+
+    # PEFT / LoRA
+    "peft": False,
+    "peft_method": "lora",
+    "lora_r": 8,
+    "lora_alpha": 16,
+    "lora_dropout": 0.0,
+    "lora_target_modules": ["q", "k", "v", "out"],
+    "peft_train_base": False,
+    "peft_base_ckpt_path": None,
+
+    # Compare metrics vs a baseline MLflow run (optional)
+    "compare": False,
+    "compare_baseline_run_id": None,
+    # This project focuses on RMSE; compare overall RMSE plus mag/angle components.
+    "compare_metrics": ["test/rmse", "test/rmse_mag", "test/rmse_ang_deg"],
+
     # MLflow
     "mlflow": False,
     # Keep MLflow tracking DB + artifacts under results/ by default.
@@ -176,6 +196,86 @@ def build_parser(*, suppress_defaults: bool = False) -> argparse.ArgumentParser:
     )
 
     parser.add_argument("--seed_value", type=int, default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["seed_value"]), help="Random seed")
+
+    # Initialization
+    parser.add_argument(
+        "--init_ckpt_path",
+        type=str,
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["init_ckpt_path"]),
+        help="Optional checkpoint path to load before training (full fine-tune or PEFT)",
+    )
+
+    # PEFT / LoRA (optional; typically configured via YAML scenarios)
+    parser.add_argument(
+        "--peft",
+        action="store_true",
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["peft"]),
+        help="Enable parameter-efficient fine-tuning (currently: LoRA)",
+    )
+    parser.add_argument(
+        "--peft_method",
+        type=str,
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["peft_method"]),
+        help="PEFT method (currently supported: lora)",
+    )
+    parser.add_argument(
+        "--lora_r",
+        type=int,
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["lora_r"]),
+        help="LoRA rank r",
+    )
+    parser.add_argument(
+        "--lora_alpha",
+        type=int,
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["lora_alpha"]),
+        help="LoRA alpha",
+    )
+    parser.add_argument(
+        "--lora_dropout",
+        type=float,
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["lora_dropout"]),
+        help="LoRA dropout",
+    )
+    parser.add_argument(
+        "--lora_target_modules",
+        type=str,
+        nargs="+",
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["lora_target_modules"]),
+        help="LoRA target module attribute names (e.g. q k v out)",
+    )
+    parser.add_argument(
+        "--peft_train_base",
+        action="store_true",
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["peft_train_base"]),
+        help="If set, also train base model weights (not just LoRA adapters)",
+    )
+    parser.add_argument(
+        "--peft_base_ckpt_path",
+        type=str,
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["peft_base_ckpt_path"]),
+        help="Optional base checkpoint path to load before applying PEFT/LoRA",
+    )
+
+    # Compare vs baseline MLflow run
+    parser.add_argument(
+        "--compare",
+        action="store_true",
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["compare"]),
+        help="Enable comparison vs a baseline MLflow run (logs % and x deltas)",
+    )
+    parser.add_argument(
+        "--compare_baseline_run_id",
+        type=str,
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["compare_baseline_run_id"]),
+        help="Baseline MLflow run_id to compare against",
+    )
+    parser.add_argument(
+        "--compare_metrics",
+        type=str,
+        nargs="+",
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["compare_metrics"]),
+        help="Metric keys to compare (e.g. test/loss test/rmse best/score)",
+    )
     return parser
 
 
@@ -191,6 +291,9 @@ class TrainConfig:
     runname: str
     seed: int
     mode: str
+
+    # Initialization
+    init_ckpt_path: str | None
 
     # Data
     parquet_paths: List[str]
@@ -237,6 +340,21 @@ class TrainConfig:
     per_unit: bool
     mag_ang_mse: bool
 
+    # PEFT / LoRA
+    peft: bool
+    peft_method: str
+    lora_r: int
+    lora_alpha: int
+    lora_dropout: float
+    lora_target_modules: List[str]
+    peft_train_base: bool
+    peft_base_ckpt_path: str | None
+
+    # Compare vs baseline MLflow run
+    compare: bool
+    compare_baseline_run_id: str | None
+    compare_metrics: List[str]
+
 
 def config_from_args(args: argparse.Namespace) -> TrainConfig:
     # Backwards-compatible path: args already includes defaults.
@@ -248,6 +366,11 @@ def config_from_args(args: argparse.Namespace) -> TrainConfig:
         runname=runname,
         seed=int(args.seed_value),
         mode=str(args.mode),
+        init_ckpt_path=(
+            str(getattr(args, "init_ckpt_path"))
+            if getattr(args, "init_ckpt_path", None) not in (None, "", "null")
+            else None
+        ),
         parquet_paths=list(args.PARQUET),
         split_mode=str(getattr(args, "split_mode", DEFAULTS["split_mode"])),
         train_ratio=float(args.train_ratio),
@@ -287,6 +410,28 @@ def config_from_args(args: argparse.Namespace) -> TrainConfig:
         normalize=bool(args.NORMALIZE),
         per_unit=bool(args.PER_UNIT),
         mag_ang_mse=bool(args.mag_ang_mse),
+
+        peft=bool(getattr(args, "peft", False)),
+        peft_method=str(getattr(args, "peft_method", DEFAULTS["peft_method"])),
+        lora_r=int(getattr(args, "lora_r", DEFAULTS["lora_r"])),
+        lora_alpha=int(getattr(args, "lora_alpha", DEFAULTS["lora_alpha"])),
+        lora_dropout=float(getattr(args, "lora_dropout", DEFAULTS["lora_dropout"])),
+        lora_target_modules=list(getattr(args, "lora_target_modules", DEFAULTS["lora_target_modules"])),
+        peft_train_base=bool(getattr(args, "peft_train_base", DEFAULTS["peft_train_base"])),
+        peft_base_ckpt_path=(
+            str(getattr(args, "peft_base_ckpt_path"))
+            if getattr(args, "peft_base_ckpt_path", None)
+            not in (None, "", "null")
+            else None
+        ),
+
+        compare=bool(getattr(args, "compare", False)),
+        compare_baseline_run_id=(
+            str(getattr(args, "compare_baseline_run_id"))
+            if getattr(args, "compare_baseline_run_id", None) not in (None, "", "null")
+            else None
+        ),
+        compare_metrics=list(getattr(args, "compare_metrics", DEFAULTS["compare_metrics"])),
     )
 
 
@@ -313,6 +458,8 @@ def parse_train_config(argv: list[str] | None = None) -> tuple[TrainConfig, str 
         # YAML (nested)
         merged["mode"] = get(raw, ("run", "mode"), merged["mode"])
         merged["seed_value"] = get(raw, ("run", "seed"), merged["seed_value"])
+        init_ckpt = get(raw, ("run", "init_ckpt_path"), merged.get("init_ckpt_path", DEFAULTS["init_ckpt_path"]))
+        merged["init_ckpt_path"] = str(init_ckpt) if init_ckpt not in (None, "", "null") else None
 
         merged["train_ratio"] = get(raw, ("split", "train_ratio"), merged["train_ratio"])
         merged["valid_ratio"] = get(raw, ("split", "valid_ratio"), merged["valid_ratio"])
@@ -373,6 +520,29 @@ def parse_train_config(argv: list[str] | None = None) -> tuple[TrainConfig, str 
             get(raw, ("mlflow", "strict"), merged.get("mlflow_strict", DEFAULTS["mlflow_strict"]))
         )
 
+        # PEFT / LoRA
+        merged["peft"] = bool(get(raw, ("peft", "enabled"), merged.get("peft", DEFAULTS["peft"])))
+        merged["peft_method"] = str(get(raw, ("peft", "method"), merged.get("peft_method", DEFAULTS["peft_method"])))
+        merged["lora_r"] = int(get(raw, ("peft", "lora_r"), merged.get("lora_r", DEFAULTS["lora_r"])))
+        merged["lora_alpha"] = int(get(raw, ("peft", "lora_alpha"), merged.get("lora_alpha", DEFAULTS["lora_alpha"])))
+        merged["lora_dropout"] = float(get(raw, ("peft", "lora_dropout"), merged.get("lora_dropout", DEFAULTS["lora_dropout"])))
+        merged["lora_target_modules"] = list(
+            get(raw, ("peft", "lora_target_modules"), merged.get("lora_target_modules", DEFAULTS["lora_target_modules"]))
+        )
+        merged["peft_train_base"] = bool(
+            get(raw, ("peft", "train_base"), merged.get("peft_train_base", DEFAULTS["peft_train_base"]))
+        )
+        base_ckpt = get(raw, ("peft", "base_ckpt_path"), merged.get("peft_base_ckpt_path", DEFAULTS["peft_base_ckpt_path"]))
+        merged["peft_base_ckpt_path"] = str(base_ckpt) if base_ckpt not in (None, "", "null") else None
+
+        # Compare vs baseline run (MLflow)
+        merged["compare"] = bool(get(raw, ("compare", "enabled"), merged.get("compare", DEFAULTS["compare"])))
+        cmp_id = get(raw, ("compare", "baseline_run_id"), merged.get("compare_baseline_run_id", DEFAULTS["compare_baseline_run_id"]))
+        merged["compare_baseline_run_id"] = str(cmp_id) if cmp_id not in (None, "", "null") else None
+        merged["compare_metrics"] = list(
+            get(raw, ("compare", "metrics"), merged.get("compare_metrics", DEFAULTS["compare_metrics"]))
+        )
+
         # CLI overrides (only what the user explicitly provided)
         for k, v in vars(args).items():
             if k == "config":
@@ -397,6 +567,11 @@ def parse_train_config(argv: list[str] | None = None) -> tuple[TrainConfig, str 
             runname=merged_runname,
             seed=int(merged["seed_value"]),
             mode=str(merged["mode"]),
+            init_ckpt_path=(
+                str(merged.get("init_ckpt_path"))
+                if merged.get("init_ckpt_path") not in (None, "", "null")
+                else None
+            ),
             parquet_paths=list(merged["PARQUET"]),
             split_mode=str(merged.get("split_mode", DEFAULTS["split_mode"])),
             train_ratio=float(merged["train_ratio"]),
@@ -436,6 +611,29 @@ def parse_train_config(argv: list[str] | None = None) -> tuple[TrainConfig, str 
             normalize=bool(merged.get("NORMALIZE", False)),
             per_unit=bool(merged.get("PER_UNIT", False)),
             mag_ang_mse=bool(merged.get("mag_ang_mse", False)),
+
+            peft=bool(merged.get("peft", False)),
+            peft_method=str(merged.get("peft_method", DEFAULTS["peft_method"])),
+            lora_r=int(merged.get("lora_r", DEFAULTS["lora_r"])),
+            lora_alpha=int(merged.get("lora_alpha", DEFAULTS["lora_alpha"])),
+            lora_dropout=float(merged.get("lora_dropout", DEFAULTS["lora_dropout"])),
+            lora_target_modules=list(merged.get("lora_target_modules", DEFAULTS["lora_target_modules"]))
+            if merged.get("lora_target_modules") is not None
+            else list(DEFAULTS["lora_target_modules"]),
+            peft_train_base=bool(merged.get("peft_train_base", DEFAULTS["peft_train_base"])),
+            peft_base_ckpt_path=(
+                str(merged.get("peft_base_ckpt_path"))
+                if merged.get("peft_base_ckpt_path") not in (None, "", "null")
+                else None
+            ),
+
+            compare=bool(merged.get("compare", False)),
+            compare_baseline_run_id=(
+                str(merged.get("compare_baseline_run_id"))
+                if merged.get("compare_baseline_run_id") not in (None, "", "null")
+                else None
+            ),
+            compare_metrics=list(merged.get("compare_metrics", DEFAULTS["compare_metrics"])),
         )
         return cfg, str(probe_ns.config)
 

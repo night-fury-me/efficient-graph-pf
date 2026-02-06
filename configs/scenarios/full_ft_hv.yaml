@@ -1,0 +1,33 @@
+# Scenario overlay: Full fine-tuning on HV (starting from MV baseline weights)
+#
+# Usage:
+#   python -u scripts/run_sweep.py --base configs/default.yaml --scenario configs/scenarios/full_ft_hv.yaml --seeds 42 43 44
+
+mlflow:
+  enabled: true
+  experiment: full_ft_hv
+
+# HV dataset
+data:
+  parquet_paths:
+    - ./datasets/HVN_15000_NR_plain_4_to_32_buses.parquet
+    - ./datasets/HVN_15010_NR_plain_4_to_32_buses.parquet
+    - ./datasets/HVN_15020_NR_plain_4_to_32_buses.parquet
+
+# Initialize from MV baseline checkpoint (then train ALL params)
+run:
+  init_ckpt_path: ./results/mlruns/0a83691312394f0599189c399cdfb667/artifacts/run/ckpt/best.ckpt
+
+# Full fine-tuning hyperparams (you can tune these)
+train:
+  epochs: 30
+  lr: 1.0e-4
+
+optimizer:
+  weight_decay: 1.0e-3
+
+# Compare against MV baseline run
+compare:
+  enabled: true
+  baseline_run_id: 0a83691312394f0599189c399cdfb667
+  metrics: ["test/rmse", "test/rmse_mag", "test/rmse_ang_deg"]
