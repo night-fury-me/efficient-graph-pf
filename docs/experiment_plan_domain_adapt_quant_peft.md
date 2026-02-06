@@ -188,11 +188,25 @@ Required logging:
 
 ### Phase 4 — PTQ (CPU) as a separate script
 Add `scripts/quantize_export.py`:
-- loads a trained checkpoint
-- applies PTQ for `nn.Linear` (dynamic int8)
-- exports quantized model
-- benchmarks CPU latency
-- logs artifacts to MLflow
+- loads a trained checkpoint (full FT or LoRA FT)
+- for LoRA: **merge adapters into base weights** before quantization
+- applies **dynamic int8 PTQ** for `nn.Linear`
+- exports quantized model state_dict
+- benchmarks CPU latency (p50/p90/mean)
+- logs **all metrics + artifacts** to MLflow
+
+**Required MLflow logging (quantization runs):**
+- Base (FP32) test metrics: loss, rmse, rmse_mag, rmse_ang_deg
+- Quantized test metrics: loss, rmse, rmse_mag, rmse_ang_deg
+- Comparison metrics (percent + factor):
+  - size reduction % and x
+  - latency reduction % and speedup x (p50/p90)
+  - performance change % and factor x (for loss/rmse/mag/angle)
+
+**Artifacts to log:**
+- quantized model file
+- summary JSON + CSV (base vs quant metrics)
+- code snapshot + config
 
 ### Phase 5 — QAT (CPU)
 Add QAT behind a config flag:

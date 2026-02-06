@@ -29,6 +29,10 @@ DEFAULTS = {
     "train_ratio": 0.8,
     "valid_ratio": 0.1,
     "split_mode": "ratio",  # ratio | equal3
+    # Few-shot: optional subsample of the *training split only*.
+    # Keeps val/test fixed across budgets when seed/split_mode are fixed.
+    "train_subset_frac": None,
+    "train_subset_min_n": 1,
     "ADJ_MODE": "cplx",
     "weight_init": "sd0.02",
     "bias_init": 0.0,
@@ -127,6 +131,19 @@ def build_parser(*, suppress_defaults: bool = False) -> argparse.ArgumentParser:
         choices=("ratio", "equal3"),
         default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["split_mode"]),
         help="Dataset split strategy: ratio (train_ratio/valid_ratio) or equal3 (1/3 each; remainder distributed)",
+    )
+
+    parser.add_argument(
+        "--train_subset_frac",
+        type=float,
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["train_subset_frac"]),
+        help="Optional fraction of the training split to use (few-shot budget).",
+    )
+    parser.add_argument(
+        "--train_subset_min_n",
+        type=int,
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["train_subset_min_n"]),
+        help="Minimum number of training samples when train_subset_frac is set.",
     )
 
     parser.add_argument("--ADJ_MODE", type=str, default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["ADJ_MODE"]), help="Adjacency mode: real | cplx | other")
@@ -300,6 +317,8 @@ class TrainConfig:
     split_mode: str
     train_ratio: float
     valid_ratio: float
+    train_subset_frac: float | None
+    train_subset_min_n: int
 
     # MLflow
     mlflow: bool
@@ -375,6 +394,12 @@ def config_from_args(args: argparse.Namespace) -> TrainConfig:
         split_mode=str(getattr(args, "split_mode", DEFAULTS["split_mode"])),
         train_ratio=float(args.train_ratio),
         valid_ratio=float(args.valid_ratio),
+        train_subset_frac=(
+            float(getattr(args, "train_subset_frac"))
+            if getattr(args, "train_subset_frac", None) not in (None, "", "null")
+            else None
+        ),
+        train_subset_min_n=int(getattr(args, "train_subset_min_n", DEFAULTS["train_subset_min_n"])),
         mlflow=bool(getattr(args, "mlflow", False)),
         mlflow_tracking_uri=getattr(args, "mlflow_tracking_uri", None),
         mlflow_experiment=str(getattr(args, "mlflow_experiment", DEFAULTS["mlflow_experiment"])),
@@ -464,6 +489,11 @@ def parse_train_config(argv: list[str] | None = None) -> tuple[TrainConfig, str 
         merged["train_ratio"] = get(raw, ("split", "train_ratio"), merged["train_ratio"])
         merged["valid_ratio"] = get(raw, ("split", "valid_ratio"), merged["valid_ratio"])
         merged["split_mode"] = get(raw, ("split", "mode"), merged["split_mode"])
+        tsf = get(raw, ("split", "train_subset_frac"), merged.get("train_subset_frac", DEFAULTS["train_subset_frac"]))
+        merged["train_subset_frac"] = float(tsf) if tsf not in (None, "", "null") else None
+        merged["train_subset_min_n"] = int(
+            get(raw, ("split", "train_subset_min_n"), merged.get("train_subset_min_n", DEFAULTS["train_subset_min_n"]))
+        )
 
         parquet_paths = env_expand_paths(as_path_list(get(raw, ("data", "parquet_paths"), merged["PARQUET"])))
         merged["PARQUET"] = parquet_paths
@@ -576,6 +606,12 @@ def parse_train_config(argv: list[str] | None = None) -> tuple[TrainConfig, str 
             split_mode=str(merged.get("split_mode", DEFAULTS["split_mode"])),
             train_ratio=float(merged["train_ratio"]),
             valid_ratio=float(merged["valid_ratio"]),
+            train_subset_frac=(
+                float(merged["train_subset_frac"])
+                if merged.get("train_subset_frac") not in (None, "", "null")
+                else None
+            ),
+            train_subset_min_n=int(merged.get("train_subset_min_n", DEFAULTS["train_subset_min_n"])),
             mlflow=bool(merged.get("mlflow", False)),
             mlflow_tracking_uri=(str(merged["mlflow_tracking_uri"]) if merged.get("mlflow_tracking_uri") else None),
             mlflow_experiment=str(merged.get("mlflow_experiment", DEFAULTS["mlflow_experiment"])),

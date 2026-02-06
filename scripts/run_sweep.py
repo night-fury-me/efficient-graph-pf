@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import datetime as _dt
 import logging
 import os
@@ -61,6 +62,36 @@ def _parse_int_list(values: list[str]) -> list[int]:
     return _parse_seeds(values)
 
 
+def _parse_float_list(values: list[str]) -> list[float]:
+    """Parse float lists/ranges for budgets.
+
+    Supports:
+      --budgets 0 0.01 0.05
+      --budgets 0,0.01,0.05
+      --budgets 1% 5% 10%
+    """
+
+    out: list[float] = []
+    for raw in values:
+        parts = [p.strip() for p in str(raw).split(",") if p.strip()]
+        for part in parts:
+            s = part
+            if s.endswith("%"):
+                s = s[:-1].strip()
+                out.append(float(s) / 100.0)
+            else:
+                out.append(float(s))
+    # stable unique
+    seen: set[float] = set()
+    uniq: list[float] = []
+    for v in out:
+        if v in seen:
+            continue
+        seen.add(v)
+        uniq.append(v)
+    return uniq
+
+
 def _ensure_mapping(x: Any, *, what: str) -> dict[str, Any]:
     if x is None:
         return {}
@@ -109,6 +140,15 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Optional short scenario name used for auto run.name and output folder naming.",
     )
+
+    p.add_argument(
+        "--mlflow-experiment",
+        default=None,
+        help=(
+            "Optional MLflow experiment name override for the generated runs. "
+            "If omitted and --scenario-name is explicitly provided, the script will set mlflow.experiment to --scenario-name."
+        ),
+    )
     p.add_argument(
         "--seeds",
         nargs="+",
@@ -117,10 +157,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument(
         "--name-template",
-        default="{scenario}_seed{seed}",
+        default="{scenario}_seed{seed}_b{budget}",
         help=(
             "Template used to populate run.name when base+scenario doesn't set one. "
-            "Available fields: {scenario}, {seed}, {r}, {alpha}."
+            "Available fields: {scenario}, {seed}, {budget}, {r}, {alpha}."
         ),
     )
     p.add_argument(
@@ -151,6 +191,16 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "Optional LoRA alpha grid. Supports list/ranges (e.g. 8 16 32 | 8,16,32 | 8-32). "
             "If set, must be paired with --lora-rs."
+        ),
+    )
+
+    p.add_argument(
+        "--budgets",
+        nargs="+",
+        default=None,
+        help=(
+            "Optional target train budgets (few-shot). Each value is a fraction in [0,1] or a percent like '5%'. "
+            "For budgets > 0, sets split.train_subset_frac. For budget=0, forces run.mode=test (zero-shot transfer)."
         ),
     )
     p.add_argument(
@@ -199,6 +249,7 @@ def main(argv: list[str] | None = None) -> int:
     if not seeds:
         raise SystemExit("No seeds parsed; check --seeds")
 
+    scenario_name_cli = args.scenario_name
     scenario_name = args.scenario_name
     if not scenario_name:
         if scenario_path is not None:
@@ -222,43 +273,72 @@ def main(argv: list[str] | None = None) -> int:
     if has_grid:
         grid_items = [(r, a) for r in grid_rs for a in grid_alphas]
 
-    merged_configs: list[tuple[Path, int, int | None, int | None]] = []
+    budgets = _parse_float_list(list(args.budgets or []))
+    if not budgets:
+        budgets = [1.0]
+    for b in budgets:
+        if b < 0.0 or b > 1.0:
+            raise SystemExit(f"Invalid budget {b}. Must be in [0,1].")
+
+    merged_configs: list[tuple[Path, int, float, int | None, int | None]] = []
     for seed in seeds:
-        for r_value, alpha_value in grid_items:
-            merged = dict(base)
-            deep_update(merged, scenario)
+        for budget in budgets:
+            for r_value, alpha_value in grid_items:
+                # IMPORTANT: use deep copies so nested edits (e.g. setting run.mode=test for budget=0)
+                # do not mutate the shared base dict and leak into subsequent configs.
+                merged = copy.deepcopy(base)
+                deep_update(merged, scenario)
 
-            _set_nested(merged, ("run", "seed"), int(seed))
+                # MLflow experiment selection:
+                # - If --mlflow-experiment is provided, always use it.
+                # - Else, if --scenario-name was explicitly provided, use it as experiment name
+                #   so few-shot sweeps land in their own experiment (e.g. full_ft_hv_fewshot).
+                if args.mlflow_experiment:
+                    _set_nested(merged, ("mlflow", "experiment"), str(args.mlflow_experiment))
+                elif scenario_name_cli is not None:
+                    _set_nested(merged, ("mlflow", "experiment"), str(scenario_name))
 
-            if r_value is not None:
-                _set_nested(merged, ("peft", "lora_r"), int(r_value))
-            if alpha_value is not None:
-                _set_nested(merged, ("peft", "lora_alpha"), int(alpha_value))
+                _set_nested(merged, ("run", "seed"), int(seed))
 
-            # Set run.name unless already set or unless forced.
-            run_block = merged.get("run")
-            run_map = run_block if isinstance(run_block, dict) else {}
-            existing_name = run_map.get("name")
-            if args.force_run_name or not existing_name:
-                run_name = str(args.name_template).format(
-                    scenario=scenario_name,
-                    seed=int(seed),
-                    r=str(r_value) if r_value is not None else "",
-                    alpha=str(alpha_value) if alpha_value is not None else "",
-                )
-                _set_nested(merged, ("run", "name"), run_name)
+                # Few-shot budget: subsample only training split.
+                # Zero-shot: force test-only mode.
+                if float(budget) <= 0.0:
+                    _set_nested(merged, ("run", "mode"), "test")
+                    # Keep target_budget visible/loggable as 0.0
+                    _set_nested(merged, ("split", "train_subset_frac"), 0.0)
+                else:
+                    _set_nested(merged, ("split", "train_subset_frac"), float(budget))
 
-            suffix_parts: list[str] = []
-            if r_value is not None:
-                suffix_parts.append(f"r{r_value}")
-            if alpha_value is not None:
-                suffix_parts.append(f"a{alpha_value}")
-            suffix = f"_{'_'.join(suffix_parts)}" if suffix_parts else ""
+                if r_value is not None:
+                    _set_nested(merged, ("peft", "lora_r"), int(r_value))
+                if alpha_value is not None:
+                    _set_nested(merged, ("peft", "lora_alpha"), int(alpha_value))
 
-            cfg_path = out_dir / f"seed_{seed}{suffix}.yaml"
-            with open(cfg_path, "w", encoding="utf-8") as f:
-                yaml.safe_dump(merged, f, sort_keys=False)
-            merged_configs.append((cfg_path, int(seed), r_value, alpha_value))
+                # Set run.name unless already set or unless forced.
+                run_block = merged.get("run")
+                run_map = run_block if isinstance(run_block, dict) else {}
+                existing_name = run_map.get("name")
+                if args.force_run_name or not existing_name:
+                    run_name = str(args.name_template).format(
+                        scenario=scenario_name,
+                        seed=int(seed),
+                        budget=f"{float(budget):g}",
+                        r=str(r_value) if r_value is not None else "",
+                        alpha=str(alpha_value) if alpha_value is not None else "",
+                    )
+                    _set_nested(merged, ("run", "name"), run_name)
+
+                suffix_parts: list[str] = [f"b{float(budget):g}"]
+                if r_value is not None:
+                    suffix_parts.append(f"r{r_value}")
+                if alpha_value is not None:
+                    suffix_parts.append(f"a{alpha_value}")
+                suffix = f"_{'_'.join(suffix_parts)}" if suffix_parts else ""
+
+                cfg_path = out_dir / f"seed_{seed}{suffix}.yaml"
+                with open(cfg_path, "w", encoding="utf-8") as f:
+                    yaml.safe_dump(merged, f, sort_keys=False)
+                merged_configs.append((cfg_path, int(seed), float(budget), r_value, alpha_value))
 
     train_args = list(args.train_args or [])
     # argparse.REMAINDER keeps leading "--" sometimes; normalize.
@@ -269,25 +349,31 @@ def main(argv: list[str] | None = None) -> int:
     log.info("Seeds: %s", seeds)
     if has_grid:
         log.info("LoRA grid r=%s, alpha=%s", grid_rs, grid_alphas)
+    if budgets != [1.0]:
+        log.info("Budgets: %s", budgets)
     log.info("Generated configs: %s", out_dir)
     if train_args:
         log.info("Forwarded args: %s", train_args)
 
-    results: list[tuple[int, int]] = []  # (seed, returncode)
-    for cfg_path, seed, r_value, alpha_value in merged_configs:
+    results: list[tuple[int, float, int]] = []  # (seed, budget, returncode)
+    for cfg_path, seed, budget, r_value, alpha_value in merged_configs:
         cmd = [args.python_exe, "-m", "train", "--config", str(cfg_path), *train_args]
         log.info("===")
-        if r_value is not None or alpha_value is not None:
-            log.info("Seed %s (r=%s, alpha=%s): %s", seed, r_value, alpha_value, " ".join(cmd))
-        else:
-            log.info("Seed %s: %s", seed, " ".join(cmd))
+        log.info(
+            "Seed %s (budget=%s, r=%s, alpha=%s): %s",
+            seed,
+            budget,
+            r_value,
+            alpha_value,
+            " ".join(cmd),
+        )
         if args.dry_run:
-            results.append((seed, 0))
+            results.append((seed, float(budget), 0))
             continue
 
         env = os.environ.copy()
         proc = subprocess.run(cmd, env=env)
-        results.append((seed, int(proc.returncode)))
+        results.append((seed, float(budget), int(proc.returncode)))
 
         if proc.returncode != 0 and not args.continue_on_error:
             log.error(
@@ -299,18 +385,18 @@ def main(argv: list[str] | None = None) -> int:
 
     log.info("Summary:")
     ok = 0
-    for seed, rc in results:
+    for seed, budget, rc in results:
         status = "OK" if rc == 0 else f"FAIL({rc})"
         if rc == 0:
-            log.info("seed=%s: %s", seed, status)
+            log.info("seed=%s budget=%s: %s", seed, budget, status)
         else:
-            log.error("seed=%s: %s", seed, status)
+            log.error("seed=%s budget=%s: %s", seed, budget, status)
         if rc == 0:
             ok += 1
     log.info("Done: %s/%s succeeded", ok, len(results))
 
     # Non-zero if any failed.
-    return 0 if all(rc == 0 for _, rc in results) else 1
+    return 0 if all(rc == 0 for _, _, rc in results) else 1
 
 
 if __name__ == "__main__":

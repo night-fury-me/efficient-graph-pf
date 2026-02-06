@@ -147,6 +147,38 @@ def freeze_all_except_lora(model: nn.Module) -> None:
             module.lora_B.requires_grad = True
 
 
+@torch.no_grad()
+def merge_lora_weights(model: nn.Module) -> list[str]:
+    """Merge LoRA weights into base Linear layers and replace LoRALinear modules.
+
+    Returns the list of qualified module names that were merged.
+    """
+
+    merged: list[str] = []
+
+    for name, module in model.named_modules():
+        if not isinstance(module, LoRALinear):
+            continue
+
+        parent, attr = _get_parent_module(model, name)
+        base = module.base
+
+        # Compute merged weight: W + scale * (B @ A)
+        delta = torch.matmul(module.lora_B, module.lora_A) * float(module.scale)
+        weight = base.weight.data + delta.to(dtype=base.weight.dtype, device=base.weight.device)
+
+        merged_linear = nn.Linear(base.in_features, base.out_features, bias=base.bias is not None)
+        merged_linear.to(device=base.weight.device, dtype=base.weight.dtype)
+        merged_linear.weight.data.copy_(weight)
+        if base.bias is not None and merged_linear.bias is not None:
+            merged_linear.bias.data.copy_(base.bias.data)
+
+        setattr(parent, attr, merged_linear)
+        merged.append(name)
+
+    return merged
+
+
 def iter_trainable_params(model: nn.Module) -> Iterable[nn.Parameter]:
     return (p for p in model.parameters() if p.requires_grad)
 

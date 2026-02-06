@@ -94,6 +94,8 @@ def main(argv: list[str] | None = None) -> int:
             split_mode=cfg.split_mode,
             train_ratio=cfg.train_ratio,
             valid_ratio=cfg.valid_ratio,
+            train_subset_frac=getattr(cfg, "train_subset_frac", None),
+            train_subset_min_n=int(getattr(cfg, "train_subset_min_n", 1)),
         )
         log.info(
             "Dataset sizes | train %s  valid %s  test %s",
@@ -184,19 +186,23 @@ def main(argv: list[str] | None = None) -> int:
             "params_reduction_x": float(reduction_x),
         }
 
-        optim_bundle = build_optimizer_and_scheduler(
-            model=model,
-            lr=cfg.lr,
-            weight_decay=cfg.weight_decay,
-            lr_scheduler=cfg.lr_scheduler,
-            cosine_restart_epoch=cfg.cosine_restart_epoch,
-            steps_per_epoch=len(splits.train_loader),
-        )
+        optim_bundle = None
+        if "train" in cfg.mode:
+            optim_bundle = build_optimizer_and_scheduler(
+                model=model,
+                lr=cfg.lr,
+                weight_decay=cfg.weight_decay,
+                lr_scheduler=cfg.lr_scheduler,
+                cosine_restart_epoch=cfg.cosine_restart_epoch,
+                steps_per_epoch=len(splits.train_loader),
+            )
 
         tags = add_basic_tags(repo_root=repo_root)
         tags.update({"device": str(device)})
         tags.update({"run_id": run_id, "run_slug": run_slug})
         tags.update({"seed": str(cfg.seed)})
+        if getattr(cfg, "train_subset_frac", None) is not None:
+            tags.update({"target_budget": str(getattr(cfg, "train_subset_frac"))})
         if config_path:
             tags.update({"config": str(config_path)})
 
@@ -261,6 +267,13 @@ def main(argv: list[str] | None = None) -> int:
                 except Exception:
                     pass
 
+                # Log target budget (few-shot) as a metric as well for easy charting.
+                if getattr(cfg, "train_subset_frac", None) is not None:
+                    try:
+                        mlf.log_metric("target_budget", float(getattr(cfg, "train_subset_frac")))
+                    except Exception:
+                        pass
+
                 # Log config file used (artifact) if provided.
                 if config_path:
                     try:
@@ -318,6 +331,7 @@ def main(argv: list[str] | None = None) -> int:
             final_metrics: dict[str, float] = {}
 
             if "train" in cfg.mode:
+                assert optim_bundle is not None
                 history = train_validate(
                     model=model,
                     train_loader=splits.train_loader,

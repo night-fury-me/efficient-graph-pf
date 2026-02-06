@@ -1,0 +1,21 @@
+{
+	"servers": {
+		"sqlite": {
+			"command": "uvx",
+			"args": [
+				"mcp-server-sqlite",
+				"--db-path",
+				"${input:db_path}"
+			],
+			"type": "stdio"
+		}
+	},
+	"inputs": [
+		{
+			"type": "promptString",
+			"id": "db_path",
+			"description": "SQLite Database Path",
+			"default": "${workspaceFolder}/db.sqlite"
+		}
+	]
+}

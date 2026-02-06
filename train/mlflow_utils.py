@@ -7,6 +7,7 @@ import warnings
 import zipfile
 from contextlib import contextmanager, nullcontext
 from pathlib import Path
+from urllib.parse import urlparse, unquote
 from typing import Iterable, Optional
 
 log = logging.getLogger("simplegnn")
@@ -48,6 +49,44 @@ def _try_import_mlflow(*, strict: bool = False):
             ) from e
         log.warning("MLflow is not available (%s). Proceeding without MLflow.", e)
         return None
+
+
+def _normalize_artifact_location(loc: Optional[str]) -> Optional[str]:
+    """Normalize artifact locations for stable comparisons.
+
+    MLflow stores file artifact locations as absolute file URIs (e.g. file:///abs/path).
+    Users/configs often provide relative paths (e.g. file:./results/mlruns), which refer
+    to the same location but differ as strings. Normalize those to avoid noisy warnings.
+
+    Non-file schemes (s3://, gs://, etc.) are returned unchanged.
+    """
+
+    if not loc:
+        return None
+    s = str(loc).strip()
+    if not s:
+        return None
+
+    # If it looks like a URI with a non-file scheme, keep as-is.
+    if "://" in s and not s.startswith("file:"):
+        return s
+
+    if s.startswith("file:"):
+        parsed = urlparse(s)
+        # urlparse('file:./x') -> scheme='file', path='./x'
+        raw_path = unquote(parsed.path or "")
+        if not raw_path:
+            return s
+        try:
+            return Path(raw_path).expanduser().resolve().as_uri()
+        except Exception:
+            return s
+
+    # Treat as a filesystem path and normalize to file URI.
+    try:
+        return Path(s).expanduser().resolve().as_uri()
+    except Exception:
+        return s
 
 
 def _git_sha_short(repo_root: Path) -> Optional[str]:
@@ -143,28 +182,52 @@ def mlflow_run(
 
         # Ensure experiment exists with the desired artifact location.
         # Note: MLflow cannot change artifact_location of an existing experiment.
+        artifact_location_norm = _normalize_artifact_location(artifact_location)
         try:
             exp = mlflow.get_experiment_by_name(experiment)
         except Exception:
             exp = None
 
-        if exp is None:
-            if artifact_location:
+        # If the experiment exists but was deleted, restore it so set_experiment works.
+        try:
+            if exp is not None and str(getattr(exp, "lifecycle_stage", "active")) == "deleted":
                 try:
-                    mlflow.create_experiment(experiment, artifact_location=artifact_location)
+                    from mlflow.tracking import MlflowClient  # type: ignore
+
+                    MlflowClient().restore_experiment(exp.experiment_id)
+                    log.warning(
+                        "MLflow experiment '%s' was in lifecycle_stage=deleted; restored it.",
+                        experiment,
+                    )
+                    exp = mlflow.get_experiment_by_name(experiment)
+                except Exception as e:
+                    log.warning(
+                        "MLflow experiment '%s' is deleted and could not be restored (%s). "
+                        "Choose a new experiment name or restore it manually.",
+                        experiment,
+                        e,
+                    )
+        except Exception:
+            pass
+
+        if exp is None:
+            if artifact_location_norm:
+                try:
+                    mlflow.create_experiment(experiment, artifact_location=artifact_location_norm)
                 except Exception:
                     pass
             # Fall back to default creation behavior if needed.
         else:
             try:
                 current_loc = getattr(exp, "artifact_location", None)
-                if artifact_location and current_loc and str(current_loc) != str(artifact_location):
+                current_norm = _normalize_artifact_location(str(current_loc) if current_loc else None)
+                if artifact_location_norm and current_norm and str(current_norm) != str(artifact_location_norm):
                     log.warning(
                         "MLflow experiment '%s' already exists with artifact_location=%s; requested %s will be ignored. "
                         "Use a new experiment name or delete the existing experiment to change it.",
                         experiment,
                         current_loc,
-                        artifact_location,
+                        artifact_location_norm,
                     )
             except Exception:
                 pass
