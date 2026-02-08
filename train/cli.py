@@ -59,6 +59,15 @@ DEFAULTS = {
     "lora_target_modules": ["q", "k", "v", "out"],
     "peft_train_base": False,
     "peft_base_ckpt_path": None,
+    # Optional: keep select modules trainable while the base is frozen for LoRA.
+    # Example: ["theta_head", "v_head", "m_head"]
+    "peft_unfreeze_modules": [],
+
+    # Head-only fine-tuning (no LoRA): freeze all, unfreeze heads.
+    "head_only_ft": False,
+    # Optional: override which modules to unfreeze for head-only FT.
+    # Default matches the three prediction heads in the model.
+    "head_only_modules": ["theta_head", "v_head", "m_head"],
 
     # Compare metrics vs a baseline MLflow run (optional)
     "compare": False,
@@ -273,6 +282,35 @@ def build_parser(*, suppress_defaults: bool = False) -> argparse.ArgumentParser:
         help="Optional base checkpoint path to load before applying PEFT/LoRA",
     )
 
+    parser.add_argument(
+        "--peft_unfreeze_modules",
+        type=str,
+        nargs="+",
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["peft_unfreeze_modules"]),
+        help=(
+            "Optional list of (possibly dotted) submodule names to keep trainable when PEFT is enabled and base is frozen. "
+            "Example: --peft_unfreeze_modules theta_head v_head m_head"
+        ),
+    )
+
+    # Head-only fine-tuning (no LoRA)
+    parser.add_argument(
+        "--head_only_ft",
+        action="store_true",
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["head_only_ft"]),
+        help="Freeze all params and unfreeze only prediction heads (no LoRA).",
+    )
+    parser.add_argument(
+        "--head_only_modules",
+        type=str,
+        nargs="+",
+        default=(argparse.SUPPRESS if suppress_defaults else DEFAULTS["head_only_modules"]),
+        help=(
+            "Override head-only modules to unfreeze (possibly dotted names). "
+            "Default: theta_head v_head m_head"
+        ),
+    )
+
     # Compare vs baseline MLflow run
     parser.add_argument(
         "--compare",
@@ -368,6 +406,11 @@ class TrainConfig:
     lora_target_modules: List[str]
     peft_train_base: bool
     peft_base_ckpt_path: str | None
+    peft_unfreeze_modules: List[str]
+
+    # Head-only fine-tuning
+    head_only_ft: bool
+    head_only_modules: List[str]
 
     # Compare vs baseline MLflow run
     compare: bool
@@ -449,6 +492,12 @@ def config_from_args(args: argparse.Namespace) -> TrainConfig:
             not in (None, "", "null")
             else None
         ),
+        peft_unfreeze_modules=list(
+            getattr(args, "peft_unfreeze_modules", DEFAULTS["peft_unfreeze_modules"])
+        ),
+
+        head_only_ft=bool(getattr(args, "head_only_ft", DEFAULTS["head_only_ft"])),
+        head_only_modules=list(getattr(args, "head_only_modules", DEFAULTS["head_only_modules"])),
 
         compare=bool(getattr(args, "compare", False)),
         compare_baseline_run_id=(
@@ -565,6 +614,24 @@ def parse_train_config(argv: list[str] | None = None) -> tuple[TrainConfig, str 
         base_ckpt = get(raw, ("peft", "base_ckpt_path"), merged.get("peft_base_ckpt_path", DEFAULTS["peft_base_ckpt_path"]))
         merged["peft_base_ckpt_path"] = str(base_ckpt) if base_ckpt not in (None, "", "null") else None
 
+        merged["peft_unfreeze_modules"] = list(
+            get(
+                raw,
+                ("peft", "unfreeze_modules"),
+                merged.get("peft_unfreeze_modules", DEFAULTS["peft_unfreeze_modules"]),
+            )
+        )
+
+        # Head-only fine-tuning (no LoRA)
+        merged["head_only_ft"] = bool(get(raw, ("head_only", "enabled"), merged.get("head_only_ft", DEFAULTS["head_only_ft"])))
+        merged["head_only_modules"] = list(
+            get(
+                raw,
+                ("head_only", "modules"),
+                merged.get("head_only_modules", DEFAULTS["head_only_modules"]),
+            )
+        )
+
         # Compare vs baseline run (MLflow)
         merged["compare"] = bool(get(raw, ("compare", "enabled"), merged.get("compare", DEFAULTS["compare"])))
         cmp_id = get(raw, ("compare", "baseline_run_id"), merged.get("compare_baseline_run_id", DEFAULTS["compare_baseline_run_id"]))
@@ -662,6 +729,12 @@ def parse_train_config(argv: list[str] | None = None) -> tuple[TrainConfig, str 
                 if merged.get("peft_base_ckpt_path") not in (None, "", "null")
                 else None
             ),
+            peft_unfreeze_modules=list(
+                merged.get("peft_unfreeze_modules", DEFAULTS["peft_unfreeze_modules"])
+            ),
+
+            head_only_ft=bool(merged.get("head_only_ft", DEFAULTS["head_only_ft"])),
+            head_only_modules=list(merged.get("head_only_modules", DEFAULTS["head_only_modules"])),
 
             compare=bool(merged.get("compare", False)),
             compare_baseline_run_id=(

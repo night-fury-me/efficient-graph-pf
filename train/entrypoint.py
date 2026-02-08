@@ -19,7 +19,13 @@ from pathlib import Path
 from .mlflow_utils import add_basic_tags, log_params_safe, log_run_artifacts, mlflow_run, snapshot_code
 from .run_naming import make_run_id, make_run_slug, safe_param_dict
 from .logging_utils import ensure_run_dirs, make_run_paths
-from .peft_utils import apply_lora_to_linear_modules, count_trainable_params, freeze_all_except_lora
+from .peft_utils import (
+    apply_lora_to_linear_modules,
+    count_trainable_params,
+    freeze_all,
+    freeze_all_except_lora,
+    unfreeze_modules,
+)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -162,6 +168,36 @@ def main(argv: list[str] | None = None) -> int:
             if not train_base:
                 freeze_all_except_lora(model)
 
+                extra = list(getattr(cfg, "peft_unfreeze_modules", []) or [])
+                if extra:
+                    unfrozen = unfreeze_modules(model, extra)
+                    if unfrozen:
+                        log.info("PEFT: additionally unfroze modules: %s", unfrozen)
+                    else:
+                        log.warning(
+                            "PEFT: peft_unfreeze_modules was set but no modules were unfrozen: %s",
+                            extra,
+                        )
+
+        if bool(getattr(cfg, "peft", False)) and bool(getattr(cfg, "head_only_ft", False)):
+            log.warning("Head-only FT is enabled with PEFT; head-only freezing will override PEFT freezing.")
+
+        # Optional: head-only fine-tuning (no LoRA). Freeze all then unfreeze heads.
+        if bool(getattr(cfg, "head_only_ft", False)):
+            freeze_all(model)
+            head_modules = list(getattr(cfg, "head_only_modules", []) or [])
+            if head_modules:
+                unfrozen = unfreeze_modules(model, head_modules)
+                if unfrozen:
+                    log.info("Head-only FT: unfroze modules: %s", unfrozen)
+                else:
+                    log.warning(
+                        "Head-only FT: head_only_modules was set but no modules were unfrozen: %s",
+                        head_modules,
+                    )
+            else:
+                log.warning("Head-only FT enabled but no head_only_modules provided; all params frozen.")
+
         total_params = int(count_parameters(model))
         trainable_params = int(count_trainable_params(model))
         trainable_frac = (float(trainable_params) / float(total_params)) if total_params > 0 else 0.0
@@ -215,6 +251,13 @@ def main(argv: list[str] | None = None) -> int:
                 "lora_alpha": str(getattr(cfg, "lora_alpha", "")),
                 "lora_dropout": str(getattr(cfg, "lora_dropout", "")),
                 "peft_train_base": str(bool(getattr(cfg, "peft_train_base", False))).lower(),
+                "peft_unfreeze_modules": ",".join(list(getattr(cfg, "peft_unfreeze_modules", []) or [])),
+            })
+
+        if bool(getattr(cfg, "head_only_ft", False)):
+            tags.update({
+                "head_only_ft": "true",
+                "head_only_modules": ",".join(list(getattr(cfg, "head_only_modules", []) or [])),
             })
 
         # Always tag param efficiency for filtering/aggregation.

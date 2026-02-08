@@ -147,6 +147,47 @@ def freeze_all_except_lora(model: nn.Module) -> None:
             module.lora_B.requires_grad = True
 
 
+def freeze_all(model: nn.Module) -> None:
+    for p in model.parameters():
+        p.requires_grad = False
+
+
+def _get_submodule(root: nn.Module, qualified_name: str) -> nn.Module:
+    """Resolve a (possibly dotted) submodule name starting from root."""
+    name = str(qualified_name).strip()
+    if not name:
+        raise ValueError("Empty module name")
+
+    cur: nn.Module = root
+    for part in name.split("."):
+        nxt = getattr(cur, part, None)
+        if not isinstance(nxt, nn.Module):
+            raise AttributeError(f"Module '{type(cur).__name__}' has no submodule '{part}' (from '{qualified_name}')")
+        cur = nxt
+    return cur
+
+
+def unfreeze_modules(model: nn.Module, module_names: Sequence[str]) -> list[str]:
+    """Unfreeze (set requires_grad=True) for parameters in selected submodules.
+
+    Returns a list of module names that were successfully unfrozen.
+    """
+
+    unfrozen: list[str] = []
+    for raw_name in module_names:
+        name = str(raw_name).strip()
+        if not name:
+            continue
+        try:
+            mod = _get_submodule(model, name)
+        except Exception:
+            continue
+        for p in mod.parameters():
+            p.requires_grad = True
+        unfrozen.append(name)
+    return unfrozen
+
+
 @torch.no_grad()
 def merge_lora_weights(model: nn.Module) -> list[str]:
     """Merge LoRA weights into base Linear layers and replace LoRALinear modules.

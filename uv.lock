@@ -365,6 +365,7 @@ dependencies = [
     { name = "pyarrow" },
     { name = "pyyaml" },
     { name = "rich" },
+    { name = "scipy" },
     { name = "torchao" },
 ]
 
@@ -377,6 +378,7 @@ requires-dist = [
     { name = "pyarrow", specifier = ">=12,<23" },
     { name = "pyyaml", specifier = ">=6.0.1" },
     { name = "rich", specifier = ">=13.7.1" },
+    { name = "scipy", specifier = ">=1.15.3" },
     { name = "torchao", specifier = ">=0.15.0" },
 ]
 

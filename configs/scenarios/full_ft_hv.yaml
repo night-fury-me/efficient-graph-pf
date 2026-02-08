@@ -20,7 +20,7 @@ run:
 
 # Full fine-tuning hyperparams (you can tune these)
 train:
-  epochs: 30
+  epochs: 100
   lr: 1.0e-4
 
 optimizer:

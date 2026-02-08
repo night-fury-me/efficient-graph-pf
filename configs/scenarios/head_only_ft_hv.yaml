@@ -1,0 +1,37 @@
+# Scenario overlay: Head-only fine-tuning on HV (starting from MV baseline weights)
+#
+# Usage:
+#   python -u scripts/run_sweep.py --base configs/default.yaml --scenario configs/scenarios/head_only_ft_hv.yaml --seeds 42 43 44
+
+mlflow:
+  enabled: true
+  experiment: head_only_ft_hv_100ep
+
+# Head-only fine-tuning typically needs fewer epochs than full training.
+train:
+  epochs: 100
+  lr: 3.0e-4
+
+# Regularization for head-only: often use 0 or very small weight decay.
+optimizer:
+  weight_decay: 0.0
+
+# Override dataset to HV
+data:
+  parquet_paths:
+    - ./datasets/HVN_15000_NR_plain_4_to_32_buses.parquet
+    - ./datasets/HVN_15010_NR_plain_4_to_32_buses.parquet
+    - ./datasets/HVN_15020_NR_plain_4_to_32_buses.parquet
+
+# Initialize from MV baseline checkpoint (then train ONLY heads)
+run:
+  init_ckpt_path: ./results/mlruns/0a83691312394f0599189c399cdfb667/artifacts/run/ckpt/best.ckpt
+
+head_only:
+  enabled: true
+  modules: ["theta_head", "v_head", "m_head"]
+
+compare:
+  enabled: true
+  baseline_run_id: 0a83691312394f0599189c399cdfb667
+  metrics: ["test/rmse", "test/rmse_mag", "test/rmse_ang_deg"]
