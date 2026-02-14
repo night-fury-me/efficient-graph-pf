@@ -1,7 +1,7 @@
 
-# GNN Load Flow
+## Parameter-Efficient Domain Adaptation of Physics-Informed Self-Attention based GNNs for AC Power Flow Prediction
 
-This workspace contains a GNN-based load-flow training pipeline.
+This workspace provides code and tools for parameter-efficient domain adaptation of physics-informed self-attention based Graph Neural Networks (GNNs) for AC power flow prediction. It includes training pipelines, model architectures, data handling, and experiment management for research and development in power systems using advanced GNN techniques.
 
 ## Project layout
 
@@ -17,20 +17,32 @@ Compatibility shims for older imports/paths are kept at the repo root (e.g. `tra
 
 ## Run
 
-Preferred:
 
-- `python -m train --config configs/default.yaml --EPOCHS=1 ...`
+## How to Run Training
 
-MLflow (recommended: sqlite tracking backend):
+**Standard training:**
 
-- `python -m train --config configs/default.yaml --mlflow --mlflow_tracking_uri sqlite:///mlflow.db --mlflow_experiment SimpleGNN --EPOCHS=1 ...`
-- UI: `mlflow ui --backend-store-uri sqlite:///mlflow.db`
+```sh
+python -m train --config configs/default.yaml --EPOCHS=1
+```
 
-Note: MLflow's filesystem tracking backend (e.g. `file:./mlruns`) is deprecated in recent MLflow releases (Feb 2026 timeframe). Use sqlite for the tracking backend to avoid the warning.
+**With MLflow tracking (recommended):**
 
-Also supported:
+```sh
+python -m train --config configs/default.yaml --mlflow --mlflow_tracking_uri sqlite:///mlflow.db --mlflow_experiment SimpleGNN --EPOCHS=1
+```
 
-- `python run_train.py --config configs/default.yaml ...`
-- `python scripts/train.py --config configs/default.yaml ...`
-- `python train_valid_test2.py --config config.yaml ...`
+**Start the MLflow UI:**
+
+```sh
+mlflow ui --backend-store-uri sqlite:///mlflow.db
+```
+
+> **Note:** MLflow's filesystem tracking backend (e.g. `file:./mlruns`) is deprecated as of Feb 2026. Use a SQLite backend as shown above to avoid deprecation warnings.
+
+**Alternative entry points:**
+
+- `python run_train.py --config configs/default.yaml`
+- `python scripts/train.py --config configs/default.yaml`
+- `python train_valid_test2.py --config config.yaml`
 
