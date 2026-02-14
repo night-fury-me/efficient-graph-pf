@@ -22,7 +22,11 @@ OUT_LORA_PDF = os.path.join(OUT_DIR, "physics_loss_lora_head.pdf")
 
 # Plot every Nth point to reduce noise
 PLOT_EVERY = 5
-SMOOTH_WINDOW = 1
+SMOOTH_WINDOW = 5
+
+# Zoom band around 1.0 to emphasize small jumps
+ZOOM_AROUND_ONE = True
+ZOOM_BAND = (0.9, 1.30)
 
 # =========================
 # Styling (match pareto plot)
@@ -89,42 +93,54 @@ def _plot_one(
         edge_kwargs = {"markeredgecolor": "black", "markeredgewidth": 0.6}
 
     if "train" in loss.columns:
-        train_series = loss["train"].rolling(SMOOTH_WINDOW, center=True, min_periods=1).mean()
+        # Raw curve
         ax.plot(
             loss.index,
-            train_series,
+            loss["train"],
             marker="s",
-            linewidth=1.2,
-            markersize=3.5,
+            linewidth=0.8,
+            markersize=3.2,
             label="Training",
             color=COLOR_TRAIN,
+            # alpha=0.75,
+            zorder=1,
             **edge_kwargs,
         )
     if "val" in loss.columns:
-        val_series = loss["val"].rolling(SMOOTH_WINDOW, center=True, min_periods=1).mean()
+        # Raw curve
         ax.plot(
             loss.index,
-            val_series,
+            loss["val"],
             marker="o",
-            linewidth=1.2,
-            markersize=3.5,
+            linewidth=0.8,
+            markersize=3.2,
             label="Validation",
             color=COLOR_VAL,
+            # alpha=0.75,
+            zorder=1,
             **edge_kwargs,
         )
 
     y = loss["train"] if "train" in loss.columns else loss["val"]
     y = y.replace([float("inf"), float("-inf")], pd.NA).dropna()
-    use_log = False
+
+    # Use symlog to emphasize changes around 1.0 while still compressing large values.
+    use_symlog = False
     if not y.empty:
-        y_pos = y[y > 1]
+        y_pos = y[y > 0]
         if not y_pos.empty:
             ratio = float(y_pos.max() / y_pos.min())
-            use_log = ratio >= 100.0
-    if use_log:
-        ax.set_yscale("log")
+            use_symlog = ratio >= 10.0 or (y_pos.min() <= 2.0 <= y_pos.max())
+
+    if use_symlog:
+        ax.set_yscale("symlog", linthresh=1.0, linscale=0.8, base=10)
+
+    # Zoom around 1.0 to make small jumps more visible.
+    if ZOOM_AROUND_ONE:
+        ax.set_ylim(*ZOOM_BAND)
+
     ax.set_xlabel("Epoch")
-    ax.set_ylabel("Physics loss (log scale)" if use_log else f"Physics loss")
+    ax.set_ylabel("Physics loss (symlog, linthresh=1.0)" if use_symlog else "Physics loss")
     ax.set_title(title)
     ax.grid(True, which="both", linestyle=":", linewidth=0.6, alpha=0.8)
     ax.legend(frameon=True, loc="best")
@@ -164,7 +180,7 @@ def main() -> None:
 
     _plot_one(
         loss=lora_loss,
-        title="LoRa + Head FT Phyics Loss",
+        title="LoRa+PHead FT Phyics Loss",
         out_png=OUT_LORA_PNG,
         out_svg=OUT_LORA_SVG,
         out_pdf=OUT_LORA_PDF,

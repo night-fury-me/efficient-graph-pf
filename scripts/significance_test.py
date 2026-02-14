@@ -496,6 +496,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     # Paired Wilcoxon tests vs Full FT
     summary_rows: list[dict[str, Any]] = []
     full = errors["full_ft"]
+    n_tests = max(1, len(errors) - 1)
 
     for name, arr in errors.items():
         mean_rmse = float(np.mean(arr))
@@ -512,12 +513,22 @@ def main(argv: Optional[list[str]] = None) -> int:
             p_lower_bound = float(np.nextafter(0, 1, dtype=np.float64))
             p_value_floor = p_value if p_value > 0.0 else p_lower_bound
             neg_log10_p = float(-math.log10(p_value_floor))
+
+            p_value_bonf = min(p_value * n_tests, 1.0)
+            p_value_bonf_str = f"{p_value_bonf:.17g}"
+            p_value_bonf_floor = p_value_bonf if p_value_bonf > 0.0 else p_lower_bound
+            neg_log10_p_bonf = float(-math.log10(p_value_bonf_floor))
+
             row.update(
                 {
                     "wilcoxon_stat": stat,
                     "p_value": p_value,
                     "p_value_str": p_value_str,
                     "neg_log10_p": neg_log10_p,
+                    "p_value_bonferroni": p_value_bonf,
+                    "p_value_bonferroni_str": p_value_bonf_str,
+                    "neg_log10_p_bonferroni": neg_log10_p_bonf,
+                    "bonferroni_n_tests": int(n_tests),
                 }
             )
         summary_rows.append(row)

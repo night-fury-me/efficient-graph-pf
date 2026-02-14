@@ -32,7 +32,7 @@ def main() -> None:
         MethodPoint("Full FT", 100.00, 9.35e-4),
         MethodPoint("Head Only", 10.00, 1.58e-3),
         MethodPoint("LoRA Only", 3.44, 3.61e-3),
-        MethodPoint("LoRA + Head", 14.54, 1.20e-3),
+        MethodPoint("LoRA + PHead", 14.54, 1.20e-3),
     ]
 
     # ===== Styling (paper-friendly) =====
@@ -57,13 +57,13 @@ def main() -> None:
         "Full FT": "tab:blue",
         "Head Only": "tab:orange",
         "LoRA Only": "tab:green",
-        "LoRA + Head": "tab:red",
+        "LoRA + PHead": "tab:red",
     }
     marker_map = {
         "Full FT": "s",
         "Head Only": "^",
         "LoRA Only": "o",
-        "LoRA + Head": "D",
+        "LoRA + PHead": "D",
     }
 
     # Use explicit margins (more reliable than constrained_layout for PDF/SVG crops)
