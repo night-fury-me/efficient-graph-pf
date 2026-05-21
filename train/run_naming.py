@@ -76,16 +76,29 @@ def make_run_id(*, run_slug: str) -> str:
 
 
 def safe_param_dict(cfg) -> dict[str, str | int | float | bool]:
-    """Flatten dataclass-like configs into MLflow-safe param values."""
-    raw = asdict(cfg)
+    """Flatten nested dataclass configs into MLflow-safe param values.
+
+    Keys are dotted to mirror the dataclass structure (e.g. `model.K`,
+    `peft.lora_r`, `mlflow.tracking_uri`). Lists/tuples are joined with commas.
+    """
+    return _flatten_for_mlflow(asdict(cfg))
+
+
+def _flatten_for_mlflow(d: dict, prefix: str = "") -> dict[str, str | int | float | bool]:
     out: dict[str, str | int | float | bool] = {}
-    for k, v in raw.items():
-        if isinstance(v, (bool, int, float, str)):
-            out[k] = v
+    for k, v in d.items():
+        key = f"{prefix}{k}"
+        if isinstance(v, dict):
+            out.update(_flatten_for_mlflow(v, prefix=f"{key}."))
+        elif isinstance(v, bool):
+            # bool must come before int (bool is a subclass of int in Python).
+            out[key] = v
+        elif isinstance(v, (int, float, str)):
+            out[key] = v
         elif isinstance(v, (list, tuple)):
-            out[k] = ",".join(str(x) for x in v)
+            out[key] = ",".join(str(x) for x in v)
         elif v is None:
-            out[k] = "null"
+            out[key] = "null"
         else:
-            out[k] = str(v)
+            out[key] = str(v)
     return out
