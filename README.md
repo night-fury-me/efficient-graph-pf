@@ -11,9 +11,7 @@ This workspace provides code and tools for parameter-efficient domain adaptation
 - `datasets/`: parquet datasets
 - `configs/`: YAML configs (see `configs/default.yaml`)
 - `results/`: outputs (logs, checkpoints, plots)
-- `scripts/`: helper scripts (e.g., `scripts/bootstrap_uv.sh`, `scripts/train.py`)
-
-Compatibility shims for older imports/paths are kept at the repo root (e.g. `train_valid_test2.py`).
+- `scripts/`: helper scripts (e.g., `scripts/bootstrap_uv.sh`, `scripts/run_sweep.py`)
 
 ## Run
 
@@ -39,10 +37,4 @@ mlflow ui --backend-store-uri sqlite:///mlflow.db
 ```
 
 > **Note:** MLflow's filesystem tracking backend (e.g. `file:./mlruns`) is deprecated as of Feb 2026. Use a SQLite backend as shown above to avoid deprecation warnings.
-
-**Alternative entry points:**
-
-- `python run_train.py --config configs/default.yaml`
-- `python scripts/train.py --config configs/default.yaml`
-- `python train_valid_test2.py --config config.yaml`
 

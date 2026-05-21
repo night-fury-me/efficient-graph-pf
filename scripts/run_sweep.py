@@ -15,9 +15,7 @@ from typing import Any, Mapping
 import yaml
 
 # When invoked as `python scripts/run_sweep.py`, Python puts `scripts/` at the
-# front of sys.path. This repo also has `scripts/train.py`, which can shadow the
-# real `train/` package. Prepend repo root so `import train...` resolves to the
-# package.
+# front of sys.path. Prepend repo root so `import train...` resolves to the package.
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
