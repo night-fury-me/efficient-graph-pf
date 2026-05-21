@@ -1,9 +1,18 @@
 import os
+import sys
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List
 
 import numpy as np
-import matplotlib.pyplot as plt
+
+# Ensure repo root is on sys.path so `train.viz` resolves when run as
+# `python scripts/plot_pareto_tradeoff.py`.
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from train.viz import apply_publication_style, apply_paper_margins, new_paper_figure, save_figure
 
 
 @dataclass(frozen=True)
@@ -35,23 +44,7 @@ def main() -> None:
         MethodPoint("LoRA + PHead", 14.54, 1.20e-3),
     ]
 
-    # ===== Styling (paper-friendly) =====
-    plt.style.use("seaborn-v0_8-colorblind")
-    plt.rcParams.update(
-        {
-            "font.family": "serif",
-            "font.serif": ["Times New Roman", "Times", "DejaVu Serif"],
-            "font.size": 11,
-            "axes.labelsize": 11,
-            "axes.titlesize": 11,
-            "legend.fontsize": 9,
-            "xtick.labelsize": 10,
-            "ytick.labelsize": 10,
-            "axes.linewidth": 0.8,
-            "pdf.fonttype": 42,
-            "svg.fonttype": "none",
-        }
-    )
+    apply_publication_style()
 
     color_map = {
         "Full FT": "tab:blue",
@@ -67,7 +60,7 @@ def main() -> None:
     }
 
     # Use explicit margins (more reliable than constrained_layout for PDF/SVG crops)
-    fig, ax = plt.subplots(figsize=(4.2, 2.7), constrained_layout=False)
+    fig, ax = new_paper_figure()
 
     # Plot points (no point annotations; legend is sufficient)
     for p in points:
@@ -121,19 +114,9 @@ def main() -> None:
     )
 
     # Prevent axis-label cropping in vector outputs
-    fig.subplots_adjust(left=0.18, right=0.98, bottom=0.22, top=0.97)
+    apply_paper_margins(fig)
 
-    # Output
-    out_dir = os.path.join("results", "pareto")
-    os.makedirs(out_dir, exist_ok=True)
-    out_pdf = os.path.join(out_dir, "pareto_tradeoff.pdf")
-    out_svg = os.path.join(out_dir, "pareto_tradeoff.svg")
-
-    fig.savefig(out_pdf, bbox_inches="tight", pad_inches=0.02)
-    fig.savefig(out_svg, bbox_inches="tight", pad_inches=0.02)
-
-    print(f"[OK] Saved: {out_pdf}")
-    print(f"[OK] Saved: {out_svg}")
+    save_figure(fig, os.path.join("results", "pareto", "pareto_tradeoff"), formats=("pdf", "svg"))
 
 
 if __name__ == "__main__":

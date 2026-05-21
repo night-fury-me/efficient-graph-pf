@@ -1,6 +1,17 @@
 import os
+import sys
+from pathlib import Path
+
 import pandas as pd
 import matplotlib.pyplot as plt
+
+# Ensure repo root is on sys.path so `train.viz` resolves when run as
+# `python scripts/plot_physics_loss_history.py`.
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from train.viz import apply_publication_style, apply_paper_margins, new_paper_figure, save_figure
 
 # =========================
 # Input CSVs
@@ -13,12 +24,8 @@ LORA_HEAD_CSV = "results/mlruns/47a86a38f1f54a3d9be987baaaf87534/artifacts/run/a
 # =========================
 OUT_DIR = "./results/pareto"
 os.makedirs(OUT_DIR, exist_ok=True)
-OUT_FULL_PNG = os.path.join(OUT_DIR, "physics_loss_full_ft.png")
-OUT_FULL_SVG = os.path.join(OUT_DIR, "physics_loss_full_ft.svg")
-OUT_FULL_PDF = os.path.join(OUT_DIR, "physics_loss_full_ft.pdf")
-OUT_LORA_PNG = os.path.join(OUT_DIR, "physics_loss_lora_head.png")
-OUT_LORA_SVG = os.path.join(OUT_DIR, "physics_loss_lora_head.svg")
-OUT_LORA_PDF = os.path.join(OUT_DIR, "physics_loss_lora_head.pdf")
+OUT_FULL_BASE = os.path.join(OUT_DIR, "physics_loss_full_ft")
+OUT_LORA_BASE = os.path.join(OUT_DIR, "physics_loss_lora_head")
 
 # Plot every Nth point to reduce noise
 PLOT_EVERY = 5
@@ -28,25 +35,7 @@ SMOOTH_WINDOW = 5
 ZOOM_AROUND_ONE = True
 ZOOM_BAND = (0.9, 1.30)
 
-# =========================
-# Styling (match pareto plot)
-# =========================
-plt.style.use("seaborn-v0_8-colorblind")
-plt.rcParams.update(
-    {
-        "font.family": "serif",
-        "font.serif": ["Times New Roman", "Times", "DejaVu Serif"],
-        "font.size": 11,
-        "axes.labelsize": 11,
-        "axes.titlesize": 11,
-        "legend.fontsize": 9,
-        "xtick.labelsize": 10,
-        "ytick.labelsize": 10,
-        "axes.linewidth": 0.8,
-        "pdf.fonttype": 42,
-        "svg.fonttype": "none",
-    }
-)
+apply_publication_style()
 
 COLOR_TRAIN = "tab:blue"
 COLOR_VAL = "tab:orange"
@@ -81,12 +70,10 @@ def _plot_one(
     *,
     loss: pd.DataFrame,
     title: str,
-    out_png: str,
-    out_svg: str,
-    out_pdf: str,
+    out_base: str,
     marker_edge: bool,
 ) -> None:
-    fig, ax = plt.subplots(figsize=(4.2, 2.7), constrained_layout=False)
+    fig, ax = new_paper_figure()
 
     edge_kwargs = {}
     if marker_edge:
@@ -145,14 +132,8 @@ def _plot_one(
     ax.grid(True, which="both", linestyle=":", linewidth=0.6, alpha=0.8)
     ax.legend(frameon=True, loc="best")
 
-    fig.subplots_adjust(left=0.18, right=0.98, bottom=0.22, top=0.97)
-
-    fig.savefig(out_png, dpi=240, bbox_inches="tight", pad_inches=0.02)
-    fig.savefig(out_svg, bbox_inches="tight", pad_inches=0.02)
-    fig.savefig(out_pdf, bbox_inches="tight", pad_inches=0.02)
-    print(f"[OK] Saved: {out_png}")
-    print(f"[OK] Saved: {out_svg}")
-    print(f"[OK] Saved: {out_pdf}")
+    apply_paper_margins(fig)
+    save_figure(fig, out_base, formats=("png", "svg", "pdf"))
     plt.show()
 
 
@@ -172,18 +153,14 @@ def main() -> None:
     _plot_one(
         loss=full_loss,
         title="Full FT Physics Loss",
-        out_png=OUT_FULL_PNG,
-        out_svg=OUT_FULL_SVG,
-        out_pdf=OUT_FULL_PDF,
+        out_base=OUT_FULL_BASE,
         marker_edge=True,
     )
 
     _plot_one(
         loss=lora_loss,
         title="LoRa+PHead FT Phyics Loss",
-        out_png=OUT_LORA_PNG,
-        out_svg=OUT_LORA_SVG,
-        out_pdf=OUT_LORA_PDF,
+        out_base=OUT_LORA_BASE,
         marker_edge=True,
     )
 

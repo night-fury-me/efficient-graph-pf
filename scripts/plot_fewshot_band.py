@@ -1,24 +1,18 @@
 import os
-import numpy as np
-import matplotlib.pyplot as plt
+import sys
+from pathlib import Path
 
-# ===== Styling (paper-friendly, matches pareto script) =====
-plt.style.use("seaborn-v0_8-colorblind")
-plt.rcParams.update(
-    {
-        "font.family": "serif",
-        "font.serif": ["Times New Roman", "Times", "DejaVu Serif"],
-        "font.size": 11,
-        "axes.labelsize": 11,
-        "axes.titlesize": 11,
-        "legend.fontsize": 9,
-        "xtick.labelsize": 10,
-        "ytick.labelsize": 10,
-        "axes.linewidth": 0.8,
-        "pdf.fonttype": 42,
-        "svg.fonttype": "none",
-    }
-)
+import numpy as np
+
+# Ensure repo root is on sys.path so `train.viz` resolves when run as
+# `python scripts/plot_fewshot_band.py`.
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from train.viz import apply_publication_style, apply_paper_margins, new_paper_figure, save_figure
+
+apply_publication_style()
 
 color_map = {
     "Full-FT": "tab:red",
@@ -78,7 +72,7 @@ def main():
 
     # Prepare data
     methods = ["Full-FT", "LoRA (r=2, α=8)"]
-    fig, ax = plt.subplots(figsize=(4.2, 2.7), constrained_layout=False)
+    fig, ax = new_paper_figure()
     for method in methods:
         budgets = np.array(data[method]["budget"], dtype=float)
         means = np.array(data[method]["mean"], dtype=float)
@@ -131,19 +125,9 @@ def main():
     )
 
     # Prevent axis-label cropping in vector outputs
-    fig.subplots_adjust(left=0.18, right=0.98, bottom=0.22, top=0.97)
+    apply_paper_margins(fig)
 
-    # Output
-    out_dir = os.path.join("results", "fewshot")
-    os.makedirs(out_dir, exist_ok=True)
-    out_pdf = os.path.join(out_dir, "fewshot_band.pdf")
-    out_svg = os.path.join(out_dir, "fewshot_band.svg")
-
-    fig.savefig(out_pdf, bbox_inches="tight", pad_inches=0.02)
-    fig.savefig(out_svg, bbox_inches="tight", pad_inches=0.02)
-
-    print(f"[OK] Saved: {out_pdf}")
-    print(f"[OK] Saved: {out_svg}")
+    save_figure(fig, os.path.join("results", "fewshot", "fewshot_band"), formats=("pdf", "svg"))
 
 if __name__ == "__main__":
     main()
