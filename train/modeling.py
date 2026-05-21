@@ -5,43 +5,17 @@ from typing import Iterable, List
 import torch
 import torch.nn as nn
 
-from models.gnsmsg_edge_selfattn import GNSMsg_EdgeSelfAttn
+# Importing the `models` package triggers builder registration for every
+# bundled model (see `models/__init__.py`). Adding a new model does NOT
+# require any edit to this file — only a new subpackage under `models/`.
+import models  # noqa: F401  -- side-effect: populates MODEL_REGISTRY
+
+from models.registry import build_model
 
 
-def create_model(
-    *,
-    model_name: str,
-    d: int,
-    d_hi: int,
-    K: int,
-    pinn: bool,
-    gamma: float,
-    v_limit: bool,
-    use_armijo: bool,
-    dtheta_max: float,
-    dvm_frac: float,
-    num_attn_layers: int,
-    device: torch.device,
-) -> nn.Module:
-    if model_name == "GNSMsg_EdgeSelfAttn":
-        model = GNSMsg_EdgeSelfAttn(
-            d=d,
-            d_hi=d_hi,
-            K=K,
-            pinn=pinn,
-            gamma=gamma,
-            v_limit=v_limit,
-            use_armijo=use_armijo,
-            dtheta_max=dtheta_max,
-            dvm_frac=dvm_frac,
-            num_attn_layers=num_attn_layers,
-        ).to(device)
-    else:
-        raise ValueError(
-            f"Unknown model: {model_name}. Available: GNSMsg_EdgeSelfAttn (models/gnsmsg_armijo.py was removed)."
-        )
-
-    return model
+def create_model(*, model_name: str, device: torch.device, **model_kwargs) -> nn.Module:
+    """Build a model by registered name. Adding a new model = adding a builder."""
+    return build_model(model_name, device=device, **model_kwargs)
 
 
 def init_weights(model: nn.Module, *, weight_init: str, bias_init: float, exclude_modules: List[nn.Module] | None = None) -> None:

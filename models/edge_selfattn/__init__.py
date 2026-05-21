@@ -1,12 +1,13 @@
 """EdgeSelfAttn model package.
 
-This package holds the refactored implementation for the public model class
-`GNSMsg_EdgeSelfAttn`.
+Public entrypoint:
+    from models.edge_selfattn import GNSMsg_EdgeSelfAttn
 
-The stable import for the rest of the repo remains:
-`from models.gnsmsg_edge_selfattn import GNSMsg_EdgeSelfAttn`
+Importing this package also imports `builder`, which self-registers
+`GNSMsg_EdgeSelfAttn` into `models.registry.MODEL_REGISTRY`.
 """
 
 from .model import GNSMsg_EdgeSelfAttn
+from . import builder  # noqa: F401  -- side-effect: registers the model
 
 __all__ = ["GNSMsg_EdgeSelfAttn"]
