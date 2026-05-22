@@ -87,6 +87,38 @@ def anderson_solver(
     return X[:, k_last].view_as(x0), res
 
 
+def jacobian_reg_estimate(
+    f_out: torch.Tensor,
+    z_in: torch.Tensor,
+    n_samples: int = 1,
+) -> torch.Tensor:
+    """Hutchinson estimator of ||dF/dz||_F^2 at (z_in, ...).
+
+    E_eps[||dF/dz . eps||^2] for eps ~ N(0, I) equals ||dF/dz||_F^2.
+    Used as a soft contractivity regularizer (Bai+Koltun+Kolter 2021,
+    "Stabilizing Equilibrium Models by Jacobian Regularization"):
+    adding lambda * jac_reg to the loss pushes the operator's spectral
+    radius below 1, which is exactly what the IFT backward requires.
+
+    Args:
+        f_out: F(z_in) -- already evaluated with autograd attached.
+        z_in: input to F, with requires_grad=True.
+        n_samples: number of Rademacher / Gaussian probes (default 1).
+
+    Returns:
+        scalar tensor with create_graph=True so the regularizer's gradient
+        feeds back into F's parameters.
+    """
+    total = z_in.new_zeros(())
+    for _ in range(n_samples):
+        eps = torch.randn_like(z_in)
+        jvp = autograd.grad(
+            f_out, z_in, eps, create_graph=True, retain_graph=True, only_inputs=True
+        )[0]
+        total = total + jvp.pow(2).mean()
+    return total / float(n_samples)
+
+
 def naive_solver(
     f: Callable[[torch.Tensor], torch.Tensor],
     x0: torch.Tensor,
@@ -125,13 +157,26 @@ class DEQFixedPoint(nn.Module):
         solver_kwargs: dict | None = None,
         backward_solver: Callable | None = None,
         backward_kwargs: dict | None = None,
+        backward_mode: str = "ift",
     ):
+        """backward_mode:
+          - "ift": exact implicit-function-theorem gradient via adjoint
+            fixed-point solve. Requires F to be contractive at z_star,
+            otherwise (I - dF/dz) is singular and gradients blow up.
+          - "phantom": one-step gradient through the trailing f(z_star)
+            call in forward(); avoids the IFT inverse. Inexact but stable
+            even when F is not yet contractive. From Geng et al. 2021,
+            "On Training Implicit Models" -- the PG-1 variant.
+        """
         super().__init__()
+        if backward_mode not in ("ift", "phantom"):
+            raise ValueError(f"backward_mode must be 'ift' or 'phantom', got {backward_mode!r}")
         self.f = f
         self.solver = solver
         self.solver_kwargs = solver_kwargs or {}
         self.backward_solver = backward_solver or solver
         self.backward_kwargs = backward_kwargs or self.solver_kwargs
+        self.backward_mode = backward_mode
         self.forward_res: list[float] = []
         self.backward_res: list[float] = []
 
@@ -145,10 +190,8 @@ class DEQFixedPoint(nn.Module):
         # 2) One f-call with autograd -> attach z_star to the graph.
         z_star = self.f(z_star, *args)
 
-        # 3) IFT backward via a tensor hook on z_star. The hook replaces
-        #    dL/dz_star with (I - dF/dz)^{-T} dL/dz_star, computed by
-        #    re-using the same fixed-point solver on the adjoint map.
-        if z_star.requires_grad:
+        # 3) Backward: either IFT (exact, fragile) or phantom (1-step, stable).
+        if self.backward_mode == "ift" and z_star.requires_grad:
             z_in = z_star.clone().detach().requires_grad_(True)
             f_out = self.f(z_in, *args)
 
@@ -161,5 +204,9 @@ class DEQFixedPoint(nn.Module):
                 return g_solved
 
             z_star.register_hook(backward_hook)
+        # In "phantom" mode, no hook is registered. Backward through the
+        # single autograd-attached f-call from step 2 gives a stable
+        # one-step gradient, which is sufficient when F isn't yet
+        # contractive (early training, random init).
 
         return z_star

@@ -218,6 +218,12 @@ def train_validate(
     for epoch in range(1, epochs + 1):
         t0 = time.time()
 
+        # Hook for models that need per-epoch state (e.g. PE_DEQ_PF curriculum
+        # switches between unrolled-warmup and DEQ forward based on epoch).
+        # Optional and additive: no-op for models without the method.
+        if hasattr(model, "set_epoch"):
+            model.set_epoch(epoch)
+
         m_train = run_epoch(
             model=model,
             loader=train_loader,

@@ -29,6 +29,7 @@ class GNSMsg_EdgeSelfAttn(nn.Module):
         dvm_frac: float = 0.10,
         v_min: float = 0.75,
         v_max: float = 1.20,
+        tied_heads: bool = False,
     ):
         super().__init__()
         self.K, self.d, self.d_hi = int(K), int(d), int(d_hi)
@@ -65,17 +66,28 @@ class GNSMsg_EdgeSelfAttn(nn.Module):
             ]
         )
 
-        self.theta_head = nn.ModuleList([nn.Linear(self.d_model, 1) for _ in range(self.K)])
-        self.v_head = nn.ModuleList([nn.Linear(self.d_model, 1) for _ in range(self.K)])
-        self.m_head = nn.ModuleList([nn.Linear(self.d_model, self.d) for _ in range(self.K)])
+        # tied_heads: share a single (theta/v/m) head set across all K iterations.
+        # Untied (default) matches PIGNN-Attn-LS; tied gives a fair-parameter
+        # comparison against the weight-shared PE_DEQ_PF operator.
+        self.tied_heads = bool(tied_heads)
+        n_heads_sets = 1 if self.tied_heads else self.K
+        self.theta_head = nn.ModuleList(
+            [nn.Linear(self.d_model, 1) for _ in range(n_heads_sets)]
+        )
+        self.v_head = nn.ModuleList(
+            [nn.Linear(self.d_model, 1) for _ in range(n_heads_sets)]
+        )
+        self.m_head = nn.ModuleList(
+            [nn.Linear(self.d_model, self.d) for _ in range(n_heads_sets)]
+        )
 
-        for k in range(self.K):
-            nn.init.zeros_(self.theta_head[k].weight)
-            nn.init.zeros_(self.theta_head[k].bias)
-            nn.init.zeros_(self.v_head[k].weight)
-            nn.init.zeros_(self.v_head[k].bias)
-            nn.init.zeros_(self.m_head[k].weight)
-            nn.init.zeros_(self.m_head[k].bias)
+        for j in range(n_heads_sets):
+            nn.init.zeros_(self.theta_head[j].weight)
+            nn.init.zeros_(self.theta_head[j].bias)
+            nn.init.zeros_(self.v_head[j].weight)
+            nn.init.zeros_(self.v_head[j].bias)
+            nn.init.zeros_(self.m_head[j].weight)
+            nn.init.zeros_(self.m_head[j].bias)
 
         self._pair_cache: dict[tuple[int, torch.device], torch.Tensor] = {}
 
@@ -245,9 +257,10 @@ class GNSMsg_EdgeSelfAttn(nn.Module):
                     x_out[b : b + 1] = xb
                 x = x_out
 
-            dth = self.theta_head[k](x).squeeze(-1)
-            dv = self.v_head[k](x).squeeze(-1)
-            dm = torch.tanh(self.m_head[k](x))
+            head_idx = 0 if self.tied_heads else k
+            dth = self.theta_head[head_idx](x).squeeze(-1)
+            dv = self.v_head[head_idx](x).squeeze(-1)
+            dm = torch.tanh(self.m_head[head_idx](x))
             dm = F.layer_norm(dm, dm.shape[-1:])
 
             dth, dv = self._apply_constraints(v=v, dth=dth, dv=dv, slack_mask=slack_mask, pv_mask=pv_mask)

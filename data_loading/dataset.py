@@ -124,7 +124,12 @@ class ChanghunDataset(Dataset):
             cache_root.mkdir(parents=True, exist_ok=True)
             cache_path = cache_root / f"changhun_rows_{self._cache_key(path, per_unit=per_unit)}.pt"
             if cache_path.exists() and not rebuild_cache:
-                payload = torch.load(cache_path, map_location=(self._device or "cpu"))
+                # weights_only=False: torch 2.6+ flips the default to True, which
+                # rejects pickled numpy reconstructors. The cache file is written
+                # by this same project (trusted source), so opt out.
+                payload = torch.load(
+                    cache_path, map_location=(self._device or "cpu"), weights_only=False
+                )
                 rows = payload.get("rows") if isinstance(payload, dict) else None
                 if isinstance(rows, list) and rows and isinstance(rows[0], dict):
                     self.rows = rows

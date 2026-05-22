@@ -26,7 +26,7 @@ from models.edge_selfattn.admittance import (
 )
 from models.edge_selfattn.attention import EdgeSelfAttnBlock
 
-from .deq import DEQFixedPoint, anderson_solver, naive_solver
+from .deq import DEQFixedPoint, anderson_solver, jacobian_reg_estimate, naive_solver
 
 
 class PE_DEQ_PF(nn.Module):
@@ -62,7 +62,12 @@ class PE_DEQ_PF(nn.Module):
         anderson_m: int = 5,
         anderson_lam: float = 1e-4,
         anderson_beta: float = 1.0,
-        damping_init: float = 0.5,
+        damping_init: float = 0.1,
+        backward_mode: str = "phantom",
+        jac_reg_weight: float = 0.0,
+        jac_reg_n_samples: int = 1,
+        unrolled_warmup_epochs: int = 0,
+        spectral_norm: bool = False,
     ):
         super().__init__()
         self.d, self.d_hi = int(d), int(d_hi)
@@ -140,9 +145,53 @@ class PE_DEQ_PF(nn.Module):
             solver_kwargs=solver_kwargs,
             backward_solver=solver_map[solver],
             backward_kwargs=backward_kwargs,
+            backward_mode=backward_mode,
         )
 
+        # Jacobian regularization (Bai+Koltun+Kolter 2021). When > 0, an
+        # auxiliary penalty E[||dF/dz||_F^2] is added to phys_loss during
+        # training. Drives the operator toward contractivity, which is
+        # what makes the IFT backward well-conditioned.
+        self.jac_reg_weight = float(jac_reg_weight)
+        self.jac_reg_n_samples = int(jac_reg_n_samples)
+        if self.jac_reg_weight < 0:
+            raise ValueError("jac_reg_weight must be >= 0")
+
         self._pair_cache: dict[tuple[int, torch.device], torch.Tensor] = {}
+
+        # Curriculum: during the first `unrolled_warmup_epochs`, use a fully
+        # explicit K-step unrolled forward (BPTT over K iterations) with no
+        # DEQ solver. After warmup, switch to the implicit DEQ forward+backward.
+        # Bypasses the chaotic pre-contractive phase that plagued the DEQ-only
+        # runs (C, C100, D).
+        self.unrolled_warmup_epochs = int(unrolled_warmup_epochs)
+        self._current_epoch: int = 0
+        # forward_iter is the K used for both the DEQ solver max_iter and the
+        # unrolled warmup steps -- they share the same notion of "iterations".
+        self._unrolled_K: int = int(forward_iter)
+
+        # Spectral normalization: wraps the attention block's Linear weights
+        # so that ||W||_2 <= 1, which gives a Lipschitz-by-construction prior
+        # on F's local sensitivity. Combined with bounded damping alpha, this
+        # is the standard contractivity-by-construction recipe.
+        if spectral_norm:
+            from torch.nn.utils.parametrizations import spectral_norm as _sn
+            for module in self.blocks.modules():
+                if isinstance(module, nn.Linear):
+                    _sn(module, name="weight", n_power_iterations=1)
+        self._spectral_norm_on = bool(spectral_norm)
+
+    def set_epoch(self, epoch: int) -> None:
+        """Called by the training loop before each train epoch.
+
+        Used by the curriculum: forward() checks `self._current_epoch` to
+        decide between unrolled-warmup and DEQ paths.
+        """
+        self._current_epoch = int(epoch)
+
+    @property
+    def in_warmup(self) -> bool:
+        return self._current_epoch < self.unrolled_warmup_epochs
 
     @property
     def damping(self) -> torch.Tensor:
@@ -308,7 +357,17 @@ class PE_DEQ_PF(nn.Module):
             [v0.unsqueeze(-1), th0.unsqueeze(-1), m0], dim=-1
         )
 
-        z_star = self.deq(z0, ctx)
+        # Curriculum branch: explicit K-step unrolled forward during warmup
+        # epochs (BPTT over K iterations), implicit DEQ forward+backward after.
+        # The branch is on epoch, not on self.training, so validation and
+        # training use the same forward at each stage.
+        if self.in_warmup:
+            z = z0
+            for _ in range(self._unrolled_K):
+                z = self._operator(z, ctx)
+            z_star = z
+        else:
+            z_star = self.deq(z0, ctx)
 
         v_star = z_star[..., 0]
         th_star = self._wrap_theta(z_star[..., 1])
@@ -321,5 +380,14 @@ class PE_DEQ_PF(nn.Module):
             DP = (ctx["P_set"] - Sc.real).masked_fill(slack_mask, 0.0)
             DQ = (ctx["Q_set"] - Sc.imag).masked_fill(slack_mask | pv_mask, 0.0)
             phys_loss = (DP * DP + DQ * DQ).mean().unsqueeze(0)
+
+            # Optional Jacobian regularization, computed only in training.
+            # Evaluated at z_star (fresh autograd graph) so the penalty is
+            # on F's local Lipschitz behaviour at the fixed point.
+            if self.training and self.jac_reg_weight > 0.0:
+                z_in = z_star.detach().requires_grad_(True)
+                f_out = self._operator(z_in, ctx)
+                jac = jacobian_reg_estimate(f_out, z_in, n_samples=self.jac_reg_n_samples)
+                phys_loss = phys_loss + self.jac_reg_weight * jac.unsqueeze(0)
             return out, phys_loss
         return out
