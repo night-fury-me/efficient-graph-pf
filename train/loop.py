@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import os
 import time
 from dataclasses import dataclass
 from typing import Callable, Optional
@@ -92,7 +93,11 @@ def run_epoch(
             if pinn:
                 Vpred, loss_phys = model(bus_type, Line, Y, Ys, Yc, Sstart, Vstart, n_nodes_per_graph)
                 mse, mse_mag, mse_ang = mse_components(Vpred, Vnewton)
-                loss = loss_phys
+                # Optional combined loss: phys_loss + GNN_MSE_WEIGHT * mse.
+                # Env-var gated -- default 0.0 preserves the old phys-only behavior.
+                # Setting >0 lets the optimizer drive both metrics simultaneously.
+                _mse_weight = float(os.environ.get("GNN_MSE_WEIGHT", "0.0"))
+                loss = loss_phys + _mse_weight * mse if _mse_weight > 0 else loss_phys
             else:
                 Vpred = model(bus_type, Line, Y, Ys, Yc, Sstart, Vstart, n_nodes_per_graph)
                 mse, mse_mag, mse_ang = mse_components(Vpred, Vnewton)
