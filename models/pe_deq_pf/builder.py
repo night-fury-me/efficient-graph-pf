@@ -83,6 +83,50 @@ def _build_jacreg(
     ).to(device)
 
 
+@register_model("PE_DEQ_PF_Contractive")
+def _build_contractive(
+    *,
+    d: int,
+    d_hi: int,
+    K: int,
+    pinn: bool,
+    dtheta_max: float,
+    dvm_frac: float,
+    num_attn_layers: int,
+    device: torch.device,
+    **_unused,
+) -> nn.Module:
+    """K-robust DEQ: keeps the winning architecture but adds the contractivity
+    recipe so increasing K at inference no longer degrades performance.
+
+    Recipe:
+      - Spectral norm on attention-block weights => ||W||_2 <= 1 prior
+      - Jacobian regularization (lambda = 0.05) => soft contractivity push
+      - Damping init = 0.1 (gentle step toward identity)
+      - Phantom backward => robust gradient path
+      - No curriculum warmup (stable from epoch 0)
+      - K from CLI (so K=15 train + K=50 inference is honest)
+
+    Use with --PINN and GNN_MSE_WEIGHT>0 so jac_reg + MSE both contribute.
+    """
+    return PE_DEQ_PF(
+        d=d,
+        d_hi=d_hi,
+        num_attn_layers=num_attn_layers,
+        pinn=pinn,
+        dtheta_max=dtheta_max,
+        dvm_frac=dvm_frac,
+        forward_iter=K,
+        backward_iter=K,
+        backward_mode="phantom",
+        jac_reg_weight=0.05,
+        jac_reg_n_samples=1,
+        damping_init=0.1,
+        spectral_norm=True,
+        unrolled_warmup_epochs=0,
+    ).to(device)
+
+
 @register_model("PE_DEQ_PF_Stable")
 def _build_stable(
     *,
