@@ -56,6 +56,14 @@ def npy_bytes(arr: np.ndarray) -> bytes:
 # Convention: LVN 1=slack, 2=PV, 3=PQ → HVN 0=PQ, 1=slack, 2=PV
 LVN_TO_HVN_BUS_TYPE = {1: 1, 2: 2, 3: 0}  # 1=slack→1, 2=PV→2, 3=PQ→0
 
+# System per-unit base. Source LVN uses S_base = 1 MVA, which makes S_pu
+# values O(1000-500,000) and KCL residuals huge in absolute terms (~370k).
+# Re-base to 100 MVA (matches HVN convention) so phys-loss readouts are
+# comparable across datasets. Y is scaled by (source_S_base / TARGET_S_BASE)
+# so the power-flow equation S = V·conj(Y·V) is preserved — V_newton stays
+# valid, only the units change.
+TARGET_S_BASE = 100e6  # 100 MVA (standard system base)
+
 
 def convert_row(row: pd.Series) -> dict:
     N = int(row.bus_number)
@@ -74,17 +82,18 @@ def convert_row(row: pd.Series) -> dict:
     # --- Per-unit normalisation ---
     # Voltages: per-bus by vn_kv (LVN is multi-voltage; a global U_base
     # produces voltages spanning many orders of magnitude).
-    # S: by system S_base (per-bus and per-system are equivalent for power).
-    # Y_Lines: the filename has "ppcY" => already in PandaPower's per-unit
-    # form on the system base. Pass through unchanged. (Earlier attempt at
-    # bilateral per-unit conversion produced absurd values for transformers
-    # because the data was double-converted.)
+    # S: re-based to TARGET_S_BASE (100 MVA) so per-unit values are O(1-100)
+    #    instead of O(1000-500,000) — same scale as HVN.
+    # Y_Lines: rescaled by (source S_base / target S_base) so the power-flow
+    #    equation S = V·conj(Y·V) is preserved. (The source Y is in PU on the
+    #    source S_base; under a base change Y_pu_new = Y_pu_old * S_old/S_new.)
     V_base = vn_kv * 1000.0
+    s_scale = S_base / TARGET_S_BASE  # e.g. 1e6 / 1e8 = 0.01 for LVN
     u_start_pu = (u_start / V_base).astype(np.complex64)
     u_newton_pu = (u_newton / V_base).astype(np.complex64)
-    S_start_pu = (S_start / S_base).astype(np.complex64)
-    Y_series_pu = Y_series.astype(np.complex64)
-    Y_shunt_pu = Y_shunt.astype(np.float64)  # PU susceptance (treated as imaginary in encoder)
+    S_start_pu = (S_start / TARGET_S_BASE).astype(np.complex64)
+    Y_series_pu = (Y_series * s_scale).astype(np.complex64)
+    Y_shunt_pu = (Y_shunt * s_scale).astype(np.float64)  # PU susceptance (treated as imaginary in encoder)
 
     # --- Remap bus_typ ---
     bus_typ_hvn = np.zeros_like(bus_typ_lvn, dtype=np.int32)
