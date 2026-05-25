@@ -76,7 +76,9 @@ where $S_v$ denotes the block-rows of $S$ corresponding to node $v$, $W_{y_v}$ a
 
 The radius $r_v$ has an intuitive interpretation: it is the classification margin $m_v$ (how confident the model is) divided by the product of two amplification factors. The term $\norm{W_{y_v} - W_{c^*}}_2$ measures how sensitive the decision boundary is to hidden-state changes, while $\norm{S_v}_2$ measures how sensitive node $v$'s equilibrium position is to structural perturbation. Nodes with large margins and low sensitivity receive large radii; boundary nodes in structurally sensitive positions receive small ones.
 
-These sensitivity radii are deterministic (not probabilistic), unlike randomized smoothing~\cite{bojchevski2020efficient} which holds with probability $1-\alpha$. They are first-order quantities: locally tight for small $\varepsilon$ but increasingly conservative as perturbation magnitude grows. Without bounding the second-order remainder $O(\norm{\delta A}_F^2)$, they are local sensitivity measures rather than global robustness certificates. \cref{sec:adaptive} verifies empirically that the radii hold (0\% breach rate at $\varepsilon = 0.01$, $< 1\%$ at $\varepsilon = 0.10$).
+\textit{Proof sketch.} By Theorem~1(a), $\Delta \zstar_v \approx S_v \cdot \mathrm{vec}(\delta A)$, so $|\Delta f_{y_v}| \leq \norm{\partial f / \partial \zstar_v} \cdot \norm{S_v} \cdot \norm{\delta A}_F$. Misclassification requires $|\Delta f_{y_v}| \geq m_v$; inverting gives $r_v$. Note $S_v$ already contains the $(I-J_z)^{-1}$ factor.
+
+These radii are deterministic (not probabilistic like randomized smoothing~\cite{bojchevski2020efficient}) and first-order: locally tight for small $\varepsilon$ but increasingly conservative as perturbation magnitude grows. \cref{sec:adaptive} verifies empirically that they hold (0\% breach rate at $\varepsilon = 0.01$, $< 1\%$ at $\varepsilon = 0.10$).
 
 \subsection{Generalization to Explicit GNNs}
 

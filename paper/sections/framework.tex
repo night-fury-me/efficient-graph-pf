@@ -38,7 +38,7 @@ AEGIS takes as input a trained GNN (any differentiable architecture) together wi
 
 \subsection{Stage 1: Subgraph Extraction and Forward Pass}
 
-Full-graph analysis is infeasible for large graphs because the sensitivity matrix has dimension $D \times N^2$ where $D = N \cdot d$. AEGIS addresses this by extracting a local BFS ego-subgraph of $N$ nodes centered on the target node. The model is then run on this subgraph: for implicit GNNs, this means iterating to the fixed point $\zstar$; for explicit $K$-layer GNNs, this is a standard forward pass yielding $Z_K$. Localization is justified by the locality of per-node vulnerability: a node's robustness radius depends on its own margin and the sensitivity of its immediate neighborhood (\cref{sec:subgraph_ablation}).
+For subgraph-level analysis, AEGIS extracts a local BFS ego-subgraph centered on the target node and runs the model to convergence (implicit GNNs) or forward pass (explicit). Localization is justified empirically (\cref{sec:subgraph_ablation}). The matrix-free pipeline also supports full-graph analysis without subgraph extraction (\cref{sec:scalability}).
 
 \subsection{Stage 2: Matrix-Free Sensitivity Computation}
 
@@ -54,12 +54,7 @@ For small subgraphs ($N \leq 200$), the dense path --- forming $J_z$, $J_A$ expl
 
 \subsection{Stage 3: Constrained Projection}
 
-Realistic graph perturbations are symmetric (undirected graphs) and supported only on existing edges. The constraint projection $P_c$ maps an edge vector $v \in \R^{|E|}$ to a symmetric adjacency perturbation $\delta A$ with $\delta A_{ij} = \delta A_{ji} = v_k$ for each edge $k = (i,j) \in E$. In the dense formulation, this yields the constrained sensitivity matrix $S_c \in \R^{D \times |E|}$ with columns
-\begin{equation}
-[S_c]_{:,k} = S_{:, iN+j} + S_{:, jN+i}.
-\label{eq:sc_construction}
-\end{equation}
-In the matrix-free formulation, $P_c$ is applied implicitly within the $S_c v$ operator, so $S_c$ is never formed. This projection reduces the perturbation space from $N^2$ to $|E|$ dimensions and is what enables tight first-order predictions across all architectures (\cref{sec:cross_domain,sec:explicit_extension}).
+The constraint projection $P_c$ (\cref{sec:theory}) maps edge vectors to symmetric adjacency perturbations ($\delta A_{ij} = \delta A_{ji} = v_k$). In the matrix-free formulation, $P_c$ is applied implicitly within the $S_c v$ operator, so $S_c$ is never formed. This $N^2 \to |E|$ reduction is what enables tight first-order predictions (\cref{sec:cross_domain,sec:explicit_extension}).
 
 \subsection{Stage 4: Vulnerability Analysis}
 
