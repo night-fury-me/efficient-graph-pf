@@ -16,7 +16,7 @@ We begin by validating that the constrained first-order prediction is accurate a
 
 \begin{table}[t]
 \centering
-\caption{Cross-domain adversarial analysis (mean $\pm$ std, 10 seeds). Constrained tightness $\approx 1.00$ confirms first-order accuracy.}
+\caption{Cross-domain adversarial analysis (mean $\pm$ std, 10 seeds). Cert\%: clean subgraph accuracy (= fraction with positive margin). Tightness $\approx 1.00$ at $\varepsilon = 0.01$.}
 \label{tab:cross_domain}
 \small
 \begin{tabular}{@{}lrrrrr@{}}
@@ -32,32 +32,11 @@ WikiCS   & $\ms{.34}{.04}$ & $\ms{1.00}{.01}$ & $\ms{3.8}{.4}$x & $\ms{.66}{.04}
 \end{tabular}
 \end{table}
 
-Tightness is $1.00 \pm 0.01$ across all datasets, confirming that the constrained first-order prediction is essentially exact under symmetric edge perturbations at $\varepsilon = 0.01$. The attack advantage (3.2--4.1$\times$ over random) demonstrates that $S_c$ successfully identifies the most vulnerable perturbation directions. Coverage ranges from 70\% (WikiCS) to 92\% (Amazon Photo), reflecting nodes with positive classification margin.
+Tightness is $1.00 \pm 0.01$ across all datasets at $\varepsilon = 0.01$, confirming that the constrained first-order prediction is accurate under symmetric edge perturbations at this budget. We emphasize that first-order accuracy at small $\varepsilon$ is mathematically expected (any smooth function is well-approximated by its linearization); the contribution is that $S_c$ makes this tractable and tight under \emph{constrained} perturbations, which is non-trivial given the $N^2 \to |E|$ projection. At larger budgets ($\varepsilon = 0.05, 0.10$), the first-order prediction becomes conservative: the adaptive attacker (\cref{sec:adaptive}) achieves only 72--84\% of the predicted shift on Cora and 0\% breach of first-order radii at $\varepsilon \leq 0.05$. The attack advantage (3.2--4.1$\times$ over random) demonstrates that $S_c$ identifies the most vulnerable perturbation directions. Coverage (Cert\%) ranges from 70\% to 92\%, representing the fraction of subgraph nodes correctly classified by the IGNN (i.e., clean subgraph accuracy); only correctly classified nodes have positive margin and thus a meaningful radius.
 
-\subsection{Attack Comparison: AEGIS vs.\ Mettack}
-\label{sec:mettack}
+\textbf{Surrogate baseline.} We also compared against Mettack~\cite{zugner2019adversarial} (GCN~\cite{kipf2017semi} surrogate): AEGIS inflicts 3--10$\times$ more damage at every budget (30/30 wins across $k=1,\ldots,5$ edge removals). However, this gap largely reflects surrogate-to-IGNN architectural mismatch rather than AEGIS's analytical superiority alone. The more meaningful comparison is the adaptive attacker below, which accesses the same IFT gradients as AEGIS.
 
-We compare AEGIS's IFT-based structural attack against Mettack~\cite{zugner2019adversarial} (Meta-Self variant using a 2-layer GCN~\cite{kipf2017semi} surrogate). Both methods rank edges for removal; damage is measured by IGNN fixed-point shift $\norm{\Delta \zstar}$ after reconvergence.
-
-\begin{table}[t]
-\centering
-\caption{IFT vs.\ Mettack attack at $k=1$ edge removal (10 seeds). IFT wins 30/30 comparisons. $\tau$: Kendall correlation with brute-force ground truth.}
-\label{tab:mettack}
-\small
-\begin{tabular}{@{}lrrrr@{}}
-\toprule
-Dataset & IFT $\tau$ & Met $\tau$ & IFT dmg & Met dmg \\
-\midrule
-Cora     & $\ms{+.28}{.07}$ & $\ms{+.20}{.11}$ & $\ms{\phantom{0}.55}{\phantom{0}.27}$ & $\ms{.16}{.09}$ \\
-Citeseer & $\ms{+.38}{.12}$ & $\ms{+.16}{.13}$ & $\ms{1.1\phantom{0}}{1.5\phantom{0}}$ & $\ms{.11}{.14}$ \\
-WikiCS   & $\ms{+.14}{.04}$ & $\ms{+.52}{.02}$ & $\ms{\phantom{0}.05}{\phantom{0}.01}$ & $\ms{.01}{.00}$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-AEGIS inflicts 3--10$\times$ more damage than Mettack at every seed and budget level (30/30 wins at $k = 1, \ldots, 5$). However, this comparison has an important caveat: Mettack uses a GCN surrogate, so its poor transfer to IGNN reflects architectural mismatch as much as AEGIS's analytical superiority. Mettack's surrogate occasionally achieves higher brute-force correlation (WikiCS $\tau = +0.52$), but the actual damage is $5\times$ lower because the GCN decision boundary diverges from the IGNN equilibrium. The fair comparison is against the adaptive attacker in \cref{sec:adaptive}, which uses the same IFT information as AEGIS.
-
-\subsection{Certificate Comparison: Deterministic vs.\ Smoothing}
+\subsection{Radius Comparison: AEGIS vs.\ Smoothing}
 \label{sec:certificates}
 
 We compare AEGIS's deterministic first-order radii (\cref{prop:radius}) against randomized smoothing~\cite{bojchevski2020efficient} with Gaussian noise on existing edges ($\sigma \in \{0.01, 0.05, 0.10, 0.15\}$, 1000 Monte Carlo samples, Clopper-Pearson confidence $1-\alpha = 0.999$). \cref{tab:certificates} reports median certified radius on Cora, Citeseer, and WikiCS (10 seeds, 50-node subgraphs).
