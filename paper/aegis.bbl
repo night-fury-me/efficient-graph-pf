@@ -286,6 +286,11 @@ Z.~Geng, X.-Y. Zhang, S.~Bai, Y.~Wang, and Z.~Lin, ``On training implicit
   models,'' in \emph{Advances in Neural Information Processing Systems},
   vol.~34, 2021, pp. 24\,247--24\,260.
 
+\bibitem{liu2021eignn}
+J.~Liu, K.~Kawaguchi, B.~Hooi, Y.~Wang, and J.~Feng, ``Eignn: Efficient
+  infinite-depth graph neural networks,'' in \emph{Advances in Neural
+  Information Processing Systems}, vol.~34, 2021, pp. 18\,762--18\,773.
+
 \bibitem{winston2020monotone}
 E.~Winston and J.~Z. Kolter, ``Monotone operator equilibrium networks,'' in
   \emph{Advances in Neural Information Processing Systems}, vol.~33, 2020, pp.
@@ -296,16 +301,6 @@ C.~Pabbaraju, E.~Winston, and J.~Z. Kolter, ``Estimating lipschitz constants of
   monotone deep equilibrium models,'' \emph{arXiv preprint arXiv:2111.08931},
   2021.
 
-\bibitem{liu2021eignn}
-J.~Liu, K.~Kawaguchi, B.~Hooi, Y.~Wang, and J.~Feng, ``Eignn: Efficient
-  infinite-depth graph neural networks,'' in \emph{Advances in Neural
-  Information Processing Systems}, vol.~34, 2021, pp. 18\,762--18\,773.
-
-\bibitem{liu2021stability}
-S.~Liu, R.~Ying, H.~Dong, L.~Li, T.~Xu, Y.~Liang, J.~Leskovec, and H.~Peng,
-  ``Stability and generalization of graph neural networks,'' in \emph{arXiv
-  preprint}, 2021.
-
 \bibitem{novak2018sensitivity}
 R.~Novak, Y.~Bahri, D.~A. Abolafia, J.~Pennington, and J.~Sohl-Dickstein,
   ``Sensitivity and generalization in neural networks: An empirical study,'' in
@@ -315,5 +310,10 @@ R.~Novak, Y.~Bahri, D.~A. Abolafia, J.~Pennington, and J.~Sohl-Dickstein,
 M.~Raghu, B.~Poole, J.~Kleinberg, S.~Ganguli, and J.~Sohl-Dickstein, ``On the
   expressive power of deep neural networks,'' in \emph{International Conference
   on Machine Learning}, 2017, pp. 2847--2854.
+
+\bibitem{liu2021stability}
+S.~Liu, R.~Ying, H.~Dong, L.~Li, T.~Xu, Y.~Liang, J.~Leskovec, and H.~Peng,
+  ``Stability and generalization of graph neural networks,'' in \emph{arXiv
+  preprint}, 2021.
 
 \end{thebibliography}

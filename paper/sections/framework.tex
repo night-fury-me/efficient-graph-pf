@@ -7,7 +7,7 @@ The theoretical results of \cref{sec:theory} provide the mathematical foundation
 
 \subsection{Architecture Overview}
 
-AEGIS takes as input a trained contractive implicit GNN (any IGNN-class model satisfying assumptions A1--A3) together with a target graph and produces three outputs: (i) a per-edge vulnerability spectrum ranking edges by adversarial impact, (ii) SVD-optimal attack perturbations, and (iii) per-node first-order robustness radii. The pipeline consists of four stages executed sequentially, as illustrated in \cref{fig:pipeline}.
+AEGIS takes as input a trained GNN (any differentiable architecture) together with a target graph and produces three outputs: (i) a per-edge vulnerability spectrum ranking edges by adversarial impact, (ii) SVD-optimal attack perturbations, and (iii) per-node first-order robustness radii. For contractive implicit GNNs (IGNN-class satisfying A1--A3), the pipeline additionally computes the critical budget $\ecrit$ and convergence diagnostics. The pipeline consists of four stages executed sequentially, as illustrated in \cref{fig:pipeline}.
 
 \begin{figure}[t]
 \centering
@@ -36,34 +36,28 @@ AEGIS takes as input a trained contractive implicit GNN (any IGNN-class model sa
 \label{fig:pipeline}
 \end{figure}
 
-\subsection{Stage 1: Subgraph Extraction and Equilibrium}
+\subsection{Stage 1: Subgraph Extraction and Forward Pass}
 
-Full-graph analysis is infeasible for large graphs because the Jacobian $J_z$ has dimension $D \times D$ where $D = N \cdot d$ (number of nodes times hidden dimension). AEGIS addresses this by extracting a local BFS ego-subgraph of $N$ nodes centered on the target node. The model, trained on the full graph, is then run on this subgraph until convergence to the fixed point $\zstar = F(\zstar, A_{\text{sub}})$. Convergence is verified by checking the relative residual $\norm{Z_{k+1} - Z_k}_F / \max(\norm{Z_k}_F, 1) < 10^{-5}$. This localization is justified by the locality of per-node vulnerability: a node's robustness radius depends on its own classification margin and the sensitivity of its immediate neighborhood, both of which are well-captured within a 2--3 hop BFS subgraph (\cref{sec:subgraph_ablation}).
+Full-graph analysis is infeasible for large graphs because the sensitivity matrix has dimension $D \times N^2$ where $D = N \cdot d$. AEGIS addresses this by extracting a local BFS ego-subgraph of $N$ nodes centered on the target node. The model is then run on this subgraph: for implicit GNNs, this means iterating to the fixed point $\zstar$; for explicit $K$-layer GNNs, this is a standard forward pass yielding $Z_K$. Localization is justified by the locality of per-node vulnerability: a node's robustness radius depends on its own margin and the sensitivity of its immediate neighborhood (\cref{sec:subgraph_ablation}).
 
-\subsection{Stage 2: Jacobian Computation}
+\subsection{Stage 2: Sensitivity Computation}
 
-The sensitivity matrix $S = (I - J_z)^{-1} J_A$ requires two Jacobian matrices:
+AEGIS computes the structural sensitivity matrix $S = \partial \mathrm{vec}(Z) / \partial \mathrm{vec}(A) \in \R^{D \times N^2}$, which maps adjacency perturbations to hidden-state shifts. The computation differs by architecture:
 
-\textbf{State Jacobian} $J_z = \partial F / \partial \mathrm{vec}(Z) |_{\zstar} \in \R^{D \times D}$. Each row is obtained by a single backward pass through the operator $F$ with respect to the flattened state vector. For IGNN with ReLU activation, this takes the form $J_z = \mathrm{diag}(\sigma') \cdot (\Ahat \otimes W)$, where $\sigma' \in \{0,1\}^D$ records the activation pattern at $\zstar$.
+\textbf{Implicit GNNs (IGNN-class):} $S = (I - J_z)^{-1} J_A$, where $J_z = \partial F / \partial Z$ is the state Jacobian and $J_A = \partial F / \partial \mathrm{vec}(A)$ is the adjacency Jacobian. Both are computed via row-by-row backward passes, followed by a linear solve. For IGNN with ReLU, $J_z = \mathrm{diag}(\sigma') \cdot (\Ahat \otimes W)$.
 
-\textbf{Adjacency Jacobian} $J_A = \partial F / \partial \mathrm{vec}(A) |_{\zstar} \in \R^{D \times N^2}$. This captures how each entry of the adjacency matrix influences the operator output. It is computed analogously via $D$ backward passes, each probing one output dimension.
+\textbf{Explicit GNNs ($K$-layer):} $S_K = \partial \mathrm{vec}(Z_K) / \partial \mathrm{vec}(A)$ is computed directly via finite differences on the forward pass. Each column of $S_K$ measures the effect of perturbing one adjacency entry.
 
-Both Jacobians are computed using automatic differentiation~\cite{paszke2019pytorch}. The total cost is $O(D)$ backward passes, each of cost $O(D)$, giving $O(D^2)$ overall for this stage.
+Both paths use automatic differentiation~\cite{paszke2019pytorch} with cost $O(D \cdot N^2)$ for the full sensitivity matrix.
 
-\subsection{Stage 3: Sensitivity Matrix Construction}
+\subsection{Stage 3: Constrained Projection}
 
-Given $J_z$ and $J_A$, AEGIS constructs the full sensitivity matrix by solving the linear system
-\begin{equation}
-(I - J_z) \, S = J_A.
-\end{equation}
-Since $\kappa = \norm{J_z}_2 < 1$ by assumption A3, the matrix $(I - J_z)$ is invertible and well-conditioned with condition number at most $1/(1-\kappa)$. AEGIS solves this system using a dense LU factorization, which costs $O(D^3)$ but is fast in practice for $D \leq 12{,}800$ (i.e., $N \leq 200$ with $d = 64$).
-
-The full sensitivity matrix $S \in \R^{D \times N^2}$ maps arbitrary vectorized adjacency perturbations to fixed-point shifts. However, realistic graph perturbations are constrained: they must be symmetric (undirected graphs) and supported only on existing edges. AEGIS therefore projects $S$ into the \emph{constrained sensitivity matrix} $S_c \in \R^{D \times |E|}$, whose $k$-th column (for edge $(i,j) \in E$) is
+Given the full sensitivity matrix $S \in \R^{D \times N^2}$ (from Stage 2, via either the linear solve for implicit GNNs or direct computation for explicit GNNs), AEGIS projects it into the \emph{constrained sensitivity matrix} $S_c \in \R^{D \times |E|}$. Realistic graph perturbations are symmetric (undirected graphs) and supported only on existing edges. The $k$-th column of $S_c$ (for edge $(i,j) \in E$) is
 \begin{equation}
 [S_c]_{:,k} = S_{:, iN+j} + S_{:, jN+i}.
 \label{eq:sc_construction}
 \end{equation}
-The summation enforces symmetry: perturbing edge $(i,j)$ affects both $A_{ij}$ and $A_{ji}$ simultaneously. This projection reduces the perturbation space from $N^2$ dimensions to $|E|$ dimensions and is what enables the tight first-order predictions reported in \cref{sec:cross_domain}.
+The summation enforces symmetry: perturbing edge $(i,j)$ affects both $A_{ij}$ and $A_{ji}$ simultaneously. This projection reduces the perturbation space from $N^2$ dimensions to $|E|$ dimensions and is what enables tight first-order predictions across all architectures (\cref{sec:cross_domain,sec:explicit_extension}).
 
 \subsection{Stage 4: Vulnerability Analysis}
 
