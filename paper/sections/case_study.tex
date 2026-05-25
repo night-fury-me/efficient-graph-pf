@@ -9,7 +9,7 @@ A natural question is whether AEGIS transfers beyond standard graph benchmarks. 
 
 Power grid operators must ensure that no single transmission line failure causes system instability. The standard N-1 contingency assessment removes each line in turn, re-solves the power flow equations, and ranks lines by the severity of the resulting voltage/flow deviation. This brute-force procedure scales as $O(|E|)$ full power flow solves---expensive for large grids and infeasible for real-time operation.
 
-We observe that AEGIS's per-edge vulnerability $v_{ij} = \norm{S_{:,iN+j} + S_{:,jN+i}}$ computes the same quantity via a single IFT analysis. The mathematical correspondence is exact:
+We observe that AEGIS's per-edge vulnerability $v_{ij} = \norm{S_{:,iN+j} + S_{:,jN+i}}$ computes an analogous quantity via a single IFT analysis. The mathematical correspondence is approximate (continuous first-order sensitivity vs.\ discrete full-removal contingency):
 
 \begin{center}
 \small
@@ -20,7 +20,7 @@ We observe that AEGIS's per-edge vulnerability $v_{ij} = \norm{S_{:,iN+j} + S_{:
 Edge weight perturbation $\delta A_{ij}$ & Topology change (line trip) \\
 Vulnerability spectrum $v_{ij}$ & Contingency severity ranking \\
 Critical budget $\ecrit$ & Stability margin \\
-Contractivity loss $\rho \to 1$ & Approach to voltage collapse \\
+Contractivity loss $\kappa \to 1$ & Approach to voltage collapse \\
 \bottomrule
 \end{tabular}
 \end{center}

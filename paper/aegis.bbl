@@ -38,14 +38,14 @@ A.~Bojchevski, J.~Klicpera, and S.~G{\"u}nnemann, ``Efficient robustness
   graphs, images and more,'' in \emph{International Conference on Machine
   Learning}, 2020, pp. 1003--1013.
 
-\bibitem{bai2019deep}
-S.~Bai, J.~Z. Kolter, and V.~Koltun, ``Deep equilibrium models,'' in
-  \emph{Advances in Neural Information Processing Systems}, vol.~32, 2019.
-
 \bibitem{gu2020implicit}
 F.~Gu, H.~Chang, W.~Zhu, S.~Sojoudi, and L.~El~Ghaoui, ``Implicit graph neural
   networks,'' in \emph{Advances in Neural Information Processing Systems},
   vol.~33, 2020, pp. 11\,984--11\,995.
+
+\bibitem{bai2019deep}
+S.~Bai, J.~Z. Kolter, and V.~Koltun, ``Deep equilibrium models,'' in
+  \emph{Advances in Neural Information Processing Systems}, vol.~32, 2019.
 
 \bibitem{trefethen2005spectra}
 L.~N. Trefethen and M.~Embree, \emph{Spectra and Pseudospectra: The Behavior of
@@ -81,6 +81,11 @@ A.~Bojchevski and S.~G{\"u}nnemann, ``Certifiable robustness to graph
   perturbations,'' in \emph{Advances in Neural Information Processing Systems},
   vol.~32, 2019.
 
+\bibitem{li2025agnncert}
+J.~Li, G.~Tao, D.~Han, and X.~Zhang, ``{AGNNCert}: Defending graph neural
+  networks against arbitrary perturbations with certified robustness,'' in
+  \emph{USENIX Security Symposium}, 2025.
+
 \bibitem{zugner2019certifiable}
 D.~Z{\"u}gner and S.~G{\"u}nnemann, ``Certifiable robustness and robust
   training for graph convolutional networks,'' in \emph{Proceedings of the 25th
@@ -97,10 +102,10 @@ C.~Pabbaraju, E.~Winston, and J.~Z. Kolter, ``Estimating lipschitz constants of
   monotone deep equilibrium models,'' \emph{arXiv preprint arXiv:2111.08931},
   2021.
 
-\bibitem{yang2022efficient}
-Y.~Yang, J.~Tang, and C.~Luo, ``Efficient computation of higher-order subgraph
-  attribution via message passing,'' in \emph{International Conference on
-  Machine Learning}, 2022.
+\bibitem{liu2021eignn}
+J.~Liu, K.~Kawaguchi, B.~Hooi, Y.~Wang, and J.~Feng, ``Eignn: Efficient
+  infinite-depth graph neural networks,'' in \emph{Advances in Neural
+  Information Processing Systems}, vol.~34, 2021, pp. 18\,762--18\,773.
 
 \bibitem{liu2021stability}
 S.~Liu, R.~Ying, H.~Dong, L.~Li, T.~Xu, Y.~Liang, J.~Leskovec, and H.~Peng,

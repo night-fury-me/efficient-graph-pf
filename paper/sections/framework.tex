@@ -7,10 +7,10 @@ AEGIS packages the theory into a Python API applicable to any contractive implic
 
 \begin{enumerate}
 \item \textbf{Vulnerability analysis}: compute $S$, $\sigma_1(S_c)$, and the per-edge vulnerability spectrum $v_{ij} = \norm{S_{:,iN+j} + S_{:,jN+i}}$.
-\item \textbf{Certified robustness}: per-node radii $r_v$ via \cref{prop:radius}, critical budget $\ecrit$ via \cref{thm:phase_transition}.
-\item \textbf{Contractivity verification}: spectral radius $\rho$ via power iteration, non-normality index $\eta = \norm{(I-J_z)^{-1}}_2 \cdot (1-\rho)$.
+\item \textbf{First-order robustness radii}: per-node $r_v$ via \cref{prop:radius}, critical budget $\ecrit$ via \cref{thm:phase_transition}.
+\item \textbf{Contractivity verification}: contraction constant $\kappa = \norm{J_z}_2$ via largest singular value, non-normality index $\eta = \norm{(I-J_z)^{-1}}_2 \cdot (1-\rho)$.
 \end{enumerate}
 
-\textbf{Subgraph-based analysis.} The framework operates on BFS ego-subgraphs (typically 50--200 nodes) extracted from the full graph. The model is trained on the full graph; only the adversarial analysis is local. This suffices because per-node certificates and edge vulnerability are inherently local quantities---a node's certified radius depends on its own margin and the sensitivity of its neighborhood, not distant parts of the graph.
+\textbf{Subgraph-based analysis.} The framework operates on BFS ego-subgraphs (typically 50--200 nodes) extracted from the full graph. The model is trained on the full graph; only the adversarial analysis is local. This suffices because per-node radii and edge vulnerability are inherently local quantities---a node's first-order radius depends on its own margin and the sensitivity of its neighborhood, not distant parts of the graph.
 
 \textbf{Computational cost.} The dominant cost is computing $J_z \in \R^{D \times D}$ and $J_A \in \R^{D \times N^2}$ via row-by-row backward passes, followed by a linear solve for $S$. Total cost is $O(D \cdot N^2 + D^3)$ where $D = N \cdot d$. On a single GPU, this ranges from 0.5s ($N=20$) to 8.1s ($N=200$); see \cref{sec:scalability}.
