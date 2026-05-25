@@ -77,14 +77,27 @@ def run_single_seed(name, data, seed, device, run_mettack=False, run_smoothing=F
 
     model = IGNN(data["n_features"], hidden=64, n_classes=data["n_classes"]).to(device)
     optim = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
-    for _ in range(100):
+
+    best_val = 0.0
+    best_state = None
+    for ep in range(200):
         model.train()
         logits, _, _ = model(X, A_hat)
         loss = F_func.cross_entropy(logits[data["train_mask"]], y[data["train_mask"]])
         optim.zero_grad()
         loss.backward()
         optim.step()
+        if (ep + 1) % 10 == 0:
+            model.eval()
+            with torch.no_grad():
+                logits_v, _, _ = model(X, A_hat)
+                val_acc = float((logits_v.argmax(1)[data["val_mask"]] == y[data["val_mask"]]).float().mean())
+            if val_acc > best_val:
+                best_val = val_acc
+                best_state = {k: v.clone() for k, v in model.state_dict().items()}
 
+    if best_state is not None:
+        model.load_state_dict(best_state)
     model.eval()
     with torch.no_grad():
         logits, Z_star, ctx = model(X, A_hat)
