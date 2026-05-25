@@ -127,7 +127,7 @@ def main():
     eps = 0.01
     bound = certified_shift_bound(S, rho, eps)
     print(f"  sigma_1(S) = {bound['sigma_1']:.4f}")
-    print(f"  Tight bound: ||Dz*|| <= {bound['tight_bound']:.6f} (at eps={eps})")
+    print(f"  Upper bound: ||Dz*|| <= {bound['upper_bound']:.6f} (at eps={eps})")
     print(f"  Top-5 singular values: {[f'{v:.3f}' for v in bound['sigma_spectrum'][:5].tolist()]}")
 
     # Empirical validation
