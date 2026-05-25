@@ -125,24 +125,27 @@ def main():
     print(f"  S shape: {S.shape}")
 
     eps = 0.01
-    bound = certified_shift_bound(S, rho, eps)
-    print(f"  sigma_1(S) = {bound['sigma_1']:.4f}")
-    print(f"  Upper bound: ||Dz*|| <= {bound['upper_bound']:.6f} (at eps={eps})")
-    print(f"  Top-5 singular values: {[f'{v:.3f}' for v in bound['sigma_spectrum'][:5].tolist()]}")
+    bound = certified_shift_bound(S, rho, eps, A_hat=A_sub)
+    print(f"  sigma_1(S) unconstrained = {bound['sigma_1']:.4f}")
+    if "constrained_sigma_1" in bound:
+        print(f"  sigma_1(S_c) constrained  = {bound['constrained_sigma_1']:.4f} ({bound['n_edges']} edges)")
+    print(f"  Unconstrained bound: {bound['upper_bound']:.6f}")
+    if "constrained_upper_bound" in bound:
+        print(f"  Constrained bound:   {bound['constrained_upper_bound']:.6f}")
 
     # Empirical validation
-    print("\n  --- Bound tightness validation ---")
+    print("\n  --- Bound tightness (constrained: symmetric, edge-only) ---")
     tightness = validate_bound_tightness(F_sub, model, Z_sub, ctx_sub, S, epsilons=[0.001, 0.005, 0.01, 0.05])
-    print(f"  {'eps':>8} {'predicted':>10} {'actual_opt':>10} {'actual_rand':>10} {'tight_ratio':>10} {'attack_adv':>10}")
+    print(f"  {'eps':>8} {'pred_constr':>11} {'actual':>10} {'random':>10} {'constr_tight':>12} {'unconstr_tight':>14} {'atk_adv':>8}")
     for r in tightness:
-        print(f"  {r['epsilon']:>8.3f} {r['predicted_optimal']:>10.6f} {r['actual_optimal']:>10.6f} "
-              f"{r['actual_random']:>10.6f} {r['tightness_ratio']:>10.3f} {r['attack_advantage']:>10.2f}x")
+        print(f"  {r['epsilon']:>8.3f} {r['predicted_constr']:>11.6f} {r['actual_constr']:>10.6f} "
+              f"{r['actual_random']:>10.6f} {r['constr_tightness']:>12.3f} {r['unconstr_tightness']:>14.3f} {r['attack_advantage']:>7.2f}x")
 
     # ==================================================================
-    # Theorem 2: Optimal Structural Attack
+    # Proposition 1: Optimal Structural Attack
     # ==================================================================
     print(f"\n{'=' * 60}", flush=True)
-    print("THEOREM 2: Optimal First-Order Structural Attack", flush=True)
+    print("PROPOSITION 1: Optimal First-Order Structural Attack", flush=True)
     print("=" * 60, flush=True)
 
     attack = optimal_structural_attack(S, A_sub, epsilon=eps)
@@ -154,10 +157,10 @@ def main():
         print(f"    edge ({real_i}, {real_j}): vulnerability = {v:.4f}")
 
     # ==================================================================
-    # Theorem 3: Critical Perturbation Budget
+    # Theorem 1(b,c): Critical Perturbation Budget
     # ==================================================================
     print(f"\n{'=' * 60}", flush=True)
-    print("THEOREM 3: Critical Perturbation Budget", flush=True)
+    print("THEOREM 1(b,c): Critical Perturbation Budget", flush=True)
     print("=" * 60, flush=True)
 
     W_norm = extract_W_spectral_norm(model)
@@ -177,10 +180,10 @@ def main():
               f"{r['predicted_1_over_1mrho']:>14.6f} {str(r['converged']):>9}")
 
     # ==================================================================
-    # Proposition 1: Per-Node Robust Radius
+    # Proposition 2: Per-Node Robust Radius
     # ==================================================================
     print(f"\n{'=' * 60}", flush=True)
-    print("PROPOSITION 1: Per-Node Robust Radius", flush=True)
+    print("PROPOSITION 2: Per-Node Robust Radius", flush=True)
     print("=" * 60, flush=True)
 
     node_certs = per_node_robust_radius(S, Z_sub, logits_sub, labels_sub, rho, model.head)
@@ -220,7 +223,8 @@ def main():
     print(f"  eta = {nn['nonnormality_index']:.4f} (non-normality amplification)")
     if tightness:
         r = tightness[2] if len(tightness) > 2 else tightness[-1]
-        print(f"  Bound tightness at eps={r['epsilon']}: {r['tightness_ratio']:.3f}")
+        print(f"  Constrained tightness at eps={r['epsilon']}: {r['constr_tightness']:.3f}")
+        print(f"  Unconstrained tightness: {r['unconstr_tightness']:.3f}")
         print(f"  Optimal attack {r['attack_advantage']:.1f}x more effective than random")
     if node_certs:
         print(f"  {node_certs['frac_correct_and_certified']:.0%} nodes certifiably robust")

@@ -168,21 +168,51 @@ def structural_sensitivity_matrix(
     return S
 
 
+def constrained_sensitivity_matrix(
+    S: Tensor,
+    A_hat: Tensor,
+) -> Tuple[Tensor, list]:
+    """Build constrained sensitivity matrix S_c for symmetric edge perturbations.
+
+    The unconstrained S ∈ R^{D × N²} treats every adjacency entry independently.
+    Real graph perturbations are symmetric: δA[i,j] = δA[j,i]. S_c ∈ R^{D × |E|}
+    has one column per unique edge, equal to S_{:,iN+j} + S_{:,jN+i}.
+
+    sigma_1(S_c) gives the tight first-order bound under symmetric perturbations.
+    """
+    N = A_hat.shape[0]
+    edge_list = []
+    cols = []
+    for i in range(N):
+        for j in range(i + 1, N):
+            if A_hat[i, j].abs() > 1e-10:
+                col = S[:, i * N + j] + S[:, j * N + i]
+                cols.append(col)
+                edge_list.append((i, j))
+    if not cols:
+        return torch.zeros(S.shape[0], 0, device=S.device), edge_list
+    S_c = torch.stack(cols, dim=1)
+    return S_c, edge_list
+
+
 def certified_shift_bound(
     S: Tensor,
     rho: float,
     epsilon: float,
+    A_hat: Optional[Tensor] = None,
 ) -> dict:
     """Theorem 1(a): First-order certified bound on ||Dz*|| under ||dA|| <= eps.
 
-    Upper bound:  sigma_1(S) * eps  (non-vacuous, captures 37-51% of true shift)
-    The bound is exact to first order; the gap comes from higher-order terms
-    and the unconstrained perturbation space (real perturbations are symmetric/sparse).
+    Reports two bounds:
+    - Unconstrained: sigma_1(S) * eps  (over all R^{N×N} perturbations)
+    - Constrained: sigma_1(S_c) * eps  (symmetric, edge-only perturbations)
+
+    The constrained bound is tighter and more realistic for graph perturbation.
     """
     sigma = torch.linalg.svdvals(S)
     sigma_1 = float(sigma[0])
 
-    return {
+    result = {
         "upper_bound": sigma_1 * epsilon,
         "sigma_1": sigma_1,
         "sigma_spectrum": sigma[:min(10, len(sigma))].detach().cpu(),
@@ -190,6 +220,17 @@ def certified_shift_bound(
         "rho": rho,
         "certified": rho < 1.0,
     }
+
+    if A_hat is not None:
+        S_c, edge_list = constrained_sensitivity_matrix(S, A_hat)
+        if S_c.shape[1] > 0:
+            sigma_c = torch.linalg.svdvals(S_c)
+            sigma_1_c = float(sigma_c[0])
+            result["constrained_upper_bound"] = sigma_1_c * epsilon
+            result["constrained_sigma_1"] = sigma_1_c
+            result["n_edges"] = len(edge_list)
+
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -423,10 +464,8 @@ def validate_bound_tightness(
 ) -> list:
     """Validate Theorem 1(a) empirically: compare predicted vs actual shift.
 
-    For each epsilon, applies:
-    1. Optimal attack (predicted: sigma_1(S) * eps)
-    2. Random perturbation (predicted: ~median(sigma) * eps)
-    Then reconverges the model and measures actual ||Dz*||.
+    Reports both unconstrained and constrained (symmetric, edge-only) tightness.
+    The constrained bound is the realistic one for graph perturbation.
     """
     if epsilons is None:
         epsilons = [0.001, 0.005, 0.01, 0.05, 0.1]
@@ -434,12 +473,20 @@ def validate_bound_tightness(
     A = ctx[A_key]
     N = A.shape[0]
 
+    # Unconstrained SVD
     U, sigma, Vh = torch.linalg.svd(S, full_matrices=False)
     sigma_1 = float(sigma[0])
 
-    # Establish clean baseline: reconverge z_star on the UNPERTURBED subgraph
-    # operator. z_star may come from a larger graph and not be a true fixed
-    # point of the subgraph operator — the baseline corrects for this.
+    # Constrained SVD (symmetric, edge-only)
+    S_c, edge_list = constrained_sensitivity_matrix(S, A)
+    if S_c.shape[1] > 0:
+        U_c, sigma_c, Vh_c = torch.linalg.svd(S_c, full_matrices=False)
+        sigma_1_c = float(sigma_c[0])
+    else:
+        sigma_1_c = 0.0
+        Vh_c = None
+
+    # Establish clean baseline
     Z = z_star.clone()
     with torch.no_grad():
         for _ in range(reconverge_iter):
@@ -451,32 +498,35 @@ def validate_bound_tightness(
 
     results = []
     for eps in epsilons:
-        # --- Optimal attack ---
-        if S.shape[1] == N * N:
-            dA_opt = eps * Vh[0].reshape(N, N)
-            dA_opt = (dA_opt + dA_opt.T) / 2
-            dA_opt.fill_diagonal_(0)
-        else:
-            dA_opt = torch.zeros(N, N, device=A.device)
+        # --- Constrained optimal attack (symmetric, edge-only) ---
+        dA_constr = torch.zeros(N, N, device=A.device)
+        if Vh_c is not None and len(edge_list) > 0:
+            weights = eps * Vh_c[0]  # coefficients per edge
+            for k, (i, j) in enumerate(edge_list):
+                dA_constr[i, j] = float(weights[k])
+                dA_constr[j, i] = float(weights[k])
 
-        ctx_opt = {**ctx, A_key: A + dA_opt}
+        ctx_constr = {**ctx, A_key: A + dA_constr}
         Z = z_clean.clone()
         with torch.no_grad():
             for _ in range(reconverge_iter):
-                Z_new = model.operator(Z, ctx_opt)
+                Z_new = model.operator(Z, ctx_constr)
                 if (Z_new - Z).norm() < 1e-7:
                     break
                 Z = Z_new
-        actual_opt = float((Z_new - z_clean).norm())
-        predicted_opt = sigma_1 * eps
+        actual_constr = float((Z_new - z_clean).norm())
+        predicted_constr = sigma_1_c * eps
 
-        # --- Random perturbation (average over n_random trials) ---
+        # --- Random symmetric edge perturbation ---
         actual_rands = []
         for _ in range(n_random):
-            dA_rand = torch.randn(N, N, device=A.device) * eps / (N ** 0.5)
-            dA_rand = (dA_rand + dA_rand.T) / 2
-            dA_rand.fill_diagonal_(0)
-            dA_rand = dA_rand * (dA_opt.norm() / (dA_rand.norm() + 1e-10))
+            dA_rand = torch.zeros(N, N, device=A.device)
+            if edge_list:
+                rand_w = torch.randn(len(edge_list), device=A.device)
+                rand_w = rand_w / (rand_w.norm() + 1e-10) * eps
+                for k, (i, j) in enumerate(edge_list):
+                    dA_rand[i, j] = float(rand_w[k])
+                    dA_rand[j, i] = float(rand_w[k])
 
             ctx_rand = {**ctx, A_key: A + dA_rand}
             Z = z_clean.clone()
@@ -491,11 +541,14 @@ def validate_bound_tightness(
 
         results.append({
             "epsilon": eps,
-            "predicted_optimal": predicted_opt,
-            "actual_optimal": actual_opt,
+            "predicted_constr": predicted_constr,
+            "actual_constr": actual_constr,
             "actual_random": actual_rand,
-            "tightness_ratio": actual_opt / predicted_opt if predicted_opt > 0 else 0,
-            "attack_advantage": actual_opt / actual_rand if actual_rand > 0 else float("inf"),
+            "constr_tightness": actual_constr / predicted_constr if predicted_constr > 0 else 0,
+            "attack_advantage": actual_constr / actual_rand if actual_rand > 0 else float("inf"),
+            # Also report unconstrained for comparison
+            "predicted_unconstr": sigma_1 * eps,
+            "unconstr_tightness": actual_constr / (sigma_1 * eps) if sigma_1 > 0 else 0,
         })
 
     return results
