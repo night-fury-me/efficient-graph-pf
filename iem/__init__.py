@@ -21,5 +21,6 @@ Usage:
 
 from .miner import IEMiner
 from . import adversarial
+from . import scalable
 
-__all__ = ["IEMiner", "adversarial"]
+__all__ = ["IEMiner", "adversarial", "scalable"]

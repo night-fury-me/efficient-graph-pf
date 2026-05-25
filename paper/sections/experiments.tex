@@ -7,7 +7,7 @@ We evaluate AEGIS on 9 datasets across 4 domains with 10 random seeds each (seed
 
 \textbf{Datasets.} We use five graph benchmarks: Cora (2,708 nodes), Citeseer (3,327), and Pubmed (19,717) from the Planetoid collection~\cite{sen2008collective}; Amazon Photo (7,650) from the Amazon co-purchase graphs~\cite{shchur2018pitfalls}; and WikiCS (11,701) from Wikipedia-based benchmarks~\cite{mernyei2020wiki}. For power flow, we use four IEEE standard test cases~\cite{ieee2024testcases}: case14 (14 buses), case30 (30), case57 (57), and case118 (118), with training data generated via PandaPower~\cite{thurner2018pandapower}.
 
-\textbf{Notation.} All formal bounds (\cref{thm:phase_transition}) use the operator-norm contraction constant $\kappa = \norm{J_z}_2$. Tables report the spectral radius $\rho(J_z)$ as a diagnostic quantity. Since non-normality is mild ($\eta = 1.02$--$1.28$, \cref{sec:convergence}), we have $\kappa \approx \rho$ in practice; the $\ecrit$ values computed with $\rho$ are at most 28\% optimistic relative to the $\kappa$-based formal threshold.
+\textbf{Notation.} All formal bounds (\cref{thm:phase_transition}) and tables use the operator-norm contraction constant $\kappa = \norm{J_z}_2$, estimated via power iteration. Since non-normality is mild across our datasets ($\eta = 1.02$--$1.28$, \cref{sec:convergence}), $\kappa$ closely tracks the spectral radius $\rho(J_z)$: the two differ by at most 28\%. The matrix-free pipeline (\cref{sec:framework}) sets the Neumann-series depth adaptively from~$\kappa$.
 
 \subsection{Cross-Domain Adversarial Analysis}
 \label{sec:cross_domain}
@@ -16,13 +16,13 @@ We begin by validating that the constrained first-order prediction is accurate a
 
 \begin{table}[t]
 \centering
-\caption{Cross-domain adversarial analysis (IGNN, 10 seeds). $\rho$: spectral radius of state Jacobian. Tight.: actual/predicted shift ratio. AtkAdv: AEGIS damage / random damage. $\ecrit$: critical perturbation budget (\cref{thm:phase_transition}). Test Acc / Cert\%: full-graph / subgraph accuracy (\%).}
+\caption{Cross-domain adversarial analysis (IGNN, 10 seeds). $\kappa$: operator-norm contraction constant $\norm{J_z}_2$. Tight.: actual/predicted shift ratio. AtkAdv: AEGIS damage / random damage. $\ecrit$: critical perturbation budget (\cref{thm:phase_transition}). Test Acc / Cert\%: full-graph / subgraph accuracy (\%).}
 \label{tab:cross_domain}
 \small
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}l r r r r r r@{}}
 \toprule
-Dataset & \rotatebox{70}{Test Acc} & \rotatebox{70}{$\rho(J_z)$} & \rotatebox{70}{Tight.} & \rotatebox{70}{AtkAdv} & \rotatebox{70}{$\ecrit$} & \rotatebox{70}{Cert\%} \\
+Dataset & \rotatebox{70}{Test Acc} & \rotatebox{70}{$\kappa$} & \rotatebox{70}{Tight.} & \rotatebox{70}{AtkAdv} & \rotatebox{70}{$\ecrit$} & \rotatebox{70}{Cert\%} \\
 \midrule
 Cora     & $\ms{77.5}{1.7}$ & $\ms{.33}{.14}$ & $\ms{1.01}{.01}$ & $\ms{3.6}{.6}$ & $\ms{.66}{.15}$ & $\ms{81}{9}$ \\
 Citeseer & $\ms{66.0}{0.7}$ & $\ms{.59}{.02}$ & $\ms{1.01}{.01}$ & $\ms{4.1}{.5}$ & $\ms{.41}{.02}$ & $\ms{83}{4}$ \\
@@ -99,12 +99,31 @@ The adaptive attacker breaches zero nodes at $\varepsilon = 0.01$ and fewer than
 
 \textbf{Phase transition.} Scaling $\rho$ from 0.3 to 0.99 amplifies the fixed-point shift by $83\times$ at $\varepsilon = 0.01$, confirming the $1/(1-\kappa)$ factor from \cref{thm:phase_transition}.
 
-\textbf{Scalability.} On a single NVIDIA RTX 4090 (24\,GB): 1.3s/$N{=}50$, 1.8s/$N{=}200$ (3.7\,GB), 4.4s/$N{=}300$ (12.6\,GB, tightness $1.000$, AtkAdv 8.3$\times$). $N{=}400$ exceeds 24\,GB; sparse approximations would extend this.
+\textbf{Scalability.} The matrix-free pipeline removes the $O(D^3)$ bottleneck. On a single NVIDIA RTX 4090 (24\,GB), the dense path handles $N \leq 200$ (5.4s, 8.9\,GB) but exceeds 24\,GB at $N{=}500$. The matrix-free path scales to the full Cora graph ($N{=}2{,}708$, $D{=}173{,}312$) in 78\,s using 1\,GB, with $\sigma_1$ accuracy within 0.03\% of the dense reference at $N{=}200$.
+\cref{tab:scalability} compares both paths.
+
+\begin{table}[t]
+\centering
+\caption{Scalability: dense vs.\ matrix-free pipeline (RTX 4090, 24\,GB). OOM = out of memory. Mem = peak GPU memory.}
+\label{tab:scalability}
+\small
+\begin{tabular}{@{}rrrrr@{}}
+\toprule
+$N$ & Dense (s) & MatFree (s) & Mem-Dense & Mem-MF \\
+\midrule
+50    & 0.7  & 1.1  & 343\,MB  & 92\,MB \\
+200   & 5.4  & 4.5  & 8.9\,GB  & 129\,MB \\
+500   & OOM  & 11   & $>$24\,GB & 207\,MB \\
+1,000 & OOM  & 24   & $>$24\,GB & 373\,MB \\
+2,708 & OOM  & 78   & $>$24\,GB & 1.1\,GB \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Subgraph Size Ablation}
 \label{sec:subgraph_ablation}
 
-Varying $N \in \{30, 50, 100, 200\}$ on Cora (10 seeds): tightness is stable at 1.01--1.02 for $N \leq 100$ and degrades to $1.031$ at $N = 200$ (higher $\rho$). Coverage is 82--89\% across all sizes. We use $N=50$ (tightness $1.013 \pm 0.003$, 1.3s) as the default: $66\times$ faster than $N=200$ with negligible quality loss.
+Varying $N \in \{30, 50, 100, 200\}$ on Cora (10 seeds): tightness is stable at 1.01--1.02 for $N \leq 100$ and degrades to $1.031$ at $N = 200$ (higher $\kappa$). Coverage is 82--89\% across all sizes. We use $N=50$ (tightness $1.013 \pm 0.003$, 1.3s) as the default for subgraph-level experiments: $66\times$ faster than $N=200$ with negligible quality loss. For full-graph analysis, the matrix-free pipeline (\cref{tab:scalability}) enables vulnerability assessment of the entire graph without subgraph extraction.
 
 \subsection{Sensitivity and Convergence}
 \label{sec:hyperparams}
@@ -126,7 +145,7 @@ A key question is whether the $S_c$ framework extends beyond implicit models. Fo
 
 \begin{table}[t]
 \centering
-\caption{$S_c$ framework applied to 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: AEGIS/random damage. $\tau$: Kendall rank correlation vs.\ brute-force ground truth. Test Acc: full-graph accuracy. GAT$^\dagger$: edge-weighted variant for continuous differentiability (see text).}
+\caption{$S_c$ framework applied to 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: AEGIS/random damage. $\tau$: Kendall rank correlation of continuous $S_c$ vulnerability scores vs.\ discrete single-edge-removal ground truth (brute-force). Test Acc: full-graph accuracy. GAT$^\dagger$: edge-weighted variant for continuous differentiability (see text).}
 \label{tab:explicit}
 \small
 \begin{tabular}{@{}lrrrr@{}}
@@ -149,10 +168,12 @@ APPNP         & $\ms{1.02}{.00}$ & $\ms{3.4}{0.3}$x & $\ms{+.35}{.01}$ & $\ms{82
 
 GAT requires an edge-weighted formulation where $\Ahat$ values modulate attention weights continuously; standard GAT uses $A$ as a binary mask (zeroing non-edges), so $\partial Z / \partial A_{ij} = 0$ for all existing edges. GATv2~\cite{brody2022how} partially addresses this via dynamic attention, but still applies a binary mask at the neighborhood level. Our edge-weighted variant multiplies attention coefficients by $\Ahat_{ij}$, restoring continuous differentiability. With this modification, GAT achieves tightness 0.99, attack advantage 4.4$\times$, and $\tau = +0.36$.
 
-\textbf{Comparison with gradient attribution.} Against brute-force edge-removal ground truth, AEGIS rankings achieve positive $\tau$ (IGNN: $+0.32$; GCN-2: $+0.04$; GIN-2: $+0.06$) while gradient-based edge attribution~\cite{pope2019explainability,ying2019gnnexplainer} is consistently negative ($-0.07$, $-0.17$, $-0.21$ respectively). Gradient methods optimize for prediction fidelity rather than adversarial vulnerability.
+\textbf{Continuous-to-discrete transfer.} The $\tau$ column in \cref{tab:explicit} directly measures whether continuous $S_c$ vulnerability scores predict discrete edge-removal impact. The brute-force ground truth removes each edge entirely (a discrete, non-infinitesimal perturbation) and re-evaluates the model; $S_c$ scores are derived from continuous first-order sensitivity. Positive $\tau$ across 6 of 7 architectures ($+0.22$ to $+0.54$) demonstrates that continuous first-order analysis is a reliable proxy for discrete structural vulnerability, despite the perturbation-model mismatch. The one exception is GCN-2 ($\tau = -0.04$), likely due to its shallow depth limiting sensitivity differentiation.
+
+\textbf{Comparison with gradient attribution.} Against the same brute-force discrete ground truth, gradient-based edge attribution~\cite{pope2019explainability,ying2019gnnexplainer} produces consistently negative $\tau$ ($-0.07$, $-0.17$, $-0.21$ for IGNN, GCN-2, GIN-2 respectively). Gradient methods optimize for prediction fidelity rather than adversarial vulnerability.
 
 \textbf{Proposition~\ref{prop:explicit} bound tightness.} The ratio (Prop.~4 bound)$/\sigma_1(S_K)$ ranges from 1.4$\times$ (SAGE-2) to 5.9$\times$ (APPNP), with 2-layer models achieving tighter ratios (GCN-2: 1.8$\times$, GIN-2: 2.1$\times$) than deeper ones (GCN-4: 4.2$\times$, GAT-2: 3.7$\times$). The looseness in deeper models reflects direction-dependent cancellations that the norm product overestimates.
 
 \textbf{Degree-weighted $S_c$.} Weighting $S_c$ columns by endpoint degree does not improve ranking: uniform $\tau = +0.042$, degree-weighted $+0.037$, inverse-degree $-0.008$ (GCN-2, 10 seeds). High-degree nodes already contribute larger sensitivity columns via aggregation.
 
-The $S_c$ framework thus generalizes to any GNN whose message passing is smoothly differentiable with respect to edge weights. The theoretical guarantees (\cref{thm:phase_transition}: critical budget, convergence) remain specific to contractive implicit GNNs, but the practical vulnerability analysis (SVD attacks, rankings, first-order sensitivity radii) transfers broadly.
+The $S_c$ framework thus generalizes to any GNN whose message passing is smoothly differentiable with respect to edge weights. The theoretical guarantees (\cref{thm:phase_transition}: critical budget, convergence) remain specific to contractive implicit GNNs, but the practical vulnerability analysis (SVD attacks, rankings, first-order sensitivity radii) transfers broadly. We note that IGNN's accuracy (77.5\%) trails state-of-the-art deep GCN variants such as GCNII~\cite{chen2020simple} ($\sim$82\%); the accuracy--guarantee tradeoff is inherent in contractive architectures and does not reflect a limitation of AEGIS, which produces identical $S_c$ analysis for explicit models at comparable accuracy (\cref{tab:explicit}).

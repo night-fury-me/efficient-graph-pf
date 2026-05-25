@@ -13,9 +13,9 @@ The practical value is that these predictions are quantitatively accurate: const
 
 \textbf{Contributions.}
 \begin{enumerate}
-\item \textbf{Constrained sensitivity framework.} We derive the constrained sensitivity matrix $S_c$ for any differentiable GNN (\cref{prop:explicit}). For contractive implicit models, we additionally prove a critical budget $\ecrit$ and three vulnerability regimes (\cref{thm:phase_transition}).
+\item \textbf{Constrained sensitivity framework.} We derive the constrained sensitivity matrix $S_c$ for any GNN whose message passing is differentiable with respect to edge weights (\cref{prop:explicit}). For contractive implicit models (IGNN-class), we additionally prove a critical budget $\ecrit$ and three vulnerability regimes (\cref{thm:phase_transition}); these formal guarantees do not transfer to explicit architectures.
 
-\item \textbf{Unified vulnerability analysis across architectures.} From $S_c$ we extract SVD-optimal attacks (2--8$\times$ stronger than random), per-edge vulnerability rankings, and per-node first-order sensitivity radii, validated on 7 architectures (\cref{sec:explicit_extension}).
+\item \textbf{Scalable matrix-free computation.} A Neumann-series resolvent combined with autograd JVPs and randomized SVD~\cite{halko2011finding} computes $S_c$'s action without materializing any $D \times N^2$ matrix, enabling full-graph analysis (Cora $N{=}2{,}708$ in 78\,s). We validate SVD-optimal attacks (2--8$\times$ stronger than random), per-edge vulnerability rankings, and per-node sensitivity radii across 7 architectures (\cref{sec:explicit_extension}).
 
-\item \textbf{Cross-domain validation and case study.} We validate across 9 datasets in 4 domains, including a power grid case study where AEGIS recovers N-1 contingency rankings and reveals implicit physics consistency of the equilibrium architecture (\cref{sec:power_flow}).
+\item \textbf{Cross-domain validation and case study.} We validate across 9 datasets in 4 domains, including a power grid case study where AEGIS recovers N-1 contingency rankings ($\tau$ between continuous $S_c$ scores and discrete edge-removal ground truth: $+0.32$--$+0.54$; \cref{sec:power_flow}).
 \end{enumerate}

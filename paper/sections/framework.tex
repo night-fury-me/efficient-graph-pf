@@ -20,19 +20,19 @@ AEGIS takes as input a trained GNN (any differentiable architecture) together wi
 ]
 \node[io] (in) {Trained GNN + Graph $G$ + Target node $v$};
 \node[stage, below=of in] (s1) {\textbf{Stage 1:} BFS Subgraph + Forward Pass};
-\node[stage, below=of s1] (s2) {\textbf{Stage 2:} Jacobian Computation ($J_z$, $J_A$)};
-\node[stage, below=of s2] (s3) {\textbf{Stage 3:} Constrained Projection $S \to S_c$};
-\node[stage, below=of s3] (s4) {\textbf{Stage 4:} SVD of $S_c$ $\to$ Analysis};
+\node[stage, below=of s1] (s2) {\textbf{Stage 2:} Matrix-Free $S_c$ Operator (Neumann + JVP)};
+\node[stage, below=of s2] (s3) {\textbf{Stage 3:} Constrained Projection $P_c$};
+\node[stage, below=of s3] (s4) {\textbf{Stage 4:} Randomized SVD $\to$ Analysis};
 \node[io, below=0.4cm of s4, minimum width=5.8cm] (out) {Vulnerability spectrum $v_{ij}$ \quad Attack $\delta A^*$ \quad Radii $r_v$};
 
 \draw[arr] (in) -- (s1);
-\draw[arr] (s1) -- node[right, font=\tiny] {$Z, A_{\text{sub}}$} (s2);
-\draw[arr] (s2) -- node[right, font=\tiny] {$J_z, J_A$} (s3);
-\draw[arr] (s3) -- node[right, font=\tiny] {$S_c$} (s4);
+\draw[arr] (s1) -- node[right, font=\tiny] {$Z, A$} (s2);
+\draw[arr] (s2) -- node[right, font=\tiny] {$S_c v$, $S_c^\top u$} (s3);
+\draw[arr] (s3) -- node[right, font=\tiny] {$P_c$} (s4);
 \draw[arr] (s4) -- (out);
 \end{tikzpicture}%
 }
-\caption{The AEGIS pipeline. Data flows top to bottom; annotations show intermediate quantities passed between stages. The bottleneck is Stage~2 ($O(D^2)$ backward passes).}
+\caption{The AEGIS pipeline. The matrix-free formulation (Stages~2--4) operates via JVP/VJP queries without materializing $S$ or $S_c$, enabling full-graph analysis up to $N \approx 5{,}000$.}
 \label{fig:pipeline}
 \end{figure}
 
@@ -40,30 +40,32 @@ AEGIS takes as input a trained GNN (any differentiable architecture) together wi
 
 Full-graph analysis is infeasible for large graphs because the sensitivity matrix has dimension $D \times N^2$ where $D = N \cdot d$. AEGIS addresses this by extracting a local BFS ego-subgraph of $N$ nodes centered on the target node. The model is then run on this subgraph: for implicit GNNs, this means iterating to the fixed point $\zstar$; for explicit $K$-layer GNNs, this is a standard forward pass yielding $Z_K$. Localization is justified by the locality of per-node vulnerability: a node's robustness radius depends on its own margin and the sensitivity of its immediate neighborhood (\cref{sec:subgraph_ablation}).
 
-\subsection{Stage 2: Sensitivity Computation}
+\subsection{Stage 2: Matrix-Free Sensitivity Computation}
 
-AEGIS computes the structural sensitivity matrix $S = \partial \mathrm{vec}(Z) / \partial \mathrm{vec}(A) \in \R^{D \times N^2}$, which maps adjacency perturbations to hidden-state shifts. The computation differs by architecture:
+AEGIS requires the action of the constrained sensitivity operator $S_c$ on vectors, without materializing the full matrix $S \in \R^{D \times N^2}$. For an edge perturbation vector $v \in \R^{|E|}$, the operator computes $S_c v = (I - J_z)^{-1} J_A P_c v$, where $P_c$ maps edge weights to symmetric adjacency perturbations, $J_A$ is the structural Jacobian, and $J_z = \partial F / \partial Z$ is the state Jacobian. Two ingredients make this matrix-free:
 
-\textbf{Implicit GNNs (IGNN-class):} $S = (I - J_z)^{-1} J_A$, where $J_z = \partial F / \partial Z$ is the state Jacobian and $J_A = \partial F / \partial \mathrm{vec}(A)$ is the adjacency Jacobian. Both are computed via row-by-row backward passes, followed by a linear solve. For IGNN with ReLU, $J_z = \mathrm{diag}(\sigma') \cdot (\Ahat \otimes W)$.
+\textbf{Neumann-series resolvent.} The resolvent $(I - J_z)^{-1} b$ is evaluated via the truncated Neumann series $\sum_{k=0}^{K} J_z^k b$, which converges geometrically when $\kappa < 1$ (Assumption~A3). Each term requires a single Jacobian-vector product (JVP) $J_z \cdot v$, computed via forward-mode automatic differentiation in $O(D)$ time. The depth $K$ is set adaptively from a power-iteration estimate of $\kappa$, with early stopping when $\norm{J_z^k b} < 10^{-6} \norm{b}$.
 
-\textbf{Explicit GNNs ($K$-layer):} $S_K = \partial \mathrm{vec}(Z_K) / \partial \mathrm{vec}(A)$ is computed directly via finite differences on the forward pass. Each column of $S_K$ measures the effect of perturbing one adjacency entry.
+\textbf{Autograd structural JVPs.} The adjacency Jacobian $J_A \cdot \mathrm{vec}(\delta A)$ is computed as a single forward-mode JVP of $F$ with respect to $A$ in direction $\delta A$, avoiding the $O(N^2)$ finite-difference columns required by the dense path.
 
-Both paths use automatic differentiation~\cite{paszke2019pytorch} with cost $O(D \cdot N^2)$ for the full sensitivity matrix.
+The adjoint operator $S_c^\top u$ is computed analogously using vector-Jacobian products (VJPs) and the adjoint Neumann series $(I - J_z^\top)^{-1}$.
+
+For small subgraphs ($N \leq 200$), the dense path --- forming $J_z$, $J_A$ explicitly and solving via \texttt{torch.linalg.solve} --- remains available and gives exact results.
 
 \subsection{Stage 3: Constrained Projection}
 
-Given the full sensitivity matrix $S \in \R^{D \times N^2}$ (from Stage 2, via either the linear solve for implicit GNNs or direct computation for explicit GNNs), AEGIS projects it into the \emph{constrained sensitivity matrix} $S_c \in \R^{D \times |E|}$. Realistic graph perturbations are symmetric (undirected graphs) and supported only on existing edges. The $k$-th column of $S_c$ (for edge $(i,j) \in E$) is
+Realistic graph perturbations are symmetric (undirected graphs) and supported only on existing edges. The constraint projection $P_c$ maps an edge vector $v \in \R^{|E|}$ to a symmetric adjacency perturbation $\delta A$ with $\delta A_{ij} = \delta A_{ji} = v_k$ for each edge $k = (i,j) \in E$. In the dense formulation, this yields the constrained sensitivity matrix $S_c \in \R^{D \times |E|}$ with columns
 \begin{equation}
 [S_c]_{:,k} = S_{:, iN+j} + S_{:, jN+i}.
 \label{eq:sc_construction}
 \end{equation}
-The summation enforces symmetry: perturbing edge $(i,j)$ affects both $A_{ij}$ and $A_{ji}$ simultaneously. This projection reduces the perturbation space from $N^2$ dimensions to $|E|$ dimensions and is what enables tight first-order predictions across all architectures (\cref{sec:cross_domain,sec:explicit_extension}).
+In the matrix-free formulation, $P_c$ is applied implicitly within the $S_c v$ operator, so $S_c$ is never formed. This projection reduces the perturbation space from $N^2$ to $|E|$ dimensions and is what enables tight first-order predictions across all architectures (\cref{sec:cross_domain,sec:explicit_extension}).
 
 \subsection{Stage 4: Vulnerability Analysis}
 
 From $S_c$, AEGIS extracts three complementary outputs:
 
-\textbf{Optimal attack direction.} The SVD of $S_c = U \Sigma V^\top$ yields the first-order optimal perturbation as $\delta A^* = \varepsilon \cdot v_1$ (the leading right singular vector of $S_c$, reshaped to edge weights). This perturbation maximizes the fixed-point shift $\norm{\Delta \zstar}_F$ subject to the Frobenius-norm budget $\varepsilon$, and achieves a shift of $\varepsilon \cdot \sigma_1(S_c)$.
+\textbf{Optimal attack direction.} A randomized SVD~\cite{halko2011finding} of the $S_c$ operator (using only matrix-vector products) yields the leading singular triplet $(u_1, \sigma_1, v_1)$. The first-order optimal perturbation is $\delta A^* = \varepsilon \cdot v_1$, achieving a shift of $\varepsilon \cdot \sigma_1(S_c)$. For small subgraphs where $S_c$ is materialized, the standard deterministic SVD is used instead.
 
 \textbf{Per-edge vulnerability spectrum.} For each edge $(i,j) \in E$, the vulnerability score $v_{ij} = \norm{[S_c]_{:,k}}_2$ measures how much a unit perturbation of that edge shifts the equilibrium. Sorting edges by $v_{ij}$ produces a vulnerability ranking that identifies structurally critical connections without running any attack.
 
@@ -75,4 +77,8 @@ where $S_v$ denotes the block-rows of $S$ corresponding to node $v$, and $W_{y_v
 
 \subsection{Computational Cost}
 
-The dominant cost is Stage~2 (Jacobian computation) at $O(D \cdot N^2)$ for $J_A$, followed by Stage~3 (linear solve) at $O(D^3)$. For the default subgraph size $N = 50$ with $d = 64$ (giving $D = 3{,}200$), the full pipeline completes in 1.3 seconds on a single GPU. The practical limit is $N \approx 200$ ($D = 12{,}800$, 8.1 seconds), requiring approximately 6.5\,GB GPU memory for $J_z$ ($D^2$ entries) and $J_A$ ($D \times N^2$ entries) in float32; see \cref{sec:scalability} for detailed timings.
+\textbf{Matrix-free pipeline.} Each $S_c v$ or $S_c^\top u$ evaluation costs $O(K \cdot D)$, where $K$ is the Neumann depth (set adaptively from $\kappa$; typically $K = 20$--$50$ for $\kappa < 0.8$, up to $\sim\!340$ for $\kappa \approx 0.96$). The randomized SVD performs $O((k + p) \cdot n_{\text{iter}})$ such evaluations, where $k$ is the number of requested singular values, $p$ the oversampling, and $n_{\text{iter}}$ the power iterations. Per-edge vulnerability requires $|E|$ column evaluations, each at $O(K \cdot D)$. Memory is $O(D)$ per operation --- no large matrix is stored.
+
+\textbf{Scalability.} On a single NVIDIA RTX 4090 (24\,GB), the matrix-free pipeline completes in 1.1s for $N{=}50$, 4.5s for $N{=}200$, 24s for $N{=}1{,}000$, and 78s for full Cora ($N{=}2{,}708$, $D{=}173{,}312$) using 1\,GB GPU memory (\cref{sec:scalability}). The dense path runs faster for $N \leq 100$ (0.7s at $N{=}50$) but exceeds 24\,GB at $N{=}500$.
+
+The matrix-free formulation removes the $O(D^3)$ linear-solve bottleneck and the $O(D \times N^2)$ storage requirement that previously limited analysis to $N \approx 300$, enabling full-graph vulnerability analysis on graphs with thousands of nodes.

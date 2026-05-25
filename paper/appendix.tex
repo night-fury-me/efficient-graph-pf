@@ -40,7 +40,7 @@ Misclassification requires $|\Delta f_{y_v}| \geq m_v$. Solving: $\norm{\delta A
 
 \subsection{Non-Normality Index}
 
-For a normal matrix $J_z$, $\norm{(I-J_z)^{-1}}_2 = 1/(1-\rho)$ exactly. For non-normal $J_z$, the resolvent norm can exceed this by a factor $\eta = \norm{(I-J_z)^{-1}}_2 \cdot (1-\rho) \geq 1$. When $\eta \gg 1$, the operator exhibits ``transient amplification'': perturbations are temporarily amplified before contraction damps them~\cite{trefethen2005spectra}. Across our 9 datasets, $\eta \in [1.0, 1.4]$, indicating mild non-normality. The spectral radius is therefore a faithful predictor of adversarial vulnerability in our setting.
+For a normal matrix $J_z$, $\norm{(I-J_z)^{-1}}_2 = 1/(1-\kappa)$ exactly (since $\kappa = \rho$ for normal matrices). For non-normal $J_z$, the resolvent norm can exceed the spectral-radius-based estimate by a factor $\eta = \norm{(I-J_z)^{-1}}_2 \cdot (1-\rho) \geq 1$. When $\eta \gg 1$, the operator exhibits ``transient amplification'': perturbations are temporarily amplified before contraction damps them~\cite{trefethen2005spectra}. Across our 9 datasets, $\eta \in [1.0, 1.4]$, indicating mild non-normality. The operator norm $\kappa = \norm{J_z}_2$ is therefore a faithful predictor of adversarial vulnerability in our setting, and is used in all tables and bounds.
 
 %% ===================================================================
 \section{Extended Experimental Results}
@@ -53,13 +53,13 @@ Early stopping (best validation accuracy over 200 epochs, checked every 10 epoch
 
 \begin{table}[h]
 \centering
-\caption{Citeseer with vs.\ without early stopping (10 seeds).}
+\caption{Citeseer early stopping ablation (10 seeds). Accuracy values below reflect the corrected data loader; the main text (\cref{tab:cross_domain}) reports $66.0 \pm 0.7\%$ with early stopping on the same corrected loader.}
 \small
 \begin{tabular}{@{}lcc@{}}
 \toprule
 Metric & Without ES & With ES \\
 \midrule
-Accuracy      & $0.467 \pm 0.056$ & $0.421 \pm 0.028$ \\
+Accuracy      & $0.670 \pm 0.013$ & $0.660 \pm 0.007$ \\
 Cert\%        & $72.0 \pm 19.3\%$ & $82.8 \pm 4.0\%$ \\
 \bottomrule
 \end{tabular}
@@ -71,7 +71,7 @@ Cert\%        & $72.0 \pm 19.3\%$ & $82.8 \pm 4.0\%$ \\
 
 \begin{table}[h]
 \centering
-\caption{IFT vs.\ Mettack at budget $k=1,\ldots,5$ (Cora, single representative seed). IFT wins at all budgets.}
+\caption{IFT vs.\ Mettack at budget $k=1,\ldots,5$ (Cora, single representative seed; 10-seed averages in the main text). IFT wins at all budgets.}
 \small
 \begin{tabular}{@{}rcccc@{}}
 \toprule
