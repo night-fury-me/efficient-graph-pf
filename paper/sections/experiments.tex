@@ -126,7 +126,7 @@ A key question is whether the $S_c$ framework extends beyond implicit models. Fo
 
 \begin{table}[t]
 \centering
-\caption{$S_c$ framework applied to 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: AEGIS/random damage. $\tau$: Kendall rank correlation vs.\ brute-force edge-removal ground truth. Test Acc: full-graph test accuracy.}
+\caption{$S_c$ framework applied to 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: AEGIS/random damage. $\tau$: Kendall rank correlation vs.\ brute-force ground truth. Test Acc: full-graph accuracy. All models use edge-weighted adjacency for continuous differentiability; GAT$^\dagger$ uses a non-standard edge-weighted variant (see text). Accuracy is 2--5\% below published baselines due to the differentiability requirement, except GAT$^\dagger$.}
 \label{tab:explicit}
 \small
 \begin{tabular}{@{}lrrrr@{}}
@@ -138,14 +138,14 @@ IGNN (equil.) & $\ms{1.01}{.00}$ & $\ms{7.6}{0.5}$x & $\ms{+.32}{.04}$ & $\ms{76
 GCN-2         & $\ms{1.00}{.00}$ & $\ms{4.4}{0.4}$x & $\ms{+.05}{.02}$ & $\ms{76.2}{0.7}$\% \\
 GCN-4         & $\ms{1.02}{.00}$ & $\ms{3.3}{0.2}$x & $\ms{+.48}{.01}$ & $\ms{78.3}{1.3}$\% \\
 GIN-2         & $\ms{1.00}{.00}$ & $\ms{3.8}{0.3}$x & $\ms{+.06}{.05}$ & $\ms{70.6}{2.4}$\% \\
-GAT-2         & $\ms{0.99}{.02}$ & $\ms{4.4}{1.5}$x & $\ms{+.36}{.13}$ & $\ms{64.2}{2.2}$\% \\
+GAT-2$^\dagger$ & $\ms{0.99}{.02}$ & $\ms{4.4}{1.5}$x & $\ms{+.36}{.13}$ & $\ms{64.2}{2.2}$\% \\
 SAGE-2        & $\ms{1.00}{.00}$ & $\ms{2.0}{0.1}$x & $\ms{+.49}{.10}$ & $\ms{74.4}{1.4}$\% \\
 APPNP         & $\ms{1.02}{.00}$ & $\ms{3.3}{0.2}$x & $\ms{+.36}{.02}$ & $\ms{80.8}{0.7}$\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\cref{tab:explicit} applies the $S_c$ framework to six explicit GNN architectures on Cora. All six achieve near-perfect first-order tightness (0.99--1.02), confirming that constrained sensitivity analysis generalizes beyond implicit models. Attack advantage ranges from 2.0$\times$ (SAGE) to 7.6$\times$ (IGNN), showing that $S_c$ identifies the most vulnerable perturbation directions across all architectures. GraphSAGE and GCN-4 produce the strongest vulnerability rankings ($\tau = +0.49$ and $+0.48$), surpassing IGNN ($+0.32$). APPNP achieves $\tau = +0.36$ with 94\% accuracy.
+\cref{tab:explicit} applies the $S_c$ framework to six explicit GNN architectures on Cora. All six achieve near-perfect first-order tightness (0.99--1.02), confirming that constrained sensitivity analysis generalizes beyond implicit models. Attack advantage ranges from 2.0$\times$ (SAGE) to 7.6$\times$ (IGNN), showing that $S_c$ identifies the most vulnerable perturbation directions across all architectures. Test accuracy is 2--5\% below published baselines (e.g., GCN-2: 76.2\% vs.\ 81.5\% in~\cite{kipf2017semi}) because the edge-weighted formulation modifies the aggregation; this tradeoff enables continuous differentiability for $S_c$ computation. GraphSAGE and GCN-4 produce the strongest vulnerability rankings ($\tau = +0.49$ and $+0.48$). APPNP achieves $\tau = +0.36$ with 80.8\% accuracy.
 
 GAT requires an edge-weighted formulation where $\Ahat$ values modulate attention weights continuously; standard GAT uses $A$ as a binary mask (zeroing non-edges), so $\partial Z / \partial A_{ij} = 0$ for all existing edges. GATv2~\cite{brody2022how} partially addresses this via dynamic attention, but still applies a binary mask at the neighborhood level. Our edge-weighted variant multiplies attention coefficients by $\Ahat_{ij}$, restoring continuous differentiability. With this modification, GAT achieves tightness 0.99, attack advantage 4.4$\times$, and $\tau = +0.36$.
 
