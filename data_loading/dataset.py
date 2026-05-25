@@ -233,9 +233,12 @@ class ChanghunDataset(Dataset):
         import os as _os
         _path_list = path if isinstance(path, (list, tuple)) else [path]
         _is_lvn_converted = any("LVN_converted" in str(p) for p in _path_list)
+        _is_ieee = any("IEEE_" in str(p) for p in _path_list)
         _env_skip = _os.environ.get("GNN_SKIP_OUTLIER", "0") == "1"
-        if _env_skip or _is_lvn_converted:
-            reason = "GNN_SKIP_OUTLIER=1" if _env_skip else "auto-detected LVN_converted dataset"
+        if _env_skip or _is_lvn_converted or _is_ieee:
+            reason = ("GNN_SKIP_OUTLIER=1" if _env_skip
+                      else "auto-detected LVN_converted" if _is_lvn_converted
+                      else "auto-detected IEEE benchmark")
             log.info("%s -> bypassing per-unit u_newton outlier filter", reason)
             OUTLIER_K = float("inf")
         else:

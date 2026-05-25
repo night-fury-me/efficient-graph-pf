@@ -124,8 +124,8 @@ def generate_case(case_name: str, net_fn, n_samples: int = 2000, load_var: float
         rows.append({
             "bus_number": n_bus,
             "gridtype": f"IEEE_{case_name}",
-            "U_base": U_base,
-            "S_base": S_base,
+            "U_base": 1.0,  # sentinel — u_start/u_newton already per-unit
+            "S_base": 1.0,  # sentinel — S_start already per-unit
             "bus_typ": npy_bytes(bus_typ),
             "Y_Lines": npy_bytes(Y_lines),
             "Y_C_Lines": npy_bytes(Y_C_lines),
