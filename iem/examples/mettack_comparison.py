@@ -29,6 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from iem.adversarial import (
     _compute_structural_jacobian,
+    extract_ego_subgraph,
     greedy_structural_attack,
     optimal_structural_attack,
     structural_sensitivity_matrix,
@@ -171,11 +172,8 @@ def run_comparison(name, data, device):
         acc = float((pred[data["test_mask"]] == y[data["test_mask"]]).float().mean())
     print(f"  IGNN test_acc={acc:.3f}", flush=True)
 
-    # 50-node subgraph
-    deg = A_hat.sum(dim=1)
-    center = int(deg.argmax().item())
-    neighbors = (A_hat[center] > 0).nonzero(as_tuple=True)[0]
-    idx = neighbors[:50]
+    # 50-node subgraph via BFS (guarantees connectivity)
+    idx = extract_ego_subgraph(A_hat, max_nodes=50)
     S_size = len(idx)
 
     A_sub = A_hat[idx][:, idx]

@@ -25,6 +25,7 @@ from iem.adversarial import (
     _compute_structural_jacobian,
     certified_shift_bound,
     critical_perturbation_budget,
+    extract_ego_subgraph,
     extract_W_spectral_norm,
     nonnormality_index,
     optimal_structural_attack,
@@ -98,11 +99,8 @@ def run_adversarial_on_dataset(name: str, data: dict, device, n_epochs: int = 10
         test_acc = float((pred[data["test_mask"]] == y[data["test_mask"]]).float().mean())
     print(f"  test_acc={test_acc:.3f}, params={n_params:,}", flush=True)
 
-    # --- 50-node subgraph ---
-    deg = A_hat.sum(dim=1)
-    center = int(deg.argmax().item())
-    neighbors = (A_hat[center] > 0).nonzero(as_tuple=True)[0]
-    idx = neighbors[:50]
+    # --- 50-node subgraph via BFS ---
+    idx = extract_ego_subgraph(A_hat, max_nodes=50)
     S_size = len(idx)
 
     A_sub = A_hat[idx][:, idx]

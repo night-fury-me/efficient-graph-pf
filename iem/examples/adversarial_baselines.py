@@ -29,6 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from iem.adversarial import (
     _compute_structural_jacobian,
+    extract_ego_subgraph,
     greedy_structural_attack,
     optimal_structural_attack,
     per_node_robust_radius,
@@ -181,11 +182,8 @@ def main():
             acc = float((pred[data["test_mask"]] == y[data["test_mask"]]).float().mean())
         print(f"  test_acc={acc:.3f}", flush=True)
 
-        # Subgraph
-        deg = A_hat.sum(dim=1)
-        center = int(deg.argmax().item())
-        neighbors = (A_hat[center] > 0).nonzero(as_tuple=True)[0]
-        idx = neighbors[:50]
+        # Subgraph via BFS
+        idx = extract_ego_subgraph(A_hat, max_nodes=50)
         S_size = len(idx)
         A_sub = A_hat[idx][:, idx]
         ctx_sub = {"A_hat": A_sub, "X_proj": ctx["X_proj"][idx]}

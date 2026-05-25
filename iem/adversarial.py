@@ -40,6 +40,41 @@ from .ift import compute_jacobian
 
 
 # ---------------------------------------------------------------------------
+# Subgraph extraction
+# ---------------------------------------------------------------------------
+
+def extract_ego_subgraph(
+    A_hat: Tensor,
+    max_nodes: int = 50,
+    center: Optional[int] = None,
+) -> Tensor:
+    """BFS-based ego subgraph extraction. Guarantees connectivity.
+
+    The naive approach (take first-k neighbors of highest-degree node)
+    yields near-empty subgraphs on datasets with high-degree hubs (e.g.,
+    WikiCS center has 3324 neighbors → 50 random picks share only 7 edges).
+    BFS ensures the subgraph is connected with dense inter-edges.
+    """
+    from collections import deque
+
+    if center is None:
+        center = int(A_hat.sum(dim=1).argmax().item())
+
+    visited = [center]
+    seen = {center}
+    queue = deque([center])
+    while len(visited) < max_nodes and queue:
+        node = queue.popleft()
+        for n in (A_hat[node] > 0).nonzero(as_tuple=True)[0].tolist():
+            if n not in seen and len(visited) < max_nodes:
+                seen.add(n)
+                visited.append(n)
+                queue.append(n)
+
+    return torch.tensor(sorted(visited), device=A_hat.device)
+
+
+# ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
 
