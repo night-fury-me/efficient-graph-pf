@@ -380,14 +380,24 @@ def per_node_robust_radius(
         other[labels[v]] = -float("inf")
         margins[v] = true_scores[v] - other.max()
 
-    # ||df/dz_v|| via autograd
+    # ||W_{y_v} - W_{c*}||_2: margin gradient norm per node
+    # For linear head f(z) = Wz + b, this is ||W[y_v,:] - W[c*,:]||_2
+    # where c* is the runner-up class for node v.
+    preds = probs.argmax(dim=1)
+    runner_up = torch.zeros(N, dtype=torch.long, device=logits.device)
+    for v in range(N):
+        other = probs[v].clone()
+        other[labels[v]] = -float("inf")
+        runner_up[v] = other.argmax()
+
     z_req = z_star.detach().clone().requires_grad_(True)
     logits_re = head(z_req)
     grad_norms = torch.zeros(N, device=logits.device)
     for v in range(N):
         if z_req.grad is not None:
             z_req.grad.zero_()
-        logits_re[v, labels[v]].backward(retain_graph=True)
+        margin_v = logits_re[v, labels[v]] - logits_re[v, runner_up[v]]
+        margin_v.backward(retain_graph=True)
         if z_req.grad is not None:
             grad_norms[v] = z_req.grad[v].norm()
 

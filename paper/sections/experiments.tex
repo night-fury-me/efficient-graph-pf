@@ -32,7 +32,29 @@ WikiCS   & $\ms{.34}{.04}$ & $\ms{1.00}{.01}$ & $\ms{3.8}{.4}$x & $\ms{.66}{.04}
 \end{tabular}
 \end{table}
 
-Tightness is $1.00 \pm 0.01$ across all datasets at $\varepsilon = 0.01$, confirming that the constrained first-order prediction is accurate under symmetric edge perturbations at this budget. We emphasize that first-order accuracy at small $\varepsilon$ is mathematically expected (any smooth function is well-approximated by its linearization); the contribution is that $S_c$ makes this tractable and tight under \emph{constrained} perturbations, which is non-trivial given the $N^2 \to |E|$ projection. At larger budgets ($\varepsilon = 0.05, 0.10$), the first-order prediction becomes conservative: the adaptive attacker (\cref{sec:adaptive}) achieves only 72--84\% of the predicted shift on Cora and 0\% breach of first-order radii at $\varepsilon \leq 0.05$. The attack advantage (3.2--4.1$\times$ over random) demonstrates that $S_c$ identifies the most vulnerable perturbation directions. Coverage (Cert\%) ranges from 70\% to 92\%, representing the fraction of subgraph nodes correctly classified by the IGNN (i.e., clean subgraph accuracy); only correctly classified nodes have positive margin and thus a meaningful radius.
+Tightness is $1.00 \pm 0.01$ across all datasets at $\varepsilon = 0.01$. First-order accuracy at small $\varepsilon$ is mathematically expected; the contribution is that $S_c$ makes this tractable under \emph{constrained} perturbations ($N^2 \to |E|$ projection). \cref{tab:tightness_eps} shows how tightness degrades at larger budgets: the first-order prediction remains within 7\% at $\varepsilon = 0.05$ and within 16\% at $\varepsilon = 0.10$ on Cora/Citeseer, and within 5\% at $\varepsilon = 0.20$ on WikiCS. Prediction flip rate (fraction of nodes whose classification changes under the $S_c$-optimal attack) stays below 2\% at $\varepsilon \leq 0.10$ and below 6\% at $\varepsilon = 0.20$. The attack advantage (3.2--4.1$\times$ over random in \cref{tab:cross_domain}) confirms that $S_c$ identifies the most vulnerable perturbation directions. Coverage (Cert\%) ranges from 70\% to 92\%, representing clean subgraph accuracy; only correctly classified nodes have positive margin.
+
+\begin{table}[t]
+\centering
+\caption{Tightness degradation with increasing $\varepsilon$ (10 seeds, $S_c$-optimal constrained perturbation). Flip\%: fraction of nodes whose prediction changes.}
+\label{tab:tightness_eps}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Dataset & $\varepsilon{=}.01$ & $\varepsilon{=}.05$ & $\varepsilon{=}.10$ & $\varepsilon{=}.20$ \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{Tightness (actual/predicted shift)}} \\
+Cora     & $\ms{1.01}{.00}$ & $\ms{1.07}{.01}$ & $\ms{1.15}{.03}$ & $\ms{1.36}{.08}$ \\
+Citeseer & $\ms{1.01}{.00}$ & $\ms{1.07}{.01}$ & $\ms{1.16}{.03}$ & $\ms{1.39}{.07}$ \\
+WikiCS   & $\ms{1.00}{.01}$ & $\ms{1.01}{.01}$ & $\ms{1.02}{.01}$ & $\ms{1.05}{.01}$ \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{Prediction flip rate (\%)}} \\
+Cora     & $\ms{0.4}{0.8}$ & $\ms{0.6}{0.9}$ & $\ms{1.8}{2.4}$ & $\ms{5.8}{5.0}$ \\
+Citeseer & $\ms{0.0}{0.0}$ & $\ms{0.6}{1.3}$ & $\ms{2.0}{2.4}$ & $\ms{3.0}{2.6}$ \\
+WikiCS   & $\ms{0.2}{0.6}$ & $\ms{0.4}{0.8}$ & $\ms{0.6}{0.9}$ & $\ms{1.2}{1.0}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \textbf{Surrogate baseline.} We also compared against Mettack~\cite{zugner2019adversarial} (GCN~\cite{kipf2017semi} surrogate): AEGIS inflicts 3--10$\times$ more damage at every budget (30/30 wins across $k=1,\ldots,5$ edge removals). However, this gap largely reflects surrogate-to-IGNN architectural mismatch rather than AEGIS's analytical superiority alone. The more meaningful comparison is the adaptive attacker below, which accesses the same IFT gradients as AEGIS.
 
