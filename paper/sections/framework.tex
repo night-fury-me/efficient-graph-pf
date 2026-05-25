@@ -3,7 +3,7 @@
 \label{sec:framework}
 %% ===================================================================
 
-The theoretical results of \cref{sec:theory} provide the mathematical foundation for vulnerability analysis, but translating them into a practical tool requires careful engineering. This section describes the AEGIS pipeline: how its components fit together, what each one computes, and how the system scales to real graphs.
+Translating the results of \cref{sec:theory} into a practical tool requires overcoming two computational barriers: the full sensitivity matrix $S \in \R^{Nd \times N^2}$ is too large to materialize, and the resolvent $(I - J_z)^{-1}$ is too expensive to form directly. The AEGIS pipeline addresses both through matrix-free computation.
 
 \subsection{Architecture Overview}
 
@@ -42,15 +42,15 @@ For subgraph-level analysis, AEGIS extracts a local BFS ego-subgraph centered on
 
 \subsection{Stage 2: Matrix-Free Sensitivity Computation}
 
-AEGIS requires the action of the constrained sensitivity operator $S_c$ on vectors, without materializing the full matrix $S \in \R^{D \times N^2}$. For an edge perturbation vector $v \in \R^{|E|}$, the operator computes $S_c v = (I - J_z)^{-1} J_A P_c v$, where $P_c$ maps edge weights to symmetric adjacency perturbations, $J_A$ is the structural Jacobian, and $J_z = \partial F / \partial Z$ is the state Jacobian. Two ingredients make this matrix-free:
+AEGIS requires the action of the constrained sensitivity operator $S_c$ on vectors, without materializing the full matrix $S \in \R^{Nd \times N^2}$. For an edge perturbation vector $v \in \R^{|E|}$, the operator computes $S_c v = (I - J_z)^{-1} J_A P_c v$, where $P_c$ maps edge weights to symmetric adjacency perturbations, $J_A$ is the structural Jacobian, and $J_z = \partial F / \partial Z$ is the state Jacobian. Two ingredients make this matrix-free:
 
-\textbf{Neumann-series resolvent.} The resolvent $(I - J_z)^{-1} b$ is evaluated via the truncated Neumann series $\sum_{k=0}^{K} J_z^k b$, which converges geometrically when $\kappa < 1$ (Assumption~A3). Each term requires a single Jacobian-vector product (JVP) $J_z \cdot v$, computed via forward-mode automatic differentiation in $O(D)$ time. The depth $K$ is set adaptively from a power-iteration estimate of $\kappa$, with early stopping when $\norm{J_z^k b} < 10^{-6} \norm{b}$.
+\textbf{Neumann-series resolvent.} The resolvent $(I - J_z)^{-1} b$ is evaluated via the truncated Neumann series $\sum_{k=0}^{K} J_z^k b$, which converges geometrically when $\kappa < 1$ (Assumption~A3). Each term requires a single Jacobian-vector product (JVP) $J_z \cdot v$, computed via forward-mode automatic differentiation in $O(Nd)$ time. The depth $K$ is set adaptively from a power-iteration estimate of $\kappa$, with early stopping when $\norm{J_z^k b} < 10^{-6} \norm{b}$.
 
 \textbf{Autograd structural JVPs.} The adjacency Jacobian $J_A \cdot \mathrm{vec}(\delta A)$ is computed as a single forward-mode JVP of $F$ with respect to $A$ in direction $\delta A$, avoiding the $O(N^2)$ finite-difference columns required by the dense path.
 
 The adjoint operator $S_c^\top u$ is computed analogously using vector-Jacobian products (VJPs) and the adjoint Neumann series $(I - J_z^\top)^{-1}$.
 
-For small subgraphs ($N \leq 200$), the dense path --- forming $J_z$, $J_A$ explicitly and solving via \texttt{torch.linalg.solve} --- remains available and gives exact results.
+For small subgraphs ($N \leq 200$), the dense path (forming $J_z$, $J_A$ explicitly and solving via \texttt{torch.linalg.solve}) remains available and gives exact results.
 
 \subsection{Stage 3: Constrained Projection}
 
@@ -72,8 +72,8 @@ where $S_v$ denotes the block-rows of $S$ corresponding to node $v$, and $W_{y_v
 
 \subsection{Computational Cost}
 
-\textbf{Matrix-free pipeline.} Each $S_c v$ or $S_c^\top u$ evaluation costs $O(K \cdot D)$, where $K$ is the Neumann depth (set adaptively from $\kappa$; typically $K = 20$--$50$ for $\kappa < 0.8$, up to $\sim\!340$ for $\kappa \approx 0.96$). The randomized SVD performs $O((k + p) \cdot n_{\text{iter}})$ such evaluations, where $k$ is the number of requested singular values, $p$ the oversampling, and $n_{\text{iter}}$ the power iterations. Per-edge vulnerability requires $|E|$ column evaluations, each at $O(K \cdot D)$. Memory is $O(D)$ per operation --- no large matrix is stored.
+\textbf{Matrix-free pipeline.} Each $S_c v$ or $S_c^\top u$ evaluation costs $O(K \cdot Nd)$, where $K$ is the Neumann depth (set adaptively from $\kappa$; typically $K = 20$--$50$ for $\kappa < 0.8$, up to $\sim\!340$ for $\kappa \approx 0.96$). The randomized SVD performs $O((k + p) \cdot n_{\text{iter}})$ such evaluations, where $k$ is the number of requested singular values, $p$ the oversampling, and $n_{\text{iter}}$ the power iterations. Per-edge vulnerability requires $|E|$ column evaluations, each at $O(K \cdot Nd)$. Memory is $O(Nd)$ per operation; no large matrix is stored.
 
-\textbf{Scalability.} On a single NVIDIA RTX 4090 (24\,GB), the matrix-free pipeline completes in 1.1s for $N{=}50$, 4.5s for $N{=}200$, 24s for $N{=}1{,}000$, and 78s for full Cora ($N{=}2{,}708$, $D{=}173{,}312$) using 1\,GB GPU memory (\cref{sec:scalability}). The dense path runs faster for $N \leq 100$ (0.7s at $N{=}50$) but exceeds 24\,GB at $N{=}500$.
+\textbf{Scalability.} On a single NVIDIA RTX 4090 (24\,GB), the matrix-free pipeline completes in 1.1s for $N{=}50$, 4.5s for $N{=}200$, 24s for $N{=}1{,}000$, and 78s for full Cora ($N{=}2{,}708$, $Nd{=}173{,}312$) using 1\,GB GPU memory (\cref{sec:scalability}). The dense path runs faster for $N \leq 100$ (0.7s at $N{=}50$) but exceeds 24\,GB at $N{=}500$.
 
-The matrix-free formulation removes the $O(D^3)$ linear-solve bottleneck and the $O(D \times N^2)$ storage requirement that previously limited analysis to $N \approx 300$, enabling full-graph vulnerability analysis on graphs with thousands of nodes.
+The matrix-free formulation removes the $O((Nd)^3)$ linear-solve bottleneck and the $O(N^3 d)$ storage requirement that previously limited analysis to $N \approx 300$, enabling full-graph vulnerability analysis on graphs with thousands of nodes.

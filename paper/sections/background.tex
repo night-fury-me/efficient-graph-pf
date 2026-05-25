@@ -3,8 +3,6 @@
 \label{sec:background}
 %% ===================================================================
 
-This section establishes the notation, formalizes the model class under consideration, specifies the threat model, and states the problem that AEGIS addresses.
-
 \subsection{Notation and Formalization}
 
 Let $G = (V, E, A)$ denote an undirected graph with $N = |V|$ nodes, edge set $E$, and adjacency matrix $A \in \R^{N \times N}$. Each node $v \in V$ carries a feature vector $x_v \in \R^{d_{\mathrm{in}}}$, collected into $X \in \R^{N \times d_{\mathrm{in}}}$. We write $\Ahat = D^{-1/2}(A + I)D^{-1/2}$ for the symmetric normalized adjacency with self-loops, where $D$ is the degree matrix of $A + I$.

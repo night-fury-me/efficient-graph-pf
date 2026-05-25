@@ -9,7 +9,7 @@ We evaluate AEGIS on 9 datasets across 4 domains with 10 random seeds each (seed
 
 \textbf{Datasets.} We use five graph benchmarks: Cora (2,708 nodes), Citeseer (3,327), and Pubmed (19,717) from the Planetoid collection~\cite{sen2008collective}; Amazon Photo (7,650) from the Amazon co-purchase graphs~\cite{shchur2018pitfalls}; and WikiCS (11,701) from Wikipedia-based benchmarks~\cite{mernyei2020wiki}. For power flow, we use four IEEE standard test cases~\cite{ieee2024testcases}: case14 (14 buses), case30 (30), case57 (57), and case118 (118), with training data generated via PandaPower~\cite{thurner2018pandapower}.
 
-\textbf{Notation.} All formal bounds (\cref{thm:phase_transition}) and tables use the operator-norm contraction constant $\kappa = \norm{J_z}_2$, estimated via power iteration. Since non-normality is mild across our datasets ($\eta = 1.02$--$1.28$, \cref{sec:convergence}), $\kappa$ closely tracks the spectral radius $\rho(J_z)$: the two differ by at most 28\%. The matrix-free pipeline (\cref{sec:framework}) sets the Neumann-series depth adaptively from~$\kappa$.
+\textbf{Notation.} All formal bounds (\cref{thm:phase_transition}) and tables use the operator-norm contraction constant $\kappa = \norm{J_z}_2$, estimated via power iteration. Since non-normality is mild across our datasets ($\eta = 1.02$--$1.28$, \cref{sec:convergence}), the $\kappa$-based bounds are at most 28\% more conservative than spectral-radius bounds. The matrix-free pipeline (\cref{sec:framework}) sets the Neumann-series depth adaptively from~$\kappa$.
 
 \subsection{Cross-Domain Adversarial Analysis}
 \label{sec:cross_domain}
@@ -99,9 +99,9 @@ The adaptive attacker breaches zero nodes at $\varepsilon = 0.01$ and fewer than
 \label{sec:phase_transition}
 \label{sec:scalability}
 
-\textbf{Phase transition.} Scaling $\rho$ from 0.3 to 0.99 amplifies the fixed-point shift by $83\times$ at $\varepsilon = 0.01$, confirming the $1/(1-\kappa)$ factor from \cref{thm:phase_transition}.
+\textbf{Phase transition.} Scaling $\kappa$ from 0.3 to 0.99 amplifies the fixed-point shift by $83\times$ at $\varepsilon = 0.01$, confirming the $1/(1-\kappa)$ divergence predicted by \cref{thm:phase_transition}.
 
-\textbf{Scalability.} The matrix-free pipeline removes the $O(D^3)$ bottleneck. On a single NVIDIA RTX 4090 (24\,GB), the dense path handles $N \leq 200$ (5.4s, 8.9\,GB) but exceeds 24\,GB at $N{=}500$. The matrix-free path scales to the full Cora graph ($N{=}2{,}708$, $D{=}173{,}312$) in 78\,s using 1\,GB, with $\sigma_1$ accuracy within 0.03\% of the dense reference at $N{=}200$.
+\textbf{Scalability.} The matrix-free pipeline removes the $O(D^3)$ bottleneck. On a single NVIDIA RTX 4090 (24\,GB), the dense path handles $N \leq 200$ (5.4s, 8.9\,GB) but exceeds 24\,GB at $N{=}500$. The matrix-free path scales to the full Cora graph ($N{=}2{,}708$, $Nd{=}173{,}312$) in 78\,s using 1\,GB, with $\sigma_1$ accuracy within 0.03\% of the dense reference at $N{=}200$.
 \cref{tab:scalability} compares both paths.
 
 \begin{table}[t]

@@ -3,7 +3,7 @@
 \label{sec:theory}
 %% ===================================================================
 
-Having formalized the problem in \cref{sec:background}, we now derive the theoretical foundation for answering the three questions posed there. The main result (\cref{thm:phase_transition}) characterizes vulnerability regimes as a function of perturbation magnitude, while the constrained sensitivity matrix $S_c$ provides the unified object from which vulnerability rankings, optimal attacks, and robustness radii are all extracted.
+We now derive the theoretical machinery for the three questions posed in \cref{sec:background}. The main result (\cref{thm:phase_transition}) characterizes how vulnerability evolves with perturbation magnitude, and the constrained sensitivity matrix $S_c$ provides the unified object from which rankings, attacks, and radii follow.
 
 \begin{theorem}[Vulnerability Characterization for Contractive Implicit GNNs]
 \label{thm:phase_transition}
@@ -56,9 +56,7 @@ The perturbation $\delta A^*$ maximizing $\norm{\Delta \zstar}$ to first order s
 
 This result follows directly from the variational characterization of the largest singular value: the SVD of $S$ identifies the perturbation direction that amplifies the equilibrium shift most efficiently.
 
-\textbf{Threat model and constrained sensitivity.} As discussed in \cref{sec:background}, realistic graph perturbations are symmetric and edge-only. We perturb the normalized adjacency $\Ahat$ directly, subject to $\norm{\delta \Ahat}_F \leq \varepsilon$, symmetry ($\delta \Ahat = \delta \Ahat^\top$), and support restricted to existing edges. Discrete edge additions that change topology are outside the formal guarantee.
-
-To enforce these constraints, we construct the \emph{constrained sensitivity matrix} $S_c \in \R^{D \times |E|}$ with column
+\textbf{Constrained sensitivity.} Under the threat model of \cref{sec:background} (symmetric, edge-only, $\norm{\delta \Ahat}_F \leq \varepsilon$), we construct the \emph{constrained sensitivity matrix} $S_c \in \R^{Nd \times |E|}$ with column
 \begin{equation}
 [S_c]_{:,k} = S_{:,iN+j} + S_{:,jN+i}
 \end{equation}
