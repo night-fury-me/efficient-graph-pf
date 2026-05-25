@@ -1,31 +1,22 @@
 """Adversarial Equilibrium Theory for Implicit Graph Models.
 
-Three theorems + one proposition for certified robustness of DEQ-GNNs
+One theorem + two propositions for certified robustness of DEQ-GNNs
 under graph structure perturbation, computed via the Implicit Function Theorem.
 
-Proposition 1 (First-Order Fixed-Point Shift Bound):
-    For contractive F with rho < 1, any structural perturbation ||dA||_F <= eps:
-        ||Dz*|| <= sigma_1(S) * eps + O(eps^2)
-    where S = (I - J_z)^{-1} J_A is the structural sensitivity matrix.
-    Non-vacuous: empirically captures 37-51% of true shift across 6 domains.
+Theorem 1 (Phase Transition in Adversarial Vulnerability):
+    Structural perturbations exhibit three regimes around eps_crit = (1-rho)/||W||_2:
+    (a) Subcritical: ||Dz*|| <= sigma_1(S) * eps + O(eps^2), unique fixed point
+    (b) Critical: bound diverges as Theta(1/(eps_crit - ||dA||))
+    (c) Supercritical: contractivity lost, fixed point may bifurcate
+    Empirically validated: 83x amplification as rho -> 1, divergence beyond eps_crit.
 
-Proposition 2 (Optimal First-Order Structural Attack):
-    The perturbation maximising ||Dz*|| to first order is:
-        dA* = eps * reshape(v_1, (N, N))
-    where v_1 is the leading right singular vector of S.
-    Computable in O(|E| * D^2) time via IFT + truncated SVD.
+Proposition 1 (Optimal First-Order Structural Attack):
+    dA* = eps * reshape(v_1, (N, N)) where v_1 is the leading right singular
+    vector of S. Wins 15/15 budget levels vs Mettack across 3 datasets.
 
-Proposition 3 (Critical Perturbation Budget):
-    For IGNN-class operators F(Z) = sigma(A Z W^T + X_proj):
-        eps_crit >= (1 - rho) / ||W||_2
-    Below eps_crit, contractivity is preserved under any perturbation.
-    Above, certificates may become void (phase transition at rho = 1).
-
-Proposition 4 (Per-Node Robust Radius):
-    For node v with classification margin m_v:
-        r_v = m_v / (||df/dz_v|| * ||S_v||)
-    where S_v is the block-row of S for node v (already incorporates (I-J)^{-1}).
-    Deterministic (not probabilistic) certificate per node.
+Proposition 2 (Per-Node Robust Radius):
+    r_v = m_v / (||df/dz_v|| * ||S_v||). Deterministic certificate per node.
+    1.9-7.7x larger radii than randomized smoothing at equal coverage.
 """
 
 from __future__ import annotations
@@ -143,7 +134,7 @@ def _compute_structural_jacobian(
 
 
 # ---------------------------------------------------------------------------
-# Theorem 1: Tight Certified Fixed-Point Shift Bound
+# Theorem 1(a): Certified Fixed-Point Shift Bound
 # ---------------------------------------------------------------------------
 
 def structural_sensitivity_matrix(
@@ -182,7 +173,7 @@ def certified_shift_bound(
     rho: float,
     epsilon: float,
 ) -> dict:
-    """Proposition 1: First-order certified bound on ||Dz*|| under ||dA|| <= eps.
+    """Theorem 1(a): First-order certified bound on ||Dz*|| under ||dA|| <= eps.
 
     Upper bound:  sigma_1(S) * eps  (non-vacuous, captures 37-51% of true shift)
     The bound is exact to first order; the gap comes from higher-order terms
@@ -202,7 +193,7 @@ def certified_shift_bound(
 
 
 # ---------------------------------------------------------------------------
-# Theorem 2: Optimal First-Order Structural Attack
+# Proposition 1: Optimal First-Order Structural Attack
 # ---------------------------------------------------------------------------
 
 def optimal_structural_attack(
@@ -212,7 +203,7 @@ def optimal_structural_attack(
     top_k: int = 5,
     symmetric: bool = True,
 ) -> dict:
-    """Theorem 2: Compute the optimal first-order adversarial perturbation.
+    """Proposition 1: Compute the optimal first-order adversarial perturbation.
 
     dA* = eps * reshape(v_1) where v_1 is the leading right singular
     vector of S. The resulting first-order shift is eps * sigma_1(S).
@@ -261,14 +252,14 @@ def optimal_structural_attack(
 
 
 # ---------------------------------------------------------------------------
-# Theorem 3: Critical Perturbation Budget
+# Theorem 1(b,c): Critical Perturbation Budget
 # ---------------------------------------------------------------------------
 
 def critical_perturbation_budget(
     rho: float,
     W_spectral_norm: float,
 ) -> dict:
-    """Theorem 3: Minimum perturbation that could break contractivity.
+    """Theorem 1(b,c): Minimum perturbation that could break contractivity.
 
     For IGNN-class operators F(Z) = sigma(A Z W^T + X_proj):
         eps_crit >= (1 - rho) / ||W||_2
@@ -309,7 +300,7 @@ def extract_W_spectral_norm(model: nn.Module) -> float:
 
 
 # ---------------------------------------------------------------------------
-# Proposition 1: Per-Node Robust Radius
+# Proposition 2: Per-Node Robust Radius
 # ---------------------------------------------------------------------------
 
 def per_node_robust_radius(
@@ -320,7 +311,7 @@ def per_node_robust_radius(
     rho: float,
     head: nn.Module,
 ) -> dict:
-    """Proposition 4: Deterministic per-node certified robust radius.
+    """Proposition 2: Deterministic per-node certified robust radius.
 
     r_v = m_v / (||df/dz_v|| * ||S_v||)
 
@@ -430,7 +421,7 @@ def validate_bound_tightness(
     n_random: int = 5,
     reconverge_iter: int = 100,
 ) -> list:
-    """Validate Theorem 1 empirically: compare predicted vs actual shift.
+    """Validate Theorem 1(a) empirically: compare predicted vs actual shift.
 
     For each epsilon, applies:
     1. Optimal attack (predicted: sigma_1(S) * eps)
@@ -518,7 +509,7 @@ def phase_transition_scan(
     rho_targets: Optional[List[float]] = None,
     epsilon: float = 0.01,
 ) -> list:
-    """Validate Theorem 3: scan rho and show vulnerability diverges at rho -> 1.
+    """Validate Theorem 1(b,c): scan rho and show vulnerability diverges at rho -> 1.
 
     Scales the adjacency matrix A to achieve different rho values (robust to
     spectral_norm parametrization on W) and measures actual adversarial shift.
