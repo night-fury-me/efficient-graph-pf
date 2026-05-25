@@ -154,8 +154,8 @@ def main():
     report = miner.certify()
     print(f"  rho = {report['rho']:.4f}, contractive = {report['is_contractive']}")
 
-    print("\n  --- Node Shapley (top 5) ---", flush=True)
-    phi = miner.node_shapley("X_proj")
+    print("\n  --- Node Attribution (top 5) ---", flush=True)
+    phi = miner.node_attribution("X_proj")
     top5 = phi.argsort(descending=True)[:5]
     for rank, idx in enumerate(top5.tolist()):
         real_idx = int(subgraph_idx[idx].item())

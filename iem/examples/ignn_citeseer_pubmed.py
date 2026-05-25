@@ -117,7 +117,7 @@ def _load_planetoid(name: str, data_dir: Path) -> dict:
 
 
 def run_full_iem_n1(name: str, data: dict, device):
-    """Train IGNN + IEM Shapley + N-1 edge ranking on one dataset."""
+    """Train IGNN + IEM Attribution + N-1 edge ranking on one dataset."""
     import torch.nn.functional as F_func
 
     print(f"\n{'='*60}", flush=True)
@@ -169,14 +169,14 @@ def run_full_iem_n1(name: str, data: dict, device):
     edges = [(i, j) for i in range(S) for j in range(i+1, S) if A_sub[i, j].abs() > 1e-6]
     print(f"  Subgraph: {S} nodes, {len(edges)} edges", flush=True)
 
-    # Contractivity + Shapley
+    # Contractivity + Attribution
     miner = IEMiner(lambda z, c=ctx_sub: model.operator(z, c), Z_sub, ctx_sub, method="direct")
     rho = miner.rho
     print(f"  rho={rho:.4f}, contractive={rho < 1}", flush=True)
 
-    phi = miner.node_shapley("X_proj")
+    phi = miner.node_attribution("X_proj")
     n_nz = int((phi > 1e-6).sum().item())
-    print(f"  Shapley: {n_nz}/{S} nonzero", flush=True)
+    print(f"  Attribution: {n_nz}/{S} nonzero", flush=True)
 
     cert = miner.certified_bound(phi, epsilon=0.1)
     print(f"  Certified: max_bound={cert['max_bound']:.2e}", flush=True)

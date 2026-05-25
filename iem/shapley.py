@@ -1,18 +1,16 @@
-"""Exact and approximate Shapley attribution from IFT sensitivities.
+"""Node attribution for DEQ equilibrium models.
 
-Given ∂z*/∂x_i (node sensitivity from ift.py), compute the Shapley value
-φ_i measuring each node's contribution to a scalar value function V(z*).
+Three modes, ordered by speed vs. axiomatic fidelity:
 
-Two modes:
-  - Exact: enumerate all coalitions. O(n · 2^n), feasible for n ≤ 20.
-  - Sampling: antithetic permutation sampling. O(n · K), for any n.
+  1. ift_attribution: O(n) gradient-based attribution from IFT sensitivities.
+     Fast, but does NOT satisfy Shapley axioms (efficiency, symmetry, etc.).
+     Use as a practical proxy; validate against exact_shapley on small graphs.
 
-The IFT gradient makes Shapley on equilibrium models EXACT — unlike
-SHAP/LIME which approximate via perturbation.
+  2. exact_shapley: O(n · 2^n) coalition enumeration. True Shapley values
+     satisfying all four axioms. Feasible for n ≤ 20.
 
-Theorem (Shapley faithfulness): For k-hop receptive field DEQ, the
-exact Shapley φ_i satisfies efficiency (Σφ_i = V(z*) - V(z_0)),
-symmetry, and null-player axioms.
+  3. sampling_shapley: O(n · K) antithetic permutation sampling. Unbiased
+     Shapley estimator for any n. Converges to exact with K → ∞.
 """
 
 from __future__ import annotations
@@ -127,18 +125,18 @@ def sampling_shapley(
     return phi
 
 
-def ift_shapley(
+def ift_attribution(
     node_sensitivity: Tensor,
     output_weights: Tensor | None = None,
 ) -> Tensor:
-    """Fast approximate Shapley from IFT node sensitivities.
+    """Fast O(n) node attribution from IFT sensitivities.
 
-    When the value function is linear in z* (V = w^T z*), the Shapley
-    value simplifies to φ_i = w^T · ∂z*/∂x_i · Δx_i, which is just
-    a weighted sum of the IFT sensitivities — no coalition enumeration.
+    Computes per-node importance as ||∂z*/∂x_i|| (L2 norm of the IFT
+    sensitivity vector). This is a GRADIENT-BASED ATTRIBUTION, not a
+    Shapley value — it does not satisfy the efficiency axiom in general.
 
-    This is the O(n) fast path used when the value function is MSE or
-    a linear readout of the equilibrium state.
+    For true Shapley values, use exact_shapley() or sampling_shapley()
+    which perform coalition enumeration / permutation sampling.
 
     Args:
         node_sensitivity: per-node sensitivity norms from param_sensitivity.
@@ -146,7 +144,7 @@ def ift_shapley(
         output_weights: optional (D,) weights. If None, uses L2 norm.
 
     Returns:
-        phi: (N,) per-node attribution scores
+        phi: (N,) per-node attribution scores (gradient-based, NOT Shapley)
     """
     # param_sensitivity returns shape matching param.shape, e.g. (1, N).
     # Squeeze batch dims so we always work with (N,) or (N, D).

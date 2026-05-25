@@ -1,7 +1,7 @@
 """IEM validation on 2nd domain: IGNN on Cora citation network.
 
 Implements a minimal Implicit Graph Neural Network (Gu et al., NeurIPS 2020)
-and demonstrates that IEM's Shapley attribution + certification work
+and demonstrates that IEM's IFT-based attribution + certification work
 identically to the power-flow domain — proving domain-agnosticism.
 
 Usage:
@@ -236,9 +236,9 @@ def main():
     report = miner.certify()
     print(f"  rho = {report['rho']:.4f}, contractive = {report['is_contractive']}")
 
-    # 2. Node Shapley (which nodes' features matter most?)
-    print("\n  --- Node Shapley (top 5) ---", flush=True)
-    phi = miner.node_shapley("X_proj")
+    # 2. Node Attribution (which nodes' features matter most?)
+    print("\n  --- Node Attribution (top 5) ---", flush=True)
+    phi = miner.node_attribution("X_proj")
     top5 = phi.argsort(descending=True)[:5]
     for rank, idx in enumerate(top5.tolist()):
         real_idx = int(subgraph_idx[idx].item())

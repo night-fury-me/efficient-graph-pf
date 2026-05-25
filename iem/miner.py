@@ -14,8 +14,8 @@ Usage:
     edge_sens = miner.edge_sensitivity("Y")          # ∂z*/∂Y_ij
     ranking = edge_sens.argsort(descending=True)      # most critical first
 
-    # 2. Node attribution (Shapley)
-    node_attr = miner.node_shapley("P_set", mode="ift_fast")
+    # 2. Node attribution (IFT gradient-based, NOT Shapley)
+    node_attr = miner.node_attribution("P_set")
 
     # 3. Certification
     report = miner.certify()
@@ -33,6 +33,7 @@ from typing import Callable
 import torch
 from torch import Tensor
 
+from . import adversarial as _adv
 from . import certify as _certify
 from . import ift as _ift
 from . import shapley as _shapley
@@ -130,35 +131,31 @@ class IEMiner:
             return raw.abs()
         raise ValueError(f"Unknown aggregate: {aggregate}")
 
-    def node_shapley(
+    def node_attribution(
         self,
         node_param_key: str,
-        mode: str = "ift_fast",
-        **kwargs,
     ) -> Tensor:
-        """Compute per-node Shapley attribution.
+        """Compute per-node IFT-based attribution (gradient importance).
+
+        Returns ||∂z*/∂x_i|| for each node i — an O(n) gradient-based
+        attribution. NOT Shapley values (does not satisfy efficiency axiom).
+        For true Shapley, use exact_shapley() or sampling_shapley() from
+        iem.shapley directly.
 
         Args:
             node_param_key: key in ctx for node features
-            mode: "ift_fast" (linear approximation, O(n)),
-                  "exact" (coalition enumeration, O(n·2^n), n ≤ 20),
-                  "sampling" (permutation sampling, O(n·K))
 
         Returns:
-            phi: (N,) Shapley values per node
+            phi: (N,) per-node attribution scores
         """
-        if mode == "ift_fast":
-            raw = _ift.node_sensitivity(
-                self.F, self.z_star, self.ctx,
-                node_param_key, method=self.method,
-            )
-            return _shapley.ift_shapley(raw)
-
-        # For exact/sampling, need a value function and baseline
-        raise NotImplementedError(
-            f"mode={mode!r} requires value_fn and baseline. "
-            f"Use exact_shapley() or sampling_shapley() directly from iem.shapley."
+        raw = _ift.node_sensitivity(
+            self.F, self.z_star, self.ctx,
+            node_param_key, method=self.method,
         )
+        return _shapley.ift_attribution(raw)
+
+    # Backward-compat alias (deprecated)
+    node_shapley = node_attribution
 
     # ----- Certification ---------------------------------------------------
 
@@ -174,6 +171,33 @@ class IEMiner:
     def certify(self) -> dict:
         """Full contractivity verification report."""
         return _certify.verify_contractivity(self._F_z_only, self.z_star)
+
+    # ----- Adversarial analysis (Theorems 1-3) ----------------------------
+
+    def adversarial_analysis(
+        self,
+        model=None,
+        A_key: str = "A_hat",
+        epsilon: float = 0.01,
+        logits: Tensor | None = None,
+        labels: Tensor | None = None,
+    ) -> dict:
+        """Full adversarial equilibrium analysis: Theorems 1-3 + Proposition 1.
+
+        Returns certified shift bounds, optimal attack, critical perturbation
+        budget, and per-node robust radii (if logits/labels provided).
+        """
+        return _adv.full_adversarial_analysis(
+            self.F, model, self.z_star, self.ctx,
+            A_key=A_key, epsilon=epsilon,
+            logits=logits, labels=labels,
+        )
+
+    def structural_sensitivity(self, A_key: str = "A_hat") -> Tensor:
+        """Compute the structural sensitivity matrix S = (I-J)^{-1} J_A."""
+        return _adv.structural_sensitivity_matrix(
+            self.F, self.z_star, self.ctx, A_key=A_key,
+        )
 
     def certified_bound(
         self,
