@@ -16,18 +16,19 @@ We begin by validating that the constrained first-order prediction is accurate a
 
 \begin{table}[t]
 \centering
-\caption{Cross-domain adversarial analysis (mean $\pm$ std, 10 seeds). Test Acc: full-graph test accuracy. Cert\%: clean subgraph accuracy.}
+\caption{Cross-domain adversarial analysis (IGNN, 10 seeds). Test Acc: full-graph accuracy (\%). Cert\%: clean subgraph accuracy.}
 \label{tab:cross_domain}
 \small
-\begin{tabular}{@{}lrrrrrr@{}}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}l r r r r r r@{}}
 \toprule
-Dataset & Test Acc & $\rho$ & Tight. & AtkAdv & $\ecrit$ & Cert\% \\
+Dataset & \rotatebox{70}{Test Acc} & \rotatebox{70}{$\rho(J_z)$} & \rotatebox{70}{Tight.} & \rotatebox{70}{AtkAdv} & \rotatebox{70}{$\ecrit$} & \rotatebox{70}{Cert\%} \\
 \midrule
-Cora     & $\ms{77.5}{1.7}$\% & $\ms{.33}{.14}$ & $\ms{1.01}{.01}$ & $\ms{3.6}{.6}$x & $\ms{.66}{.15}$ & $\ms{81}{\phantom{0}9}$\% \\
-Citeseer & $\ms{43.6}{4.9}$\% & $\ms{.59}{.02}$ & $\ms{1.01}{.01}$ & $\ms{4.1}{.5}$x & $\ms{.41}{.02}$ & $\ms{83}{\phantom{0}4}$\% \\
-Pubmed   & $\ms{78.9}{0.7}$\% & $\ms{.41}{.11}$ & $\ms{1.01}{.01}$ & $\ms{3.2}{.4}$x & $\ms{.59}{.11}$ & $\ms{74}{23}$\% \\
-Amazon   & $\ms{94.8}{0.3}$\% & $\ms{.14}{.02}$ & $\ms{1.00}{.00}$ & $\ms{3.8}{.2}$x & $\ms{.86}{.02}$ & $\ms{92}{\phantom{0}4}$\% \\
-WikiCS   & $\ms{77.9}{0.4}$\% & $\ms{.34}{.04}$ & $\ms{1.00}{.01}$ & $\ms{3.8}{.4}$x & $\ms{.66}{.04}$ & $\ms{70}{\phantom{0}3}$\% \\
+Cora     & $\ms{77.5}{1.7}$ & $\ms{.33}{.14}$ & $\ms{1.01}{.01}$ & $\ms{3.6}{.6}$ & $\ms{.66}{.15}$ & $\ms{81}{9}$ \\
+Citeseer & $\ms{43.6}{4.9}$ & $\ms{.59}{.02}$ & $\ms{1.01}{.01}$ & $\ms{4.1}{.5}$ & $\ms{.41}{.02}$ & $\ms{83}{4}$ \\
+Pubmed   & $\ms{78.9}{0.7}$ & $\ms{.41}{.11}$ & $\ms{1.01}{.01}$ & $\ms{3.2}{.4}$ & $\ms{.59}{.11}$ & $\ms{74}{23}$ \\
+Amazon   & $\ms{94.8}{0.3}$ & $\ms{.14}{.02}$ & $\ms{1.00}{.00}$ & $\ms{3.8}{.2}$ & $\ms{.86}{.02}$ & $\ms{92}{4}$ \\
+WikiCS   & $\ms{77.9}{0.4}$ & $\ms{.34}{.04}$ & $\ms{1.00}{.01}$ & $\ms{3.8}{.4}$ & $\ms{.66}{.04}$ & $\ms{70}{3}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
