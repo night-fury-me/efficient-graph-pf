@@ -55,12 +55,13 @@ def spectral_radius(
     z_flat = z_star.detach().reshape(-1)
 
     def jvp(v: Tensor) -> Tensor:
-        z_in = z_flat.detach().requires_grad_(True)
-        f_out = F(z_in.reshape(z_star.shape)).reshape(-1)
-        return torch.autograd.grad(
-            f_out, z_in, grad_outputs=v,
-            create_graph=False, retain_graph=False,
-        )[0]
+        with torch.enable_grad():
+            z_in = z_flat.detach().requires_grad_(True)
+            f_out = F(z_in.reshape(z_star.shape)).reshape(-1)
+            return torch.autograd.grad(
+                f_out, z_in, grad_outputs=v,
+                create_graph=False, retain_graph=False,
+            )[0]
 
     v = torch.randn(D, device=z_star.device)
     v = v / v.norm()

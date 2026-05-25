@@ -26,8 +26,11 @@ _MATRIX_FIELDS = ("Ybus",)
 # --------------------------------------------------------------------------- #
 
 def _concat(samples: List[Dict[str, torch.Tensor]], fields, dim: int = 0):
-    """Concatenate *fields* extracted from *samples* along *dim*."""
-    return {f: torch.cat([s[f] for s in samples], dim=dim) for f in fields}
+    """Concatenate *fields* extracted from *samples* along *dim*.
+    Fields not present in ALL samples are silently skipped (e.g. vn_log
+    exists in LVN but not HVN)."""
+    present = [f for f in fields if all(f in s for s in samples)]
+    return {f: torch.cat([s[f] for s in samples], dim=dim) for f in present}
 
 # --------------------------------------------------------------------------- #
 #                                main API                                      #
