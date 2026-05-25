@@ -47,7 +47,14 @@ def _download_planetoid(name: str, data_dir: Path) -> None:
 
 
 def _load_planetoid(name: str, data_dir: Path) -> dict:
-    """Load Planetoid dataset (cora/citeseer/pubmed) into dense tensors."""
+    """Load Planetoid dataset (cora/citeseer/pubmed) into dense tensors.
+
+    Follows the PyG/Kipf convention: allx contains features for nodes
+    0..len(allx)-1; tx contains features for test nodes whose IDs are
+    listed in ind.{name}.test.index. For Citeseer, test IDs are
+    non-contiguous and can exceed len(allx)+len(tx), requiring careful
+    placement of features and labels at the correct graph positions.
+    """
     _download_planetoid(name, data_dir)
 
     def _pkl(fname):
@@ -67,29 +74,43 @@ def _load_planetoid(name: str, data_dir: Path) -> dict:
         for line in f:
             test_idx.append(int(line.strip()))
     test_idx = np.array(test_idx)
-    test_idx_sorted = np.sort(test_idx)
 
+    # Build full feature matrix via vstack, then reorder test rows into their
+    # correct node-ID positions.  In Planetoid format tx rows are stored in
+    # the same order as test_idx (the test.index file), and after vstack they
+    # sit at rows [n_allx .. n_allx+n_tx).  The reorder copies each tx row
+    # from its stacked position to the node-ID position given by test_idx.
+    #
+    # IMPORTANT: the source indices must be range(n_allx, n_allx+n_tx), NOT
+    # test_idx_sorted.  For Citeseer the two differ because 15 test node-IDs
+    # fall outside [n_allx, n_allx+n_tx); using test_idx_sorted reads from
+    # the zero-padded extension rows and silently corrupts ~85 % of the
+    # feature/label assignments (test accuracy drops from ~70 % to ~36 %).
     features = sp.vstack([allx, tx]).tolil()
-    # Citeseer has isolated test nodes with indices beyond allx+tx row count.
-    # Extend the matrix to cover all indices.
     max_idx = max(test_idx.max(), features.shape[0] - 1)
     if max_idx >= features.shape[0]:
         features.resize((max_idx + 1, features.shape[1]))
-    features[test_idx] = features[test_idx_sorted]
+    tx_rows = list(range(allx.shape[0], allx.shape[0] + tx.shape[0]))
+    features[test_idx] = features[tx_rows]
     X = torch.tensor(features.toarray(), dtype=torch.float32)
+    N = X.shape[0]
 
     labels = np.vstack([ally, ty])
     if max_idx >= labels.shape[0]:
-        labels = np.vstack([labels, np.zeros((max_idx + 1 - labels.shape[0], labels.shape[1]))])
-    labels[test_idx] = labels[test_idx_sorted]
+        labels = np.vstack(
+            [labels, np.zeros((max_idx + 1 - labels.shape[0], labels.shape[1]))]
+        )
+    ty_rows = list(range(ally.shape[0], ally.shape[0] + ty.shape[0]))
+    labels[test_idx] = labels[ty_rows]
     y_tensor = torch.tensor(labels.argmax(axis=1), dtype=torch.long)
 
-    N = X.shape[0]
     adj = sp.lil_matrix((N, N), dtype=np.float32)
     for src, dsts in graph.items():
-        for dst in dsts:
-            adj[src, dst] = 1.0
-            adj[dst, src] = 1.0
+        if src < N:
+            for dst in dsts:
+                if dst < N:
+                    adj[src, dst] = 1.0
+                    adj[dst, src] = 1.0
     adj = adj + sp.eye(N)
     deg = np.array(adj.sum(axis=1)).flatten()
     deg_inv_sqrt = np.power(deg, -0.5)
@@ -98,20 +119,20 @@ def _load_planetoid(name: str, data_dir: Path) -> dict:
     A_hat = D_inv_sqrt @ adj @ D_inv_sqrt
     A_hat_dense = torch.tensor(A_hat.toarray(), dtype=torch.float32)
 
-    # Standard Planetoid split
     n_train_per_class = 20
     n_val = 500
+    n_classes_int = int(y_tensor.max() + 1)
     train_mask = torch.zeros(N, dtype=torch.bool)
-    train_mask[:n_train_per_class * int(y_tensor.max() + 1)] = True
+    train_mask[:n_train_per_class * n_classes_int] = True
     val_mask = torch.zeros(N, dtype=torch.bool)
-    val_end = n_train_per_class * int(y_tensor.max() + 1) + n_val
-    val_mask[n_train_per_class * int(y_tensor.max() + 1):val_end] = True
+    val_start = n_train_per_class * n_classes_int
+    val_mask[val_start:val_start + n_val] = True
     test_mask = torch.zeros(N, dtype=torch.bool)
     test_mask[test_idx] = True
 
     return {
         "X": X, "A_hat": A_hat_dense, "y": y_tensor, "N": N,
-        "n_features": X.shape[1], "n_classes": int(y_tensor.max()) + 1,
+        "n_features": X.shape[1], "n_classes": n_classes_int,
         "train_mask": train_mask, "val_mask": val_mask, "test_mask": test_mask,
     }
 
