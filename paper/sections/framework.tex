@@ -1,13 +1,13 @@
 %% ===================================================================
-\section{AEGIS Construction}
+\section{\AEGIS Construction}
 \label{sec:framework}
 %% ===================================================================
 
-Translating the results of \cref{sec:theory} into a practical tool requires overcoming two computational barriers: the full sensitivity matrix $S \in \R^{Nd \times N^2}$ is too large to materialize, and the resolvent $(I - J_z)^{-1}$ is too expensive to form directly. The AEGIS pipeline addresses both through matrix-free computation.
+Translating the results of \cref{sec:theory} into a practical tool requires overcoming two computational barriers: the full sensitivity matrix $S \in \R^{Nd \times N^2}$ is too large to materialize, and the resolvent $(I - J_z)^{-1}$ is too expensive to form directly. The \AEGIS pipeline addresses both through matrix-free computation.
 
 \subsection{Architecture Overview}
 
-AEGIS takes as input a trained GNN (any differentiable architecture) together with a target graph and produces three outputs: (i) a per-edge vulnerability spectrum ranking edges by adversarial impact, (ii) SVD-optimal attack perturbations, and (iii) per-node first-order sensitivity radii. For contractive implicit GNNs (IGNN-class satisfying A1--A3), the pipeline additionally computes the critical budget $\ecrit$ and convergence diagnostics; these theoretical guarantees are specific to the implicit case. The pipeline consists of four stages executed sequentially, as illustrated in \cref{fig:pipeline}.
+\AEGIS takes as input a trained GNN (any differentiable architecture) together with a target graph and produces three outputs: (i) a per-edge vulnerability spectrum ranking edges by adversarial impact, (ii) SVD-optimal attack perturbations, and (iii) per-node first-order sensitivity radii. For contractive implicit GNNs (IGNN-class satisfying A1--A3), the pipeline additionally computes the critical budget $\ecrit$ and convergence diagnostics; these theoretical guarantees are specific to the implicit case. The pipeline consists of four stages executed sequentially, as illustrated in \cref{fig:pipeline}.
 
 \begin{figure}[t]
 \centering
@@ -32,17 +32,17 @@ AEGIS takes as input a trained GNN (any differentiable architecture) together wi
 \draw[arr] (s4) -- (out);
 \end{tikzpicture}%
 }
-\caption{The AEGIS pipeline. The matrix-free formulation (Stages~2--4) operates via JVP/VJP queries without materializing $S$ or $S_c$, enabling full-graph analysis up to $N \approx 5{,}000$.}
+\caption{The \AEGIS pipeline. The matrix-free formulation (Stages~2--4) operates via JVP/VJP queries without materializing $S$ or $S_c$, enabling full-graph analysis up to $N \approx 5{,}000$.}
 \label{fig:pipeline}
 \end{figure}
 
 \subsection{Stage 1: Subgraph Extraction and Forward Pass}
 
-For subgraph-level analysis, AEGIS extracts a local BFS ego-subgraph centered on the target node and runs the model to convergence (implicit GNNs) or forward pass (explicit). Localization is justified empirically (\cref{sec:subgraph_ablation}). The matrix-free pipeline also supports full-graph analysis without subgraph extraction (\cref{sec:scalability}).
+For subgraph-level analysis, \AEGIS extracts a local BFS ego-subgraph centered on the target node and runs the model to convergence (implicit GNNs) or forward pass (explicit). Localization is justified empirically (\cref{sec:subgraph_ablation}). The matrix-free pipeline also supports full-graph analysis without subgraph extraction (\cref{sec:scalability}).
 
 \subsection{Stage 2: Matrix-Free Sensitivity Computation}
 
-AEGIS requires the action of the constrained sensitivity operator $S_c$ on vectors, without materializing the full matrix $S \in \R^{Nd \times N^2}$. For an edge perturbation vector $v \in \R^{|E|}$, the operator computes $S_c v = (I - J_z)^{-1} J_A P_c v$, where $P_c$ maps edge weights to symmetric adjacency perturbations, $J_A$ is the structural Jacobian, and $J_z = \partial F / \partial Z$ is the state Jacobian. Two ingredients make this matrix-free:
+\AEGIS requires the action of the constrained sensitivity operator $S_c$ on vectors, without materializing the full matrix $S \in \R^{Nd \times N^2}$. For an edge perturbation vector $v \in \R^{|E|}$, the operator computes $S_c v = (I - J_z)^{-1} J_A P_c v$, where $P_c$ maps edge weights to symmetric adjacency perturbations, $J_A$ is the structural Jacobian, and $J_z = \partial F / \partial Z$ is the state Jacobian. Two ingredients make this matrix-free:
 
 \textbf{Neumann-series resolvent.} The resolvent $(I - J_z)^{-1} b$ is evaluated via the truncated Neumann series $\sum_{k=0}^{K} J_z^k b$, which converges geometrically when $\kappa < 1$ (Assumption~A3). Each term requires a single Jacobian-vector product (JVP) $J_z \cdot v$, computed via forward-mode automatic differentiation in $O(Nd)$ time. The depth $K$ is set adaptively from a power-iteration estimate of $\kappa$, with early stopping when $\norm{J_z^k b} < 10^{-6} \norm{b}$.
 
@@ -58,7 +58,7 @@ The constraint projection $P_c$ (\cref{sec:theory}) maps edge vectors to symmetr
 
 \subsection{Stage 4: Vulnerability Analysis}
 
-From $S_c$, AEGIS extracts three complementary outputs:
+From $S_c$, \AEGIS extracts three complementary outputs:
 
 \textbf{Optimal attack direction.} A randomized SVD~\cite{halko2011finding} of the $S_c$ operator (using only matrix-vector products) yields the leading singular triplet $(u_1, \sigma_1, v_1)$. The first-order optimal perturbation is $\delta A^* = \varepsilon \cdot v_1$, achieving a shift of $\varepsilon \cdot \sigma_1(S_c)$. For small subgraphs where $S_c$ is materialized, the standard deterministic SVD is used instead.
 

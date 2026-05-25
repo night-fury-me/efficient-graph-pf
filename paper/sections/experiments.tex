@@ -3,7 +3,7 @@
 \label{sec:experiments}
 %% ===================================================================
 
-We evaluate AEGIS on 9 datasets across 4 domains with 10 random seeds each (seeds: 42, 137, 271, 314, 1729, 2718, 3141, 5772, 6561, 9999). All experiments use PyTorch~\cite{paszke2019pytorch}.
+We evaluate \AEGIS on 9 datasets across 4 domains with 10 random seeds each (seeds: 42, 137, 271, 314, 1729, 2718, 3141, 5772, 6561, 9999). All experiments use PyTorch~\cite{paszke2019pytorch}.
 
 \textbf{Implementation.} IGNN~\cite{gu2020implicit}: input projection $U \in \R^{d_{\text{in}} \times 64}$, spectral-normalized $W \in \R^{64 \times 64}$~\cite{miyato2018spectral}, readout head $\R^{64 \times C}$; operator $F(Z) = \text{ReLU}(\Ahat Z W^\top + U(X))$; fixed-point iteration (max 50 steps, tolerance $10^{-5}$); Adam optimizer (lr $0.01$, weight decay $5 \times 10^{-4}$), early stopping on validation accuracy over 200 epochs. ContractiveGCN-PF: same architecture with 5 bus features and 2-head readout ($\Delta|V|$, $\Delta\theta$). Subgraph extraction: BFS from highest-degree node, capped at 50 nodes to guarantee connectivity. Randomized smoothing baseline: Gaussian $\sigma = 0.01$, 200 MC samples, Clopper-Pearson $\alpha = 0.001$. Mettack baseline: Meta-Self GCN surrogate on IGNN pseudo-labels, sign-corrected gradient for edge scoring.
 
@@ -14,11 +14,11 @@ We evaluate AEGIS on 9 datasets across 4 domains with 10 random seeds each (seed
 \subsection{Cross-Domain Adversarial Analysis}
 \label{sec:cross_domain}
 
-We begin by validating that the constrained first-order prediction is accurate across domains. \cref{tab:cross_domain} reports the tightness ratio (actual equilibrium shift divided by predicted shift at $\varepsilon = 0.01$), the attack advantage of AEGIS over random perturbation, and the coverage (fraction of nodes with positive first-order radius) across 50-node BFS ego-subgraphs.
+We begin by validating that the constrained first-order prediction is accurate across domains. \cref{tab:cross_domain} reports the tightness ratio (actual equilibrium shift divided by predicted shift at $\varepsilon = 0.01$), the attack advantage of \AEGIS over random perturbation, and the coverage (fraction of nodes with positive first-order radius) across 50-node BFS ego-subgraphs.
 
 \begin{table}[t]
 \centering
-\caption{Cross-domain adversarial analysis (IGNN, 10 seeds). $\kappa$: operator-norm contraction constant $\norm{J_z}_2$. Tight.: actual/predicted shift ratio. AtkAdv: AEGIS damage / random damage. $\ecrit$: critical perturbation budget (\cref{thm:phase_transition}). Test Acc / Cert\%: full-graph / subgraph accuracy (\%).}
+\caption{Cross-domain adversarial analysis (IGNN, 10 seeds). $\kappa$: operator-norm contraction constant $\norm{J_z}_2$. Tight.: actual/predicted shift ratio. AtkAdv: \AEGIS damage / random damage. $\ecrit$: critical perturbation budget (\cref{thm:phase_transition}). Test Acc / Cert\%: full-graph / subgraph accuracy (\%).}
 \label{tab:cross_domain}
 \small
 \setlength{\tabcolsep}{3pt}
@@ -59,26 +59,26 @@ WikiCS   & $\ms{0.2}{0.6}$ & $\ms{0.4}{0.8}$ & $\ms{0.6}{0.9}$ & $\ms{1.2}{1.0}$
 \end{tabular}
 \end{table}
 
-\textbf{Surrogate baseline.} We also compared against Mettack~\cite{zugner2019adversarial} (GCN~\cite{kipf2017semi} surrogate): AEGIS inflicts 3--10$\times$ more damage at every budget (149/150 wins across $k=1,\ldots,5$ edge removals, 3 datasets, 10 seeds). However, this gap largely reflects surrogate-to-IGNN architectural mismatch rather than AEGIS's analytical superiority alone. The more meaningful comparison is the adaptive attacker below, which accesses the same IFT gradients as AEGIS.
+\textbf{Surrogate baseline.} We also compared against Mettack~\cite{zugner2019adversarial} (GCN~\cite{kipf2017semi} surrogate): \AEGIS inflicts 3--10$\times$ more damage at every budget (149/150 wins across $k=1,\ldots,5$ edge removals, 3 datasets, 10 seeds). However, this gap largely reflects surrogate-to-IGNN architectural mismatch rather than \AEGIS's analytical superiority alone. The more meaningful comparison is the adaptive attacker below, which accesses the same IFT gradients as \AEGIS.
 
-\subsection{Radius Comparison: AEGIS vs.\ Smoothing}
+\subsection{Radius Comparison: \AEGIS vs.\ Smoothing}
 \label{sec:certificates}
 
-We compare AEGIS sensitivity radii against randomized smoothing~\cite{bojchevski2020efficient} ($\sigma \in \{0.01, 0.05, 0.10, 0.15\}$, 1000 MC samples, 10 seeds). At $\sigma \leq 0.10$, smoothing radii are \emph{constant} across all nodes ($r = \sigma \cdot \Phi^{-1}(p_\mathrm{lower})$) because all samples predict correctly, yielding larger absolute radii (0.123 vs.\ AEGIS's 0.046 at $\sigma = 0.05$) but zero per-node differentiation. AEGIS radii are structurally informative: dense-region nodes get $r_v \approx 0.09$, boundary nodes $r_v \approx 0.01$. The two are complementary: smoothing provides uniform probabilistic guarantees, AEGIS provides structurally differentiated first-order sensitivity radii for vulnerability ranking.
+We compare \AEGIS sensitivity radii against randomized smoothing~\cite{bojchevski2020efficient} ($\sigma \in \{0.01, 0.05, 0.10, 0.15\}$, 1000 MC samples, 10 seeds). At $\sigma \leq 0.10$, smoothing radii are \emph{constant} across all nodes ($r = \sigma \cdot \Phi^{-1}(p_\mathrm{lower})$) because all samples predict correctly, yielding larger absolute radii (0.123 vs.\ \AEGIS's 0.046 at $\sigma = 0.05$) but zero per-node differentiation. \AEGIS radii are structurally informative: dense-region nodes get $r_v \approx 0.09$, boundary nodes $r_v \approx 0.01$. The two are complementary: smoothing provides uniform probabilistic guarantees, \AEGIS provides structurally differentiated first-order sensitivity radii for vulnerability ranking.
 
 \subsection{Adaptive Attack Evaluation}
 \label{sec:adaptive}
 
-The Mettack comparison uses a GCN surrogate, so its failure against IGNN may reflect architectural mismatch rather than AEGIS's analytical strength. To address this, we implement an \emph{adaptive attacker} that differentiates through the IGNN fixed-point iteration via the same IFT gradients AEGIS uses for sensitivity analysis. This attacker optimizes perturbations directly against the IGNN loss surface using projected gradient descent~\cite{madry2018towards} (PGD, 50 steps, step size $\varepsilon/10$).
+The Mettack comparison uses a GCN surrogate, so its failure against IGNN may reflect architectural mismatch rather than \AEGIS's analytical strength. To address this, we implement an \emph{adaptive attacker} that differentiates through the IGNN fixed-point iteration via the same IFT gradients \AEGIS uses for sensitivity analysis. This attacker optimizes perturbations directly against the IGNN loss surface using projected gradient descent~\cite{madry2018towards} (PGD, 50 steps, step size $\varepsilon/10$).
 
 \begin{table}[t]
 \centering
-\caption{Adaptive attack (white-box PGD via IFT gradients on IGNN) vs.\ AEGIS (10 seeds). Breach: fraction of certified nodes whose prediction changes. AEGIS/Adapt.\ dmg: mean equilibrium shift ($\ell_2$). Ratio: Adapt./AEGIS damage.}
+\caption{Adaptive attack (white-box PGD via IFT gradients on IGNN) vs.\ \AEGIS (10 seeds). Breach: fraction of certified nodes whose prediction changes. \AEGIS/Adapt.\ dmg: mean equilibrium shift ($\ell_2$). Ratio: Adapt./\AEGIS damage.}
 \label{tab:adaptive}
 \small
 \begin{tabular}{@{}lcrrrc@{}}
 \toprule
-Dataset & $\varepsilon$ & Breach & AEGIS dmg & Adapt.\ dmg & Ratio \\
+Dataset & $\varepsilon$ & Breach & \AEGIS dmg & Adapt.\ dmg & Ratio \\
 \midrule
 Cora     & 0.01 & 0\%\phantom{.0} & $\ms{0.33}{0.07}$ & $\ms{0.26}{0.11}$ & 0.80 \\
 Cora     & 0.05 & 0\%\phantom{.0} & $\ms{1.72}{0.35}$ & $\ms{1.32}{0.55}$ & 0.76 \\
@@ -93,7 +93,7 @@ WikiCS   & 0.10 & 0.6\% & $\ms{2.10}{0.22}$ & $\ms{0.96}{0.97}$ & 0.46 \\
 \end{tabular}
 \end{table}
 
-The adaptive attacker breaches zero nodes at $\varepsilon = 0.01$ and fewer than 1\% at $\varepsilon = 0.10$ (\cref{tab:adaptive}), confirming empirical validity of first-order radii. AEGIS's SVD attack inflicts 20--50\% more damage than PGD (ratio 0.46--0.84) because the SVD direction is globally optimal to first order, while PGD can become trapped in local optima.
+The adaptive attacker breaches zero nodes at $\varepsilon = 0.01$ and fewer than 1\% at $\varepsilon = 0.10$ (\cref{tab:adaptive}), confirming empirical validity of first-order radii. \AEGIS's SVD attack inflicts 20--50\% more damage than PGD (ratio 0.46--0.84) because the SVD direction is globally optimal to first order, while PGD can become trapped in local optima.
 
 \subsection{Phase Transition and Scalability}
 \label{sec:phase_transition}
@@ -138,7 +138,7 @@ Varying $N \in \{30, 50, 100, 200\}$ on Cora (10 seeds): tightness is stable at 
 \subsection{Defense-Informed Edge Protection}
 \label{sec:defense_ablation}
 
-We evaluate vulnerability-aware protection: mask the top-$k$ edges by $v_{ij}$ from the perturbation space, then re-run the SVD attack on the reduced $S_c$. On Cora (IGNN, $N=50$, 10 seeds): masking the top-5 edges reduces SVD attack damage by $42 \pm 8$\% vs.\ $11 \pm 6$\% for random 5-edge masking. At top-10: $61 \pm 7$\% vs.\ $18 \pm 9$\%. AEGIS identifies edges whose removal disproportionately reduces vulnerability.
+We evaluate vulnerability-aware protection: mask the top-$k$ edges by $v_{ij}$ from the perturbation space, then re-run the SVD attack on the reduced $S_c$. On Cora (IGNN, $N=50$, 10 seeds): masking the top-5 edges reduces SVD attack damage by $42 \pm 8$\% vs.\ $11 \pm 6$\% for random 5-edge masking. At top-10: $61 \pm 7$\% vs.\ $18 \pm 9$\%. \AEGIS identifies edges whose removal disproportionately reduces vulnerability.
 
 \subsection{Extension to Explicit GNNs}
 \label{sec:explicit_extension}
@@ -147,7 +147,7 @@ A key question is whether the $S_c$ framework extends beyond implicit models. Fo
 
 \begin{table}[t]
 \centering
-\caption{$S_c$ framework applied to 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: AEGIS/random damage. $\tau$: Kendall rank correlation of continuous $S_c$ vulnerability scores vs.\ discrete single-edge-removal ground truth (brute-force). Test Acc: full-graph accuracy. GAT$^\dagger$: edge-weighted variant for continuous differentiability (see text).}
+\caption{$S_c$ framework applied to 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: \AEGIS/random damage. $\tau$: Kendall rank correlation of continuous $S_c$ vulnerability scores vs.\ discrete single-edge-removal ground truth (brute-force). Test Acc: full-graph accuracy. GAT$^\dagger$: edge-weighted variant for continuous differentiability (see text).}
 \label{tab:explicit}
 \small
 \begin{tabular}{@{}lrrrr@{}}
