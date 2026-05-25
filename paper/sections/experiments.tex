@@ -81,9 +81,7 @@ WikiCS   & $\ms{.040}{.004}$ & .025 & .123 & $\ms{.246}{.000}$ & $\ms{.341}{.017
 \end{tabular}
 \end{table}
 
-The comparison reveals a qualitative difference rather than a simple radius ordering. At $\sigma \leq 0.10$, smoothing radii are \emph{constant} across all nodes and datasets: every node receives the identical maximum-possible radius $r = \sigma \cdot \Phi^{-1}(p_{\mathrm{lower}})$ because all 1000 Monte Carlo samples predict correctly. This produces larger absolute radii than AEGIS (0.123 vs.\ 0.046 at $\sigma = 0.05$) but provides zero per-node differentiation. The certificates do not distinguish between structurally vulnerable and robust nodes. At $\sigma = 0.15$, smoothing begins to differentiate (some nodes lose prediction consistency), but with high variance.
-
-AEGIS radii, by contrast, are structurally informative: median radius 0.041--0.046 with per-node variation that reflects actual equilibrium sensitivity. Nodes in dense, well-connected regions receive larger radii ($r_v \approx 0.09$), while boundary nodes in sensitive positions get smaller ones ($r_v \approx 0.01$). This per-node differentiation is the key advantage for applications that need vulnerability ranking rather than uniform worst-case bounds. The two approaches are complementary: smoothing provides uniform probabilistic guarantees, while AEGIS provides tight, deterministic, structurally differentiated first-order radii.
+At $\sigma \leq 0.10$, smoothing radii are \emph{constant} across all nodes: every node receives the identical radius $r = \sigma \cdot \Phi^{-1}(p_{\mathrm{lower}})$ because all Monte Carlo samples predict correctly. This yields larger absolute radii than AEGIS (0.123 vs.\ 0.046 at $\sigma = 0.05$) but zero per-node differentiation. AEGIS radii are structurally informative: dense-region nodes get $r_v \approx 0.09$, boundary nodes get $r_v \approx 0.01$. The two approaches are complementary: smoothing provides uniform probabilistic guarantees, AEGIS provides structurally differentiated first-order radii for vulnerability ranking.
 
 \subsection{Adaptive Attack Evaluation}
 \label{sec:adaptive}
@@ -112,7 +110,7 @@ WikiCS   & 0.10 & 0.6\% & $\ms{2.10}{0.22}$ & $\ms{0.96}{0.97}$ & 0.46 \\
 \end{tabular}
 \end{table}
 
-The adaptive attacker breaches zero nodes within their first-order radius at $\varepsilon = 0.01$ across all datasets, and fewer than 1\% even at $\varepsilon = 0.10$ (\cref{tab:adaptive}). This confirms the empirical validity of the first-order radii in the small-budget regime. AEGIS's SVD-optimal attack consistently inflicts 20--50\% more damage than adaptive PGD across all tested budgets (ratio 0.46--0.84). The reason is that the SVD direction is the globally optimal first-order perturbation, while PGD explores a non-convex landscape and can become trapped in local optima. The advantage is largest on WikiCS (ratio 0.46), where the high-dimensional perturbation space makes PGD convergence hardest.
+The adaptive attacker breaches zero nodes at $\varepsilon = 0.01$ and fewer than 1\% at $\varepsilon = 0.10$ (\cref{tab:adaptive}), confirming empirical validity of first-order radii. AEGIS's SVD attack inflicts 20--50\% more damage than PGD (ratio 0.46--0.84) because the SVD direction is globally optimal to first order, while PGD can become trapped in local optima.
 
 \subsection{Phase Transition and Scalability}
 \label{sec:phase_transition}
@@ -144,18 +142,35 @@ $N$ & Tight. & Med.\ $r_v$ & Cert\% & $\rho$ & Time \\
 \end{tabular}
 \end{table}
 
-Tightness is stable at 1.01--1.02 for $N \in \{30, 50, 100\}$ and degrades mildly to $1.031 \pm 0.009$ at $N = 200$, where the larger subgraph captures higher spectral radius ($\rho = 0.75$ vs.\ $0.45$). Median radius decreases with $N$ (from 0.064 at $N=30$ to 0.019 at $N=200$) because larger subgraphs include peripheral nodes with smaller classification margins. Coverage remains stable at 82--89\%. We recommend $N=50$ as the default: tightness $1.013 \pm 0.003$ with $66\times$ speedup over $N=200$ (1.3s vs.\ 86s).
+Tightness is stable at 1.01--1.02 for $N \leq 100$ and degrades to $1.031$ at $N = 200$ (higher $\rho$). Coverage is stable at 82--89\%. We recommend $N=50$: tightness $1.013 \pm 0.003$ with $66\times$ speedup over $N=200$.
 
-\subsection{Hyperparameter Sensitivity}
+\subsection{Sensitivity and Convergence}
 \label{sec:hyperparams}
-
-We evaluate sensitivity to the two key architectural hyperparameters: hidden dimension $d$ and spectral-norm constraint $c$ (the upper bound on $\norm{W}_2$).
-
-\textbf{Hidden dimension.} Varying $d \in \{16, 32, 64, 128\}$ on Cora: tightness is 1.012--1.013 for all values, confirming robustness to architecture width. Accuracy improves from 74.7\% ($d=16$) to 79.1\% ($d=64$). The critical budget and median radius are stable across $d$: $\ecrit \in [0.53, 0.56]$, $r_v \in [0.037, 0.051]$.
-
-\textbf{Spectral norm constraint.} Varying $c \in \{0.5, 0.7, 0.9, 0.95\}$ reveals the accuracy-robustness tradeoff predicted by \cref{thm:phase_transition}. At $c = 0.5$: $\rho = 0.25$, $\ecrit = 1.50$, median $r_v = 0.090$, giving the largest radii but accuracy drops to 72.1\%. At $c = 0.9$: $\rho = 0.45$, $\ecrit = 0.61$, $r_v = 0.051$, accuracy peaks at 80.6\%. Radii shrink by $1.8\times$ from $c = 0.5$ to $c = 0.9$ as $1/(1 - \kappa)$ grows, consistent with the theoretical amplification factor in \cref{eq:shift_bound}.
-
-\subsection{DEQ Convergence Diagnostics}
 \label{sec:convergence}
 
-We report convergence statistics for the IGNN fixed-point iteration across all 9 datasets (10 seeds, relative tolerance $\norm{Z_{k+1} - Z_k}_F < 10^{-5} \cdot \max(\norm{Z_k}_F, 1)$). Convergence is 100\% across all datasets and seeds. Graph benchmarks require $28 \pm 7$ (Amazon) to $113 \pm 39$ (Cora) iterations, while IEEE grids converge faster: $11 \pm 2$ (case14) to $44 \pm 13$ (case57). The pseudospectral index is $\eta = 1.02$--$1.05$ on graph benchmarks and $\eta = 1.20$--$1.28$ on IEEE grids, confirming mild non-normality across all domains. No seed on any dataset failed to converge, consistent with the enforced contractivity $\kappa = \norm{J_z}_2 < 1$ via spectral normalization~\cite{miyato2018spectral} of $W$.
+\textbf{Hyperparameters.} Varying hidden dimension $d \in \{16, 32, 64, 128\}$ on Cora: tightness is stable at 1.012--1.013 and $\ecrit \in [0.53, 0.56]$. Varying spectral-norm constraint $c \in \{0.5, 0.7, 0.9, 0.95\}$ reveals the accuracy-robustness tradeoff predicted by \cref{thm:phase_transition}: at $c = 0.5$, median $r_v = 0.090$ but accuracy is 72.1\%; at $c = 0.9$, $r_v = 0.051$ with accuracy 80.6\%. Radii shrink $1.8\times$ as $1/(1-\kappa)$ grows.
+
+\textbf{Convergence.} 100\% convergence across all 9 datasets and 10 seeds (relative tol.\ $10^{-5}$). Iterations range from $28 \pm 7$ (Amazon) to $113 \pm 39$ (Cora); IEEE grids converge faster ($11$--$44$). Pseudospectral index $\eta = 1.02$--$1.28$ across all domains, confirming mild non-normality and validating the $\kappa$-based bounds.
+
+\subsection{Extension to Explicit GNNs}
+\label{sec:explicit_extension}
+
+A key question is whether the $S_c$ framework extends beyond implicit models. For a $K$-layer explicit GNN, there is no equilibrium, but the hidden representation $Z_K$ is still a differentiable function of $A$. We define the \emph{unrolled sensitivity matrix} $S_K = \partial \mathrm{vec}(Z_K) / \partial \mathrm{vec}(A)$ (computed via finite differences on the forward pass), construct $S_c$ from $S_K$ identically to the IGNN case, and apply the same SVD attack and vulnerability ranking.
+
+\begin{table}[t]
+\centering
+\caption{AEGIS-style analysis on explicit GNNs (Cora, 10 seeds). The $S_c$ framework generalizes: tightness and attack advantage transfer to standard GCNs.}
+\label{tab:explicit}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Model & Tight. & AtkAdv & $\tau$ & Acc \\
+\midrule
+IGNN (equil.) & $\ms{1.01}{.00}$ & $\ms{7.6}{0.5}$x & $\ms{+.32}{.04}$ & $\ms{82}{\phantom{0}8}$\% \\
+GCN-2         & $\ms{1.00}{.00}$ & $\ms{6.6}{0.3}$x & $\ms{+.05}{.02}$ & $\ms{96}{\phantom{0}1}$\% \\
+GCN-4         & $\ms{1.02}{.00}$ & $\ms{9.1}{0.6}$x & $\ms{+.48}{.01}$ & $\ms{93}{\phantom{0}3}$\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\cref{tab:explicit} compares IGNN (full AEGIS with equilibrium) against 2-layer and 4-layer GCN~\cite{kipf2017semi} on Cora. The results demonstrate that the $S_c$ framework generalizes: GCN-2 achieves perfect first-order tightness (1.000), and GCN-4 achieves the highest attack advantage (9.1$\times$) and best vulnerability ranking ($\tau = +0.48$, surpassing IGNN's $+0.32$). This shows that first-order structural sensitivity analysis via $S_c$ is broadly applicable to any differentiable GNN. The theoretical guarantees (\cref{thm:phase_transition}: bounded radii, critical budget, convergence) remain specific to contractive implicit models, but the practical vulnerability analysis transfers directly.
