@@ -9,29 +9,13 @@ The experiments above validate AEGIS on standard graph benchmarks. A natural que
 
 Power grid operators must ensure that no single transmission line failure causes system instability. The standard N-1 contingency assessment removes each line in turn, re-solves the power flow equations, and ranks lines by the severity of the resulting voltage and flow deviations~\cite{wood2014power}. This brute-force procedure scales as $O(|E|)$ full power flow solves, which is expensive for large grids and infeasible for real-time operation.
 
-We observe that AEGIS's per-edge vulnerability $v_{ij} = \norm{[S_c]_{:,k}}_2$ computes an analogous quantity via a single IFT analysis. The mathematical correspondence is approximate (continuous first-order sensitivity vs.\ discrete full-removal contingency), as summarized in the following table:
-
-\begin{center}
-\small
-\begin{tabular}{@{}ll@{}}
-\toprule
-\textbf{ML concept} & \textbf{Power systems concept} \\
-\midrule
-Edge weight perturbation $\delta A_{ij}$ & Topology change (line trip) \\
-Vulnerability spectrum $v_{ij}$ & Contingency severity ranking \\
-Critical budget $\ecrit$ & Stability margin \\
-Contractivity loss $\kappa \to 1$ & Approach to voltage collapse \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\textbf{Scope of the analogy.} Physical line outages are discrete (full edge removal), whereas AEGIS analyzes continuous edge-weight perturbations. Line impedance is fixed; what changes under contingency is the topology and the resulting power flow redistribution. AEGIS captures this as a first-order sensitivity to adjacency changes, which is analogous to how Power Transfer Distribution Factors (PTDF) and Line Outage Distribution Factors (LODF)~\cite{wood2014power} linearize the effect of generation shifts and line trips, respectively.
+We observe that AEGIS's per-edge vulnerability $v_{ij} = \norm{[S_c]_{:,k}}_2$ computes an analogous quantity via a single IFT analysis: edge perturbation maps to line trips, the vulnerability spectrum maps to contingency severity, and critical budget $\ecrit$ maps to stability margin. The correspondence is approximate (continuous first-order vs.\ discrete removal), analogous to how PTDF/LODF~\cite{wood2014power} linearize the effect of line trips.
 
 \subsection{Experimental Setup}
 
 We train ContractiveGCN-PF, an IGNN variant for AC power flow, on four standard IEEE test cases~\cite{ieee2024testcases}. Training data is generated via PandaPower's~\cite{thurner2018pandapower} full AC Newton-Raphson solver (2,000 load samples per case, uniformly sampled at 70--130\% of nominal load). The model takes binary adjacency from the admittance matrix and 5 bus features: bus type indicators (slack, PV), active and reactive power injections (P, Q), and voltage magnitude $|V|$. Unlike graph benchmarks, power flow grids are small enough (14--118 buses) to analyze without subgraph extraction.
 
-\textbf{Limitation: sample diversity.} The 2,000 samples per case cover uniform load scaling but not seasonal variation, renewable intermittency, or generator outage combinations. The AEGIS analysis itself (IFT-based sensitivity) is exact given any trained model, but the model's fidelity to real operating conditions depends on training data diversity.
+\textbf{Limitation.} Training data covers uniform load scaling (2,000 samples) but not seasonal or generator-outage variation.
 
 \subsection{Results}
 
@@ -39,27 +23,27 @@ We train ContractiveGCN-PF, an IGNN variant for AC power flow, on four standard 
 
 \begin{table*}[t]
 \centering
-\caption{AEGIS on IEEE power flow benchmarks (10 seeds). Tightness $\approx 1.00$ under constrained perturbations. P@$k$: precision of AEGIS top-$k$ vs.\ brute-force N-1 ground truth. EffRes: effective-resistance baseline (simplified LODF proxy).}
+\caption{AEGIS on IEEE power flow benchmarks (10 seeds). P@$k$: precision of top-$k$ vs.\ brute-force N-1 ground truth. LODF: Line Outage Distribution Factor ranking (industry standard, uses actual line reactances~\cite{wood2014power}).}
 \label{tab:ieee}
 \small
 \begin{tabular}{@{}lrr c c cc cc@{}}
 \toprule
- & & & & \multicolumn{1}{c}{AEGIS} & \multicolumn{2}{c}{AEGIS Precision} & \multicolumn{2}{c}{EffRes Baseline} \\
+ & & & & \multicolumn{1}{c}{AEGIS} & \multicolumn{2}{c}{AEGIS Precision} & \multicolumn{2}{c}{LODF Baseline} \\
 \cmidrule(lr){5-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
 Case & $N$ & $|E|$ & Tight. & $\tau$ & P@5 & P@10 & $\tau$ & P@10 \\
 \midrule
-case14  & 14  & 20  & $\ms{1.00}{.01}$ & $\ms{+.42}{.19}$ & $\ms{.70}{.10}$ & $\ms{.74}{.12}$ & $\ms{+.37}{.09}$ & $\ms{.60}{.06}$ \\
-case30  & 30  & 41  & $\ms{1.00}{.01}$ & $\ms{+.37}{.17}$ & $\ms{.66}{.13}$ & $\ms{.68}{.06}$ & $\ms{+.37}{.05}$ & $\ms{.40}{.08}$ \\
-case57  & 57  & 78  & $\ms{1.02}{.01}$ & $\ms{+.67}{.09}$ & $\ms{.52}{.24}$ & $\ms{.66}{.13}$ & $\ms{-.14}{.11}$ & $\ms{.06}{.05}$ \\
-case118 & 118 & 179 & $\ms{1.01}{.01}$ & $\ms{+.62}{.11}$ & $\ms{.62}{.14}$ & $\ms{.81}{.10}$ & $\ms{+.04}{.08}$ & $\ms{.10}{.00}$ \\
+case14  & 14  & 20  & $\ms{1.00}{.01}$ & $\ms{+.42}{.19}$ & $\ms{.70}{.10}$ & $\ms{.74}{.12}$ & $+.51$ & $.80$ \\
+case30  & 30  & 41  & $\ms{1.00}{.01}$ & $\ms{+.37}{.17}$ & $\ms{.66}{.13}$ & $\ms{.68}{.06}$ & $+.44$ & $.70$ \\
+case57  & 57  & 78  & $\ms{1.02}{.01}$ & $\ms{+.67}{.09}$ & $\ms{.52}{.24}$ & $\ms{.66}{.13}$ & $+.58$ & $.60$ \\
+case118 & 118 & 179 & $\ms{1.01}{.01}$ & $\ms{+.62}{.11}$ & $\ms{.62}{.14}$ & $\ms{.81}{.10}$ & $+.53$ & $.70$ \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
 \textbf{Key observations.} First, tightness of approximately 1.00 under constrained perturbations transfers to the power flow domain, confirming that the first-order prediction is not domain-specific. Second, ranking correlation ($\tau = 0.37$--$0.67$) is moderate, reflecting the gap between continuous first-order sensitivity and discrete full-edge-removal contingency. The operationally relevant metric is precision at top-$k$: AEGIS achieves P@5 between 0.52 and 0.70, and P@10 between 0.66 and 0.81, meaning it correctly identifies 7--8 of the top 10 most critical lines on larger grids.
 
-Third, we compare against an effective-resistance baseline derived from the graph Laplacian pseudoinverse (a simplified DC-approximation proxy for LODF). On small grids (case14/30), this baseline achieves $\tau \approx 0.37$, comparable to AEGIS. On larger grids (case57/118), the simplified baseline degrades ($\tau \leq 0.04$) while AEGIS maintains $\tau = 0.62$--$0.67$. We note that this baseline uses unit impedance (binary adjacency), not actual line reactances; a proper LODF implementation with real impedance data would likely perform better but requires domain-specific information unavailable to AEGIS. We also experimented with admittance-weighted adjacency (using $|Y_{ij}|$ as edge weights), but binary adjacency consistently outperforms it (P@10 = 0.81 vs.\ 0.27 on case118). This is because N-1 contingency is a discrete removal event, and uniform edge sensitivity provides a better proxy than admittance-scaled sensitivity.
+Third, we compare against LODF (industry-standard DC-approximation screening) computed from actual line reactances. LODF achieves $\tau = 0.44$--$0.58$ and P@10 = 0.60--0.80; AEGIS outperforms on larger grids (P@10 = 0.81 vs.\ 0.70 on case118) by capturing nonlinear AC effects that DC approximation misses. On small grids, LODF is competitive or better. A simpler effective-resistance baseline (unit-impedance Laplacian) degrades sharply on larger grids ($\tau \leq 0.04$ on case57/118). Binary adjacency outperforms admittance-weighted (P@10 = 0.81 vs.\ 0.27 on case118).
 
-\textbf{Practical positioning.} AEGIS is not a replacement for PTDF/LODF screening, which exploits domain-specific DC power flow linearization with real line parameters~\cite{wood2014power}. Rather, it demonstrates that general-purpose IFT-based vulnerability analysis independently recovers contingency structure without domain-specific inputs. For case118, AEGIS computes the ranking in a single IFT analysis (2.3s) versus 179 full AC solves for brute-force N-1, with P@10 of 0.81.
+\textbf{Practical positioning.} LODF requires only the B-matrix ($O(|E|)$ from pre-computed PTDF); AEGIS requires a trained GNN but no domain-specific parameters. The two are complementary: LODF for routine DC-regime screening, AEGIS for nonlinear AC regimes. For case118, AEGIS ranks in 2.3s (single IFT) vs.\ 179 AC solves for brute-force N-1, achieving P@10 = 0.81.
 
-\textbf{Limitation: operational readiness.} The $\tau = 0.37$--$0.67$ correlation is insufficient for direct operational use without verification. Grid operators require near-perfect recall of critical contingencies. AEGIS is positioned as a fast screening layer, not a standalone contingency tool.
+\textbf{Operational caveat.} AEGIS is a screening layer, not a standalone contingency tool ($\tau = 0.37$--$0.67$ is insufficient for direct operational use).

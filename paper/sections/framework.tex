@@ -7,7 +7,7 @@ The theoretical results of \cref{sec:theory} provide the mathematical foundation
 
 \subsection{Architecture Overview}
 
-AEGIS takes as input a trained GNN (any differentiable architecture) together with a target graph and produces three outputs: (i) a per-edge vulnerability spectrum ranking edges by adversarial impact, (ii) SVD-optimal attack perturbations, and (iii) per-node first-order robustness radii. For contractive implicit GNNs (IGNN-class satisfying A1--A3), the pipeline additionally computes the critical budget $\ecrit$ and convergence diagnostics. The pipeline consists of four stages executed sequentially, as illustrated in \cref{fig:pipeline}.
+AEGIS takes as input a trained GNN (any differentiable architecture) together with a target graph and produces three outputs: (i) a per-edge vulnerability spectrum ranking edges by adversarial impact, (ii) SVD-optimal attack perturbations, and (iii) per-node first-order sensitivity radii. For contractive implicit GNNs (IGNN-class satisfying A1--A3), the pipeline additionally computes the critical budget $\ecrit$ and convergence diagnostics; these theoretical guarantees are specific to the implicit case. The pipeline consists of four stages executed sequentially, as illustrated in \cref{fig:pipeline}.
 
 \begin{figure}[t]
 \centering
@@ -18,15 +18,15 @@ AEGIS takes as input a trained GNN (any differentiable architecture) together wi
     io/.style={draw, rounded corners, fill=blue!8, minimum width=5.8cm, minimum height=0.55cm, align=center, font=\scriptsize},
     arr/.style={-{Stealth[length=2.5mm]}, thick},
 ]
-\node[io] (in) {Trained IGNN + Graph $G$ + Target node $v$};
-\node[stage, below=of in] (s1) {\textbf{Stage 1:} BFS Subgraph + Equilibrium $\zstar$};
+\node[io] (in) {Trained GNN + Graph $G$ + Target node $v$};
+\node[stage, below=of in] (s1) {\textbf{Stage 1:} BFS Subgraph + Forward Pass};
 \node[stage, below=of s1] (s2) {\textbf{Stage 2:} Jacobian Computation ($J_z$, $J_A$)};
-\node[stage, below=of s2] (s3) {\textbf{Stage 3:} Sensitivity $S = (I{-}J_z)^{-1}J_A \to S_c$};
+\node[stage, below=of s2] (s3) {\textbf{Stage 3:} Constrained Projection $S \to S_c$};
 \node[stage, below=of s3] (s4) {\textbf{Stage 4:} SVD of $S_c$ $\to$ Analysis};
 \node[io, below=0.4cm of s4, minimum width=5.8cm] (out) {Vulnerability spectrum $v_{ij}$ \quad Attack $\delta A^*$ \quad Radii $r_v$};
 
 \draw[arr] (in) -- (s1);
-\draw[arr] (s1) -- node[right, font=\tiny] {$\zstar, A_{\text{sub}}$} (s2);
+\draw[arr] (s1) -- node[right, font=\tiny] {$Z, A_{\text{sub}}$} (s2);
 \draw[arr] (s2) -- node[right, font=\tiny] {$J_z, J_A$} (s3);
 \draw[arr] (s3) -- node[right, font=\tiny] {$S_c$} (s4);
 \draw[arr] (s4) -- (out);
@@ -67,11 +67,11 @@ From $S_c$, AEGIS extracts three complementary outputs:
 
 \textbf{Per-edge vulnerability spectrum.} For each edge $(i,j) \in E$, the vulnerability score $v_{ij} = \norm{[S_c]_{:,k}}_2$ measures how much a unit perturbation of that edge shifts the equilibrium. Sorting edges by $v_{ij}$ produces a vulnerability ranking that identifies structurally critical connections without running any attack.
 
-\textbf{Per-node first-order radii.} For node $v$ with classification margin $m_v$ (gap between the predicted and runner-up class logits), the radius from \cref{prop:radius} is
+\textbf{Per-node first-order sensitivity radii.} For node $v$ with classification margin $m_v$ (gap between the predicted and runner-up class logits), the sensitivity radius from \cref{prop:radius} is
 \begin{equation}
 r_v = \frac{m_v}{\norm{W_{y_v} - W_{c^*}}_2 \cdot \norm{S_v}_2},
 \end{equation}
-where $S_v$ denotes the block-rows of $S$ corresponding to node $v$, and $W_{y_v}, W_{c^*}$ are the classification head weights for the predicted and runner-up classes. Any perturbation with $\norm{\delta \Ahat}_F < r_v$ preserves the classification of node $v$ to first order.
+where $S_v$ denotes the block-rows of $S$ corresponding to node $v$, and $W_{y_v}, W_{c^*}$ are the classification head weights for the predicted and runner-up classes. Any perturbation with $\norm{\delta \Ahat}_F < r_v$ preserves the classification of node $v$ to first order (this is a local sensitivity guarantee, not a global certificate).
 
 \subsection{Computational Cost}
 

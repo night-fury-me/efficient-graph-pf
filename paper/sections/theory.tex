@@ -64,9 +64,9 @@ To enforce these constraints, we construct the \emph{constrained sensitivity mat
 \end{equation}
 for each edge $(i,j) \in E$. This reduces the perturbation space from $N^2$ dimensions to $|E|$ dimensions and enforces symmetry by construction. The constrained-optimal attack uses $\sigma_1(S_c)$, achieving tightness $\approx 1.00$ empirically (\cref{sec:cross_domain}). The construction of $S_c$ is the central technical contribution of this work: it transforms unconstrained sensitivity analysis into a tight, practical tool for realistic graph perturbations.
 
-\begin{proposition}[Per-Node First-Order Robust Radius]
+\begin{proposition}[Per-Node First-Order Sensitivity Radius]
 \label{prop:radius}
-Assume a linear classification head $f(z) = Wz + b$ (as in standard IGNN). For node $v$ with margin $m_v = f_{y_v}(\zstar_v) - \max_{c \neq y_v} f_c(\zstar_v) > 0$, the first-order robust radius is
+Assume a linear classification head $f(z) = Wz + b$ (as in standard IGNN). For node $v$ with margin $m_v = f_{y_v}(\zstar_v) - \max_{c \neq y_v} f_c(\zstar_v) > 0$, the first-order sensitivity radius is
 \begin{equation}
 r_v = \frac{m_v}{\norm{W_{y_v} - W_{c^*}}_2 \cdot \norm{S_v}_2},
 \label{eq:radius}
@@ -76,11 +76,11 @@ where $S_v$ denotes the block-rows of $S$ corresponding to node $v$, $W_{y_v}$ a
 
 The radius $r_v$ has an intuitive interpretation: it is the classification margin $m_v$ (how confident the model is) divided by the product of two amplification factors. The term $\norm{W_{y_v} - W_{c^*}}_2$ measures how sensitive the decision boundary is to hidden-state changes, while $\norm{S_v}_2$ measures how sensitive node $v$'s equilibrium position is to structural perturbation. Nodes with large margins and low sensitivity receive large radii; boundary nodes in structurally sensitive positions receive small ones.
 
-These radii are deterministic (not probabilistic), unlike randomized smoothing~\cite{bojchevski2020efficient} which holds with probability $1-\alpha$. They are first-order guarantees: locally tight for small $\varepsilon$ but increasingly conservative as perturbation magnitude grows. Without bounding the second-order remainder $O(\norm{\delta A}_F^2)$, they should be interpreted as local sensitivity radii rather than global robustness certificates. \cref{sec:adaptive} verifies empirically that the radii hold (0\% breach rate at $\varepsilon = 0.01$, $< 1\%$ at $\varepsilon = 0.10$).
+These sensitivity radii are deterministic (not probabilistic), unlike randomized smoothing~\cite{bojchevski2020efficient} which holds with probability $1-\alpha$. They are first-order quantities: locally tight for small $\varepsilon$ but increasingly conservative as perturbation magnitude grows. Without bounding the second-order remainder $O(\norm{\delta A}_F^2)$, they are local sensitivity measures rather than global robustness certificates. \cref{sec:adaptive} verifies empirically that the radii hold (0\% breach rate at $\varepsilon = 0.01$, $< 1\%$ at $\varepsilon = 0.10$).
 
 \subsection{Generalization to Explicit GNNs}
 
-The sensitivity framework above is derived for implicit GNNs, but the core construction generalizes to any differentiable $K$-layer GNN.
+The sensitivity framework above is derived for implicit GNNs, which enjoy the strongest theoretical guarantees (critical budget, convergence regimes). The $S_c$ construction itself, however, generalizes to any differentiable $K$-layer GNN as a computational tool for vulnerability analysis.
 
 \begin{proposition}[Structural Sensitivity for $K$-Layer GNNs]
 \label{prop:explicit}
@@ -99,4 +99,6 @@ where $J_z^{(k)} = \partial g_k / \partial Z_{k-1}$ and $J_A^{(l)} = \partial g_
 \noindent\textbf{(b)} The constrained construction $S_c$ and per-node radius $r_v$ (\cref{prop:radius}) apply identically with $S_K$ in place of $S$.
 \end{proposition}
 
-For weight-tied models ($J_z^{(k)} = J_z$, $J_A^{(l)} = J_A$ for all $k, l$), the bound simplifies to $\sigma_1(S_K) \leq \norm{J_A}_2 \cdot (1 - \kappa^K)/(1-\kappa)$, which converges to the IGNN bound $\norm{J_A}_2 / (1-\kappa)$ as $K \to \infty$. For contractive implicit GNNs, \cref{thm:phase_transition} additionally provides the critical budget $\ecrit$ and convergence guarantees that explicit models lack. \cref{sec:explicit_extension} validates this generalization on six explicit architectures.
+For weight-tied models ($J_z^{(k)} = J_z$, $J_A^{(l)} = J_A$ for all $k, l$), the bound simplifies to $\sigma_1(S_K) \leq \norm{J_A}_2 \cdot (1 - \kappa^K)/(1-\kappa)$, which converges to the IGNN bound $\norm{J_A}_2 / (1-\kappa)$ as $K \to \infty$.
+
+\textbf{What explicit GNNs gain and lack.} From \cref{prop:explicit}, any differentiable GNN inherits: (i) the $S_c$ construction, (ii) SVD-optimal attacks, (iii) per-edge vulnerability rankings, and (iv) per-node first-order sensitivity radii. What explicit models \emph{lack} is the critical budget $\ecrit$ and the three-regime convergence characterization of \cref{thm:phase_transition}, which require the contraction assumption (A3). \cref{sec:explicit_extension} validates this generalization on six explicit architectures.

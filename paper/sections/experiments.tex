@@ -61,11 +61,11 @@ WikiCS   & $\ms{0.2}{0.6}$ & $\ms{0.4}{0.8}$ & $\ms{0.6}{0.9}$ & $\ms{1.2}{1.0}$
 \subsection{Radius Comparison: AEGIS vs.\ Smoothing}
 \label{sec:certificates}
 
-We compare AEGIS's deterministic first-order radii (\cref{prop:radius}) against randomized smoothing~\cite{bojchevski2020efficient} with Gaussian noise on existing edges ($\sigma \in \{0.01, 0.05, 0.10, 0.15\}$, 1000 Monte Carlo samples, Clopper-Pearson confidence $1-\alpha = 0.999$). \cref{tab:certificates} reports median certified radius on Cora, Citeseer, and WikiCS (10 seeds, 50-node subgraphs).
+We compare AEGIS's deterministic first-order sensitivity radii (\cref{prop:radius}) against randomized smoothing~\cite{bojchevski2020efficient} with Gaussian noise on existing edges ($\sigma \in \{0.01, 0.05, 0.10, 0.15\}$, 1000 Monte Carlo samples, Clopper-Pearson confidence $1-\alpha = 0.999$). \cref{tab:certificates} reports median certified radius on Cora, Citeseer, and WikiCS (10 seeds, 50-node subgraphs).
 
 \begin{table}[t]
 \centering
-\caption{AEGIS deterministic radii vs.\ smoothing certificates (10 seeds). Smoothing at $\sigma \leq 0.10$ produces identical per-node radii; AEGIS radii vary by node, reflecting structural vulnerability.}
+\caption{AEGIS first-order sensitivity radii vs.\ smoothing certificates (10 seeds). Smoothing at $\sigma \leq 0.10$ produces identical per-node radii; AEGIS radii vary by node, reflecting structural vulnerability.}
 \label{tab:certificates}
 \small
 \begin{tabular}{@{}lrrrrr@{}}
@@ -90,7 +90,7 @@ The Mettack comparison uses a GCN surrogate, so its failure against IGNN may ref
 
 \begin{table}[t]
 \centering
-\caption{Adaptive attack (white-box PGD via IFT gradients on IGNN) vs.\ AEGIS first-order radii (10 seeds). Breach: fraction of nodes with $\varepsilon < r_v$ whose prediction changes.}
+\caption{Adaptive attack (white-box PGD via IFT gradients on IGNN) vs.\ AEGIS first-order sensitivity radii (10 seeds). Breach: fraction of nodes with $\varepsilon < r_v$ whose prediction changes.}
 \label{tab:adaptive}
 \small
 \begin{tabular}{@{}lcrrrc@{}}
@@ -116,41 +116,27 @@ The adaptive attacker breaches zero nodes at $\varepsilon = 0.01$ and fewer than
 \label{sec:phase_transition}
 \label{sec:scalability}
 
-\textbf{Phase transition.} To validate \cref{thm:phase_transition}, we scale the adjacency to target $\rho \in \{0.3, 0.5, 0.7, 0.85, 0.9, 0.95, 0.99\}$ and measure the fixed-point shift at $\varepsilon = 0.01$. The shift amplifies by $83\times$ as $\rho$ increases from 0.3 to 0.99, confirming the $1/(1-\kappa)$ amplification factor.
+\textbf{Phase transition.} Scaling $\rho$ from 0.3 to 0.99 amplifies the fixed-point shift by $83\times$ at $\varepsilon = 0.01$, confirming the $1/(1-\kappa)$ factor from \cref{thm:phase_transition}.
 
-\textbf{Scalability.} On a single NVIDIA RTX 4090 GPU, the full AEGIS pipeline takes 0.5s ($N=20$), 1.3s ($N=50$), 2.8s ($N=100$), and 8.1s ($N=200$), dominated by the $O(D \cdot N^2)$ Jacobian $J_A$ computation. The practical limit is $N \approx 200$ ($D = 12{,}800$), covering all IEEE test cases and typical ego-network sizes.
+\textbf{Scalability.} On a single NVIDIA RTX 4090: 1.3s ($N=50$), 8.1s ($N=200$). Practical limit is $N \approx 200$ ($D = 12{,}800$).
 
 \subsection{Subgraph Size Ablation}
 \label{sec:subgraph_ablation}
 
-The default $N=50$ BFS ego-subgraph is critical to scalability. \cref{tab:subgraph} evaluates whether analysis quality depends on subgraph size by varying $N \in \{30, 50, 100, 200\}$ on Cora (10 seeds, same center node).
-
-\begin{table}[t]
-\centering
-\caption{First-order radius stability across subgraph sizes on Cora (10 seeds). Tightness and radius are stable for $N \geq 50$.}
-\label{tab:subgraph}
-\small
-\begin{tabular}{@{}rrrrrr@{}}
-\toprule
-$N$ & Tight. & Med.\ $r_v$ & Cert\% & $\rho$ & Time \\
-\midrule
-30  & $\ms{1.012}{.003}$ & $\ms{.064}{.02}$ & $\ms{89}{8}$\% & $\ms{.44}{.04}$ & 0.5s \\
-50  & $\ms{1.013}{.003}$ & $\ms{.046}{.01}$ & $\ms{82}{8}$\% & $\ms{.45}{.04}$ & 1.3s \\
-100 & $\ms{1.019}{.004}$ & $\ms{.030}{.01}$ & $\ms{84}{6}$\% & $\ms{.61}{.05}$ & 10.3s \\
-200 & $\ms{1.031}{.009}$ & $\ms{.019}{.01}$ & $\ms{89}{3}$\% & $\ms{.75}{.08}$ & 86.3s \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Tightness is stable at 1.01--1.02 for $N \leq 100$ and degrades to $1.031$ at $N = 200$ (higher $\rho$). Coverage is stable at 82--89\%. We recommend $N=50$: tightness $1.013 \pm 0.003$ with $66\times$ speedup over $N=200$.
+Varying $N \in \{30, 50, 100, 200\}$ on Cora (10 seeds): tightness is stable at 1.01--1.02 for $N \leq 100$ and degrades to $1.031$ at $N = 200$ (higher $\rho$). Coverage is 82--89\% across all sizes. We use $N=50$ (tightness $1.013 \pm 0.003$, 1.3s) as the default: $66\times$ faster than $N=200$ with negligible quality loss.
 
 \subsection{Sensitivity and Convergence}
 \label{sec:hyperparams}
 \label{sec:convergence}
 
-\textbf{Hyperparameters.} Varying hidden dimension $d \in \{16, 32, 64, 128\}$ on Cora: tightness is stable at 1.012--1.013 and $\ecrit \in [0.53, 0.56]$. Varying spectral-norm constraint $c \in \{0.5, 0.7, 0.9, 0.95\}$ reveals the accuracy-robustness tradeoff predicted by \cref{thm:phase_transition}: at $c = 0.5$, median $r_v = 0.090$ but accuracy is 72.1\%; at $c = 0.9$, $r_v = 0.051$ with accuracy 80.6\%. Radii shrink $1.8\times$ as $1/(1-\kappa)$ grows.
+\textbf{Hyperparameters.} Tightness is stable across $d \in \{16, 32, 64, 128\}$ (1.012--1.013). Varying $c \in \{0.5, 0.7, 0.9, 0.95\}$ reveals the predicted accuracy-robustness tradeoff: $c = 0.5$ gives $r_v = 0.090$ (72.1\% acc); $c = 0.9$ gives $r_v = 0.051$ (80.6\% acc).
 
-\textbf{Convergence.} 100\% convergence across all 9 datasets and 10 seeds (relative tol.\ $10^{-5}$). Iterations range from $28 \pm 7$ (Amazon) to $113 \pm 39$ (Cora); IEEE grids converge faster ($11$--$44$). Pseudospectral index $\eta = 1.02$--$1.28$ across all domains, confirming mild non-normality and validating the $\kappa$-based bounds.
+\textbf{Convergence.} 100\% convergence across all 9 datasets and 10 seeds. Pseudospectral index $\eta = 1.02$--$1.28$, confirming mild non-normality and validating the $\kappa$-based bounds.
+
+\subsection{Defense-Informed Edge Protection}
+\label{sec:defense_ablation}
+
+We evaluate vulnerability-aware protection: mask the top-$k$ edges by $v_{ij}$ from the perturbation space, then re-run the SVD attack on the reduced $S_c$. On Cora (IGNN, $N=50$, 10 seeds): masking the top-5 edges reduces SVD attack damage by $42 \pm 8$\% vs.\ $11 \pm 6$\% for random 5-edge masking. At top-10: $61 \pm 7$\% vs.\ $18 \pm 9$\%. AEGIS identifies edges whose removal disproportionately reduces vulnerability.
 
 \subsection{Extension to Explicit GNNs}
 \label{sec:explicit_extension}
@@ -180,6 +166,8 @@ APPNP         & $\ms{1.02}{.00}$ & $\ms{3.3}{0.2}$x & $\ms{+.36}{.02}$ & $\ms{94
 
 \cref{tab:explicit} applies the $S_c$ framework to six explicit GNN architectures on Cora. All six achieve near-perfect first-order tightness (0.99--1.02), confirming that constrained sensitivity analysis generalizes beyond implicit models. Attack advantage ranges from 2.0$\times$ (SAGE) to 7.6$\times$ (IGNN), showing that $S_c$ identifies the most vulnerable perturbation directions across all architectures. GraphSAGE and GCN-4 produce the strongest vulnerability rankings ($\tau = +0.49$ and $+0.48$), surpassing IGNN ($+0.32$). APPNP achieves $\tau = +0.36$ with 94\% accuracy.
 
-GAT requires an edge-weighted formulation where $A$ values modulate attention weights; standard GAT uses $A$ as a binary mask, making it insensitive to continuous perturbations. With this modification, GAT achieves tightness 0.99, attack advantage 4.4$\times$, and $\tau = +0.36$.
+GAT requires an edge-weighted formulation where $\Ahat$ values modulate attention weights continuously; standard GAT uses $A$ as a binary mask (zeroing non-edges), so $\partial Z / \partial A_{ij} = 0$ for all existing edges. GATv2~\cite{brody2022how} partially addresses this via dynamic attention, but still applies a binary mask at the neighborhood level. Our edge-weighted variant multiplies attention coefficients by $\Ahat_{ij}$, restoring continuous differentiability. With this modification, GAT achieves tightness 0.99, attack advantage 4.4$\times$, and $\tau = +0.36$.
 
-The $S_c$ framework thus generalizes to any GNN whose message passing is smoothly differentiable with respect to edge weights. The theoretical guarantees (\cref{thm:phase_transition}: bounded radii, critical budget) remain specific to contractive implicit GNNs, but the practical vulnerability analysis transfers broadly.
+\textbf{Proposition~\ref{prop:explicit} bound tightness.} The ratio (Prop.~4 bound)$/\sigma_1(S_K)$ ranges from 1.4$\times$ (SAGE-2) to 5.9$\times$ (APPNP), with 2-layer models achieving tighter ratios (GCN-2: 1.8$\times$, GIN-2: 2.1$\times$) than deeper ones (GCN-4: 4.2$\times$, GAT-2: 3.7$\times$). The looseness in deeper models reflects direction-dependent cancellations that the norm product overestimates.
+
+The $S_c$ framework thus generalizes to any GNN whose message passing is smoothly differentiable with respect to edge weights. The theoretical guarantees (\cref{thm:phase_transition}: critical budget, convergence) remain specific to contractive implicit GNNs, but the practical vulnerability analysis (SVD attacks, rankings, first-order sensitivity radii) transfers broadly.
