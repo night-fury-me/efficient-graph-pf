@@ -265,9 +265,12 @@ def run_single(model_name, model, X, A_hat, y, train_mask, val_mask, seed, devic
     tightness = actual / predicted if predicted > 1e-12 else float("nan")
 
     with torch.no_grad():
-        rand_dA = torch.randn_like(A_sub)
-        rand_dA = (rand_dA + rand_dA.T) / 2
-        rand_dA *= eps / rand_dA.norm()
+        rand_weights = torch.randn(len(edge_list), device=A_sub.device)
+        rand_weights *= eps / rand_weights.norm()
+        rand_dA = torch.zeros_like(A_sub)
+        for k, (i, j) in enumerate(edge_list):
+            rand_dA[i, j] = float(rand_weights[k])
+            rand_dA[j, i] = float(rand_weights[k])
         Z_rand = model.forward_hidden(X_sub, A_sub + rand_dA).reshape(-1)
     rand_shift = float((Z_rand - Z_base).norm())
     atk_adv = actual / rand_shift if rand_shift > 1e-12 else float("nan")

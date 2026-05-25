@@ -168,18 +168,18 @@ Model & Tight. & AtkAdv & $\tau$ & Acc \\
 \midrule
 IGNN (equil.) & $\ms{1.01}{.00}$ & $\ms{7.6}{0.5}$x & $\ms{+.32}{.04}$ & $\ms{82}{\phantom{0}8}$\% \\
 \midrule
-GCN-2         & $\ms{1.00}{.00}$ & $\ms{6.6}{0.3}$x & $\ms{+.05}{.02}$ & $\ms{96}{\phantom{0}1}$\% \\
-GCN-4         & $\ms{1.02}{.00}$ & $\ms{9.1}{0.6}$x & $\ms{+.48}{.01}$ & $\ms{93}{\phantom{0}3}$\% \\
-GIN-2         & $\ms{1.00}{.00}$ & $\ms{6.5}{0.5}$x & $\ms{+.06}{.05}$ & $\ms{83}{\phantom{0}7}$\% \\
-GAT-2         & $\ms{0.99}{.02}$ & ---               & $\ms{+.36}{.13}$ & $\ms{81}{12}$\% \\
-SAGE-2        & $\ms{1.00}{.00}$ & $\ms{2.8}{0.1}$x & $\ms{+.49}{.10}$ & $\ms{90}{\phantom{0}2}$\% \\
-APPNP         & $\ms{1.02}{.00}$ & $\ms{7.5}{0.3}$x & $\ms{+.36}{.02}$ & $\ms{94}{\phantom{0}2}$\% \\
+GCN-2         & $\ms{1.00}{.00}$ & $\ms{4.4}{0.4}$x & $\ms{+.05}{.02}$ & $\ms{96}{\phantom{0}1}$\% \\
+GCN-4         & $\ms{1.02}{.00}$ & $\ms{3.3}{0.2}$x & $\ms{+.48}{.01}$ & $\ms{93}{\phantom{0}3}$\% \\
+GIN-2         & $\ms{1.00}{.00}$ & $\ms{3.8}{0.3}$x & $\ms{+.06}{.05}$ & $\ms{83}{\phantom{0}7}$\% \\
+GAT-2         & $\ms{0.99}{.02}$ & $\ms{4.4}{1.5}$x & $\ms{+.36}{.13}$ & $\ms{81}{12}$\% \\
+SAGE-2        & $\ms{1.00}{.00}$ & $\ms{2.0}{0.1}$x & $\ms{+.49}{.10}$ & $\ms{90}{\phantom{0}2}$\% \\
+APPNP         & $\ms{1.02}{.00}$ & $\ms{3.3}{0.2}$x & $\ms{+.36}{.02}$ & $\ms{94}{\phantom{0}2}$\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\cref{tab:explicit} applies the $S_c$ framework to six explicit GNN architectures on Cora. All six achieve near-perfect first-order tightness (0.99--1.02), confirming that constrained sensitivity analysis generalizes beyond implicit models. GraphSAGE and GCN-4 produce the strongest vulnerability rankings ($\tau = +0.49$ and $+0.48$), surpassing IGNN ($+0.32$). APPNP, whose weight-tied propagation is closest to IGNN's iterative structure, achieves $\tau = +0.36$ with 94\% accuracy.
+\cref{tab:explicit} applies the $S_c$ framework to six explicit GNN architectures on Cora. All six achieve near-perfect first-order tightness (0.99--1.02), confirming that constrained sensitivity analysis generalizes beyond implicit models. Attack advantage ranges from 2.0$\times$ (SAGE) to 7.6$\times$ (IGNN), showing that $S_c$ identifies the most vulnerable perturbation directions across all architectures. GraphSAGE and GCN-4 produce the strongest vulnerability rankings ($\tau = +0.49$ and $+0.48$), surpassing IGNN ($+0.32$). APPNP achieves $\tau = +0.36$ with 94\% accuracy.
 
-GAT requires an edge-weighted formulation where $A$ values modulate attention weights (standard GAT uses $A$ as a binary mask, making it insensitive to continuous perturbations). With this modification, GAT achieves tightness 0.99 and $\tau = +0.36$. The AtkAdv metric is not reported for GAT because the unconstrained random baseline adds new edges that fundamentally change the attention landscape, making the comparison asymmetric.
+GAT requires an edge-weighted formulation where $A$ values modulate attention weights; standard GAT uses $A$ as a binary mask, making it insensitive to continuous perturbations. With this modification, GAT achieves tightness 0.99, attack advantage 4.4$\times$, and $\tau = +0.36$.
 
-The key takeaway is that the $S_c$ framework generalizes to any GNN whose message passing is smoothly differentiable with respect to edge weights. The theoretical guarantees (\cref{thm:phase_transition}: bounded radii, critical budget) remain specific to contractive implicit GNNs, but the practical vulnerability analysis transfers broadly.
+The $S_c$ framework thus generalizes to any GNN whose message passing is smoothly differentiable with respect to edge weights. The theoretical guarantees (\cref{thm:phase_transition}: bounded radii, critical budget) remain specific to contractive implicit GNNs, but the practical vulnerability analysis transfers broadly.
