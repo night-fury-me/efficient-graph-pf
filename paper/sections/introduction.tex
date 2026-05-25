@@ -1,0 +1,24 @@
+%% ===================================================================
+\section{Introduction}
+\label{sec:intro}
+%% ===================================================================
+
+Graph neural networks (GNNs) are vulnerable to adversarial structural perturbation: small changes to the graph topology---adding or removing a few edges---can drastically alter predictions~\cite{zugner2018adversarial,zugner2019adversarial}. Defending against such attacks requires understanding \emph{which perturbations matter} and \emph{by how much}. Current approaches either provide loose certified bounds via randomized smoothing~\cite{bojchevski2020efficient} or rely on heuristic attacks without guarantees~\cite{zugner2019adversarial}.
+
+We observe that a specific family of GNNs---Deep Equilibrium GNNs (DEQ-GNNs)~\cite{bai2019deep,gu2020implicit}---possesses a structural property that enables a qualitatively different kind of analysis. These models iterate a contractive operator $F_\theta$ until convergence to a fixed point $\zstar = F_\theta(\zstar, A)$, rather than propagating through a fixed number of layers. This fixed-point structure, combined with the implicit function theorem (IFT), yields the \emph{structural sensitivity matrix}
+\begin{equation}
+S = (I - J_z)^{-1} J_A,
+\label{eq:sensitivity_matrix}
+\end{equation}
+where $J_z = \partial F/\partial z|_{\zstar}$ and $J_A = \partial F/\partial \mathrm{vec}(A)|_{\zstar}$. The matrix $S$ maps structural perturbations to fixed-point shifts: $\Delta \zstar \approx S \cdot \mathrm{vec}(\delta A)$.
+
+The central finding of this paper is that, under realistic (symmetric, edge-only) perturbation constraints, $S$ predicts adversarial vulnerability \emph{exactly} to first order. Across 9 datasets spanning 4 domains and 10 random seeds, the ratio of actual to predicted adversarial shift is $1.00 \pm 0.01$. No other GNN robustness method achieves this level of prediction accuracy.
+
+\textbf{Contributions.} We make three contributions:
+\begin{enumerate}
+\item \textbf{Phase transition theorem.} We prove that structural perturbations to contractive DEQ-GNNs exhibit three regimes around a critical budget $\ecrit = (1-\rho)/\norm{W}_2$: subcritical (bounded, certifiable), critical (divergent), and supercritical (certificates void). This is the first characterization of this phase transition for DEQ-GNNs (\cref{sec:theory}).
+
+\item \textbf{AEGIS framework.} We develop a domain-agnostic framework for mining DEQ equilibrium structure, providing optimal structural attacks via SVD of the constrained sensitivity matrix and deterministic per-node robustness certificates. AEGIS attacks outperform Mettack~\cite{zugner2019adversarial} in 30/30 comparisons across 3 datasets and 10 seeds. Its certificates are $2$--$5\times$ larger than randomized smoothing~\cite{bojchevski2020efficient} at equal coverage (\cref{sec:framework,sec:experiments}).
+
+\item \textbf{Cross-domain validation.} We validate on 9 datasets across 4 domains---citation networks (Cora, Citeseer, Pubmed), e-commerce (Amazon Photo), encyclopedia (WikiCS), and power flow (IEEE case14/30/57/118)---demonstrating that constrained tightness $\approx 1.00$ holds universally. As a case study, the vulnerability spectrum recovers power grid N-1 contingency rankings (\cref{sec:experiments}).
+\end{enumerate}

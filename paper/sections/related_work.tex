@@ -1,0 +1,12 @@
+%% ===================================================================
+\section{Related Work}
+\label{sec:related}
+%% ===================================================================
+
+\textbf{Adversarial attacks on GNNs.} Structural attacks modify graph topology to degrade GNN performance. Nettack~\cite{zugner2018adversarial} targets individual nodes via greedy edge flips; Mettack~\cite{zugner2019adversarial} uses meta-gradients through a surrogate for global poisoning. These methods operate on explicit (finite-depth) GNNs and require surrogate transfer when applied to DEQ models. AEGIS directly analyzes the equilibrium via IFT, yielding $3$--$10\times$ stronger attacks without surrogates.
+
+\textbf{Certified robustness for GNNs.} Randomized smoothing~\cite{bojchevski2020efficient} provides probabilistic certificates by classifying under random perturbation of the graph structure. Interval bound propagation has been applied to GNNs~\cite{zugner2019certifiable} but requires layer-by-layer propagation, incompatible with infinite-depth DEQ models. AEGIS provides deterministic certificates via the IFT with $2$--$5\times$ larger radii than smoothing at equal coverage.
+
+\textbf{DEQ robustness and Lipschitz analysis.} Lipschitz bounds for DEQs have been studied for input perturbation~\cite{el2021implicit,revay2020lipschitz,winston2020monotone}. Pabbaraju et al.~\cite{pabbaraju2021estimating} estimate Lipschitz constants of monotone DEQs. These works bound $\norm{\partial \zstar / \partial x}$ but not $\norm{\partial \zstar / \partial A}$---the structural sensitivity central to graph adversarial robustness. AEGIS fills this gap with the structural sensitivity matrix $S$ and the phase transition characterization.
+
+\textbf{Implicit GNNs.} IGNN~\cite{gu2020implicit} enforces contractivity via spectral normalization. EIGNN~\cite{yang2022efficient} improves computational efficiency. Neither analyzes adversarial structural vulnerability at the equilibrium. The concurrent work of Liu et al.~\cite{liu2021stability} studies stability of GNNs under graph perturbation but without the phase transition framework or certified per-node radii.

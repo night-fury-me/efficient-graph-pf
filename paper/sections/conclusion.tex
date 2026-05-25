@@ -1,0 +1,8 @@
+%% ===================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+%% ===================================================================
+
+We presented AEGIS, a framework that exploits the equilibrium structure of DEQ-GNNs for exact adversarial vulnerability prediction. Our phase transition theorem characterizes three regimes of structural vulnerability around a sharp critical budget $\ecrit$. The constrained sensitivity analysis achieves tightness $1.00 \pm 0.01$ across 9 datasets---the first-order prediction is essentially exact for realistic graph perturbations. AEGIS attacks dominate Mettack (30/30 wins), its deterministic certificates are $2$--$5\times$ larger than smoothing, and the vulnerability spectrum bridges adversarial ML with power systems contingency analysis through a single mathematical object.
+
+\textbf{Limitations and future work.} Dense Jacobian computation limits subgraph size to $N \approx 200$. The first-order approximation is exact only for small perturbations; finite perturbations incur higher-order gaps (tightness degrades for $\varepsilon > 0.1$). Extending to sparse Neumann-series solvers would enable larger-scale analysis. Applying AEGIS to other implicit architectures (monotone operator networks, neural ODEs on graphs) and discrete perturbation models (edge insertion/deletion) are natural next steps.

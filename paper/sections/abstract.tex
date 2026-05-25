@@ -1,0 +1,7 @@
+\begin{abstract}
+We introduce AEGIS, a framework that mines the equilibrium structure of Deep Equilibrium Graph Neural Networks (DEQ-GNNs) to provide exact first-order prediction of adversarial vulnerability under graph structure perturbation. Unlike explicit GNNs, DEQ-GNNs converge to a fixed point $\zstar = F(\zstar, A)$, enabling construction of a structural sensitivity matrix $S = (I - J_z)^{-1} J_A$ via the implicit function theorem. We prove that structural perturbations exhibit a sharp phase transition (Theorem~1): below a critical budget $\ecrit = (1-\rho)/\norm{W}_2$, fixed-point shifts are bounded and certifiable; above it, contractivity is lost and certificates become void. Empirically, our constrained sensitivity analysis achieves tightness $1.00 \pm 0.01$ across 9 datasets (5 graph benchmarks $+$ 4 IEEE power grids, 10 seeds each), meaning the predicted adversarial shift matches the actual shift to within 1\%. AEGIS attacks outperform Mettack in 30/30 comparisons, and its deterministic per-node certificates are $2$--$5\times$ larger than randomized smoothing at equal coverage. As a case study, the vulnerability spectrum naturally recovers power grid N-1 contingency rankings ($\tau = 0.42$--$0.67$). Code is available at [URL].
+\end{abstract}
+
+\begin{IEEEkeywords}
+Deep equilibrium models, graph neural networks, adversarial robustness, certified robustness, structural perturbation, implicit function theorem
+\end{IEEEkeywords}

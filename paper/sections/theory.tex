@@ -1,0 +1,55 @@
+%% ===================================================================
+\section{Adversarial Equilibrium Theory}
+\label{sec:theory}
+%% ===================================================================
+
+We present our main theoretical result: a phase transition in adversarial vulnerability, supported by two propositions providing the computational tools.
+
+\begin{theorem}[Phase Transition in Adversarial Vulnerability]
+\label{thm:phase_transition}
+Let $F_\theta(Z, A) = \sigma(AZW^\top + X_{\mathrm{proj}})$ be an IGNN-class operator with $\norm{W}_2 \leq c$ and spectral radius $\rho = \rho(J_z) < 1$. Define
+\begin{equation}
+\ecrit = \frac{1 - \rho}{\norm{W}_2}.
+\end{equation}
+Then structural perturbations $\delta A$ exhibit three regimes:
+
+\noindent\textbf{(a) Subcritical} ($\norm{\delta A}_F < \ecrit$): The perturbed operator remains contractive with a unique fixed point satisfying
+\begin{equation}
+\norm{\Delta \zstar} \leq \sigma_1(S) \cdot \norm{\delta A}_F + O(\norm{\delta A}_F^2),
+\label{eq:shift_bound}
+\end{equation}
+where $S = (I - J_z)^{-1} J_A$ and $\sigma_1(S) \leq \norm{J_A}_{\mathrm{op}} / (1 - \rho)$.
+
+\noindent\textbf{(b) Critical} ($\norm{\delta A}_F \to \ecrit$): The bound diverges as $\Theta(1/(\ecrit - \norm{\delta A}_F))$ because $\rho(A + \delta A) \to 1$.
+
+\noindent\textbf{(c) Supercritical} ($\norm{\delta A}_F > \ecrit$): Contractivity may be lost ($\rho \geq 1$), the fixed point is no longer guaranteed unique, and all certificates from part (a) become void.
+\end{theorem}
+
+\begin{proof}
+\textbf{Part (a).} By the IFT applied to $\zstar = F(\zstar, A)$:
+\begin{equation}
+\Delta \zstar = (I - J_z)^{-1} J_A \cdot \mathrm{vec}(\delta A) + O(\norm{\delta A}^2).
+\end{equation}
+Taking norms gives~\eqref{eq:shift_bound}. For contractivity preservation: $\rho(A + \delta A) \leq \norm{A + \delta A}_2 \cdot \norm{W}_2 \leq (\norm{A}_2 + \norm{\delta A}_2) \cdot \norm{W}_2$. Since $\rho = \norm{A}_2 \cdot \norm{W}_2$ in the worst case and $\norm{\cdot}_2 \leq \norm{\cdot}_F$, the condition $\norm{\delta A}_F < (1-\rho)/\norm{W}_2$ ensures $\rho(A + \delta A) < 1$.
+
+\textbf{Part (b).} As $\norm{\delta A} \to \ecrit$, $\rho(A + \delta A) \to 1$ and $\norm{(I - J_z(A+\delta A))^{-1}}_2 \geq 1/(1 - \rho(A+\delta A)) \to \infty$.
+
+\textbf{Part (c).} When $\rho \geq 1$, the contraction mapping theorem no longer applies. The fixed-point iteration may converge to a different equilibrium, oscillate, or diverge.
+\end{proof}
+
+\begin{proposition}[Optimal First-Order Structural Attack]
+\label{prop:attack}
+The perturbation $\delta A^*$ maximizing $\norm{\Delta \zstar}$ to first order subject to $\norm{\delta A}_F \leq \varepsilon$ is $\delta A^* = \varepsilon \cdot \mathrm{reshape}(v_1, N \times N)$, where $v_1$ is the leading right singular vector of $S$. The maximum first-order shift is $\varepsilon \cdot \sigma_1(S)$.
+\end{proposition}
+
+\textbf{Constrained sensitivity.} Real graph perturbations are symmetric ($\delta A = \delta A^\top$) and edge-only (only existing edges can be modified). We construct the \emph{constrained sensitivity matrix} $S_c \in \R^{D \times |E|}$ with column $S_{:,iN+j} + S_{:,jN+i}$ for each edge $(i,j) \in E$. The constrained-optimal attack uses $\sigma_1(S_c)$, yielding tightness $\approx 1.00$ empirically (\cref{sec:cross_domain}).
+
+\begin{proposition}[Per-Node Robust Radius]
+\label{prop:radius}
+For node $v$ with classification margin $m_v = f_{y_v}(\zstar_v) - \max_{c \neq y_v} f_c(\zstar_v) > 0$, the certified robust radius is
+\begin{equation}
+r_v = \frac{m_v}{\norm{\partial f / \partial \zstar_v} \cdot \norm{S_v}},
+\label{eq:radius}
+\end{equation}
+where $S_v$ denotes the block-rows of $S$ for node $v$. Any $\norm{\delta A}_F < r_v$ preserves the classification of node~$v$. These certificates are deterministic, unlike randomized smoothing~\cite{bojchevski2020efficient} which holds with probability $1-\alpha$.
+\end{proposition}

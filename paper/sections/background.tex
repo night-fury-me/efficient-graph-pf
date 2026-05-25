@@ -1,0 +1,25 @@
+%% ===================================================================
+\section{Background}
+\label{sec:background}
+%% ===================================================================
+
+\subsection{Deep Equilibrium Graph Neural Networks}
+
+A DEQ-GNN~\cite{bai2019deep} defines a weight-tied operator $F_\theta: \R^{N \times d} \times \R^{N \times N} \to \R^{N \times d}$ and iterates it to convergence:
+\begin{equation}
+Z_{k+1} = F_\theta(Z_k, A), \quad Z_0 = 0.
+\end{equation}
+When $F_\theta$ is contractive (spectral radius $\rho(J_z) < 1$), the Banach fixed-point theorem guarantees a unique equilibrium $\zstar = F_\theta(\zstar, A)$. The Implicit Graph Neural Network (IGNN)~\cite{gu2020implicit} instantiates this with $F(Z, A) = \sigma(\Ahat Z W^\top + X_{\mathrm{proj}})$, where $\Ahat = D^{-1/2}(A + I)D^{-1/2}$ is the normalized adjacency and $W$ is spectral-norm constrained to ensure $\rho < 1$.
+
+\subsection{Implicit Function Theorem for DEQ Sensitivity}
+
+At the fixed point, the IFT provides the sensitivity of $\zstar$ to any parameter $p$:
+\begin{equation}
+\frac{\partial \zstar}{\partial p} = (I - J_z)^{-1} \frac{\partial F}{\partial p}\bigg|_{\zstar},
+\label{eq:ift}
+\end{equation}
+where $J_z = \partial F/\partial z|_{\zstar}$ is the state Jacobian. When $\rho(J_z) < 1$, the resolvent $(I - J_z)^{-1}$ exists and is bounded by $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\rho)$ for normal $J_z$. This has been used for hyperparameter optimization in implicit layers~\cite{lorraine2020optimizing} and general implicit differentiation~\cite{gould2021deep}, but not for adversarial robustness analysis of graph structure.
+
+\subsection{Adversarial Structural Perturbation}
+
+We consider an attacker who perturbs the adjacency matrix: $A' = A + \delta A$ with $\norm{\delta A}_F \leq \varepsilon$. For undirected graphs, $\delta A$ must be symmetric. In graph terms, this corresponds to modifying edge weights or adding/removing edges. Unlike input-feature perturbation (studied for DEQs in~\cite{el2021implicit,revay2020lipschitz}), structural perturbation changes the \emph{operator} itself, not just its input---the fixed point depends on $A$ through both $J_z$ and $J_A$.
