@@ -96,7 +96,9 @@ class ExplicitGIN(nn.Module):
 
 
 class ExplicitGAT(nn.Module):
-    """Graph Attention Network (simplified single-head). Attention masked by A_hat."""
+    """Edge-weighted GAT. Attention scores are modulated by A_hat values
+    so that edge weights participate continuously in the computation,
+    enabling finite-difference sensitivity analysis."""
 
     def __init__(self, n_features, hidden, n_classes, n_layers=2):
         super().__init__()
@@ -121,7 +123,7 @@ class ExplicitGAT(nn.Module):
             mask = (A_hat.abs() < 1e-10)
             attn_logits = attn_logits.masked_fill(mask, -1e9)
             attn_weights = F_func.softmax(attn_logits, dim=1)
-            attn_weights = attn_weights * (A_hat.abs() > 1e-10).float()
+            attn_weights = attn_weights * A_hat
             Z = F_func.elu(attn_weights @ Z_proj)
         return Z
 
