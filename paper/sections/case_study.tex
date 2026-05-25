@@ -23,19 +23,19 @@ We train ContractiveGCN-PF, an IGNN variant for AC power flow, on four standard 
 
 \begin{table*}[t]
 \centering
-\caption{AEGIS on IEEE power flow benchmarks (10 seeds). P@$k$: precision of top-$k$ vs.\ brute-force N-1 ground truth. LODF: Line Outage Distribution Factor ranking (industry standard, uses actual line reactances~\cite{wood2014power}).}
+\caption{AEGIS on IEEE power flow benchmarks (10 seeds). RMSE: per-unit voltage prediction error on held-out test samples. P@$k$: precision of top-$k$ vs.\ brute-force N-1 ground truth. LODF: industry-standard screening baseline~\cite{wood2014power}.}
 \label{tab:ieee}
 \small
-\begin{tabular}{@{}lrr c c cc cc@{}}
+\begin{tabular}{@{}lrr r c c cc cc@{}}
 \toprule
- & & & & \multicolumn{1}{c}{AEGIS} & \multicolumn{2}{c}{AEGIS Precision} & \multicolumn{2}{c}{LODF Baseline} \\
-\cmidrule(lr){5-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
-Case & $N$ & $|E|$ & Tight. & $\tau$ & P@5 & P@10 & $\tau$ & P@10 \\
+ & & & & & \multicolumn{1}{c}{AEGIS} & \multicolumn{2}{c}{AEGIS Precision} & \multicolumn{2}{c}{LODF Baseline} \\
+\cmidrule(lr){6-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}
+Case & $N$ & $|E|$ & RMSE & Tight. & $\tau$ & P@5 & P@10 & $\tau$ & P@10 \\
 \midrule
-case14  & 14  & 20  & $\ms{1.00}{.01}$ & $\ms{+.42}{.19}$ & $\ms{.70}{.10}$ & $\ms{.74}{.12}$ & $+.51$ & $.80$ \\
-case30  & 30  & 41  & $\ms{1.00}{.01}$ & $\ms{+.37}{.17}$ & $\ms{.66}{.13}$ & $\ms{.68}{.06}$ & $+.44$ & $.70$ \\
-case57  & 57  & 78  & $\ms{1.02}{.01}$ & $\ms{+.67}{.09}$ & $\ms{.52}{.24}$ & $\ms{.66}{.13}$ & $+.58$ & $.60$ \\
-case118 & 118 & 179 & $\ms{1.01}{.01}$ & $\ms{+.62}{.11}$ & $\ms{.62}{.14}$ & $\ms{.81}{.10}$ & $+.53$ & $.70$ \\
+case14  & 14  & 20  & $\ms{.015}{.001}$ & $\ms{1.00}{.01}$ & $\ms{+.42}{.19}$ & $\ms{.70}{.10}$ & $\ms{.74}{.12}$ & $+.51$ & $.80$ \\
+case30  & 30  & 41  & $\ms{.020}{.002}$ & $\ms{1.00}{.01}$ & $\ms{+.37}{.17}$ & $\ms{.66}{.13}$ & $\ms{.68}{.06}$ & $+.44$ & $.70$ \\
+case57  & 57  & 78  & $\ms{.048}{.002}$ & $\ms{1.02}{.01}$ & $\ms{+.67}{.09}$ & $\ms{.52}{.24}$ & $\ms{.66}{.13}$ & $+.58$ & $.60$ \\
+case118 & 118 & 179 & $\ms{.055}{.010}$ & $\ms{1.01}{.01}$ & $\ms{+.62}{.11}$ & $\ms{.62}{.14}$ & $\ms{.81}{.10}$ & $+.53$ & $.70$ \\
 \bottomrule
 \end{tabular}
 \end{table*}
