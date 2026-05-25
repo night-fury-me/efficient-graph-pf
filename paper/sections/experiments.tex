@@ -61,27 +61,7 @@ WikiCS   & $\ms{0.2}{0.6}$ & $\ms{0.4}{0.8}$ & $\ms{0.6}{0.9}$ & $\ms{1.2}{1.0}$
 \subsection{Radius Comparison: AEGIS vs.\ Smoothing}
 \label{sec:certificates}
 
-We compare AEGIS's deterministic first-order sensitivity radii (\cref{prop:radius}) against randomized smoothing~\cite{bojchevski2020efficient} with Gaussian noise on existing edges ($\sigma \in \{0.01, 0.05, 0.10, 0.15\}$, 1000 Monte Carlo samples, Clopper-Pearson confidence $1-\alpha = 0.999$). \cref{tab:certificates} reports median certified radius on Cora, Citeseer, and WikiCS (10 seeds, 50-node subgraphs).
-
-\begin{table}[t]
-\centering
-\caption{AEGIS first-order sensitivity radii vs.\ smoothing certificates (10 seeds). Smoothing at $\sigma \leq 0.10$ produces identical per-node radii; AEGIS radii vary by node, reflecting structural vulnerability.}
-\label{tab:certificates}
-\small
-\begin{tabular}{@{}lrrrrr@{}}
-\toprule
-\multirow{2}{*}{Dataset} & \multirow{2}{*}{AEGIS} & \multicolumn{4}{c}{Smoothing median radius} \\
-\cmidrule(lr){3-6}
- & & $\sigma{=}.01$ & $\sigma{=}.05$ & $\sigma{=}.10$ & $\sigma{=}.15$ \\
-\midrule
-Cora     & $\ms{.046}{.010}$ & .025 & .123 & $\ms{.244}{.005}$ & $\ms{.283}{.132}$ \\
-Citeseer & $\ms{.045}{.012}$ & .025 & .123 & $\ms{.233}{.013}$ & $\ms{.091}{.069}$ \\
-WikiCS   & $\ms{.040}{.004}$ & .025 & .123 & $\ms{.246}{.000}$ & $\ms{.341}{.017}$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-At $\sigma \leq 0.10$, smoothing radii are \emph{constant} across all nodes: every node receives the identical radius $r = \sigma \cdot \Phi^{-1}(p_{\mathrm{lower}})$ because all Monte Carlo samples predict correctly. This yields larger absolute radii than AEGIS (0.123 vs.\ 0.046 at $\sigma = 0.05$) but zero per-node differentiation. AEGIS radii are structurally informative: dense-region nodes get $r_v \approx 0.09$, boundary nodes get $r_v \approx 0.01$. The two approaches are complementary: smoothing provides uniform probabilistic guarantees, AEGIS provides structurally differentiated first-order radii for vulnerability ranking.
+We compare AEGIS sensitivity radii against randomized smoothing~\cite{bojchevski2020efficient} ($\sigma \in \{0.01, 0.05, 0.10, 0.15\}$, 1000 MC samples, 10 seeds). At $\sigma \leq 0.10$, smoothing radii are \emph{constant} across all nodes ($r = \sigma \cdot \Phi^{-1}(p_\mathrm{lower})$) because all samples predict correctly, yielding larger absolute radii (0.123 vs.\ AEGIS's 0.046 at $\sigma = 0.05$) but zero per-node differentiation. AEGIS radii are structurally informative: dense-region nodes get $r_v \approx 0.09$, boundary nodes $r_v \approx 0.01$. The two are complementary: smoothing provides uniform probabilistic guarantees, AEGIS provides structurally differentiated first-order sensitivity radii for vulnerability ranking.
 
 \subsection{Adaptive Attack Evaluation}
 \label{sec:adaptive}
@@ -118,7 +98,7 @@ The adaptive attacker breaches zero nodes at $\varepsilon = 0.01$ and fewer than
 
 \textbf{Phase transition.} Scaling $\rho$ from 0.3 to 0.99 amplifies the fixed-point shift by $83\times$ at $\varepsilon = 0.01$, confirming the $1/(1-\kappa)$ factor from \cref{thm:phase_transition}.
 
-\textbf{Scalability.} On a single NVIDIA RTX 4090: 1.3s ($N=50$), 8.1s ($N=200$). Practical limit is $N \approx 200$ ($D = 12{,}800$).
+\textbf{Scalability.} On a single NVIDIA RTX 4090 (24\,GB): 1.3s/$N{=}50$, 1.8s/$N{=}200$ (3.7\,GB), 4.4s/$N{=}300$ (12.6\,GB, tightness $1.000$, AtkAdv 8.3$\times$). $N{=}400$ exceeds 24\,GB; sparse approximations would extend this.
 
 \subsection{Subgraph Size Ablation}
 \label{sec:subgraph_ablation}
@@ -145,21 +125,21 @@ A key question is whether the $S_c$ framework extends beyond implicit models. Fo
 
 \begin{table}[t]
 \centering
-\caption{$S_c$ framework applied to 7 GNN architectures (Cora, 10 seeds). Tightness transfers to all architectures including edge-weighted GAT.}
+\caption{$S_c$ framework applied to 7 GNN architectures (Cora, 10 seeds). Test Acc: full-graph test set accuracy. Tightness transfers to all architectures.}
 \label{tab:explicit}
 \small
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
-Model & Tight. & AtkAdv & $\tau$ & Acc \\
+Model & Tight. & AtkAdv & $\tau$ & Test Acc \\
 \midrule
-IGNN (equil.) & $\ms{1.01}{.00}$ & $\ms{7.6}{0.5}$x & $\ms{+.32}{.04}$ & $\ms{82}{\phantom{0}8}$\% \\
+IGNN (equil.) & $\ms{1.01}{.00}$ & $\ms{7.6}{0.5}$x & $\ms{+.32}{.04}$ & $\ms{76.9}{2.2}$\% \\
 \midrule
-GCN-2         & $\ms{1.00}{.00}$ & $\ms{4.4}{0.4}$x & $\ms{+.05}{.02}$ & $\ms{96}{\phantom{0}1}$\% \\
-GCN-4         & $\ms{1.02}{.00}$ & $\ms{3.3}{0.2}$x & $\ms{+.48}{.01}$ & $\ms{93}{\phantom{0}3}$\% \\
-GIN-2         & $\ms{1.00}{.00}$ & $\ms{3.8}{0.3}$x & $\ms{+.06}{.05}$ & $\ms{83}{\phantom{0}7}$\% \\
-GAT-2         & $\ms{0.99}{.02}$ & $\ms{4.4}{1.5}$x & $\ms{+.36}{.13}$ & $\ms{81}{12}$\% \\
-SAGE-2        & $\ms{1.00}{.00}$ & $\ms{2.0}{0.1}$x & $\ms{+.49}{.10}$ & $\ms{90}{\phantom{0}2}$\% \\
-APPNP         & $\ms{1.02}{.00}$ & $\ms{3.3}{0.2}$x & $\ms{+.36}{.02}$ & $\ms{94}{\phantom{0}2}$\% \\
+GCN-2         & $\ms{1.00}{.00}$ & $\ms{4.4}{0.4}$x & $\ms{+.05}{.02}$ & $\ms{76.2}{0.7}$\% \\
+GCN-4         & $\ms{1.02}{.00}$ & $\ms{3.3}{0.2}$x & $\ms{+.48}{.01}$ & $\ms{78.3}{1.3}$\% \\
+GIN-2         & $\ms{1.00}{.00}$ & $\ms{3.8}{0.3}$x & $\ms{+.06}{.05}$ & $\ms{70.6}{2.4}$\% \\
+GAT-2         & $\ms{0.99}{.02}$ & $\ms{4.4}{1.5}$x & $\ms{+.36}{.13}$ & $\ms{64.2}{2.2}$\% \\
+SAGE-2        & $\ms{1.00}{.00}$ & $\ms{2.0}{0.1}$x & $\ms{+.49}{.10}$ & $\ms{74.4}{1.4}$\% \\
+APPNP         & $\ms{1.02}{.00}$ & $\ms{3.3}{0.2}$x & $\ms{+.36}{.02}$ & $\ms{80.8}{0.7}$\% \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -168,6 +148,10 @@ APPNP         & $\ms{1.02}{.00}$ & $\ms{3.3}{0.2}$x & $\ms{+.36}{.02}$ & $\ms{94
 
 GAT requires an edge-weighted formulation where $\Ahat$ values modulate attention weights continuously; standard GAT uses $A$ as a binary mask (zeroing non-edges), so $\partial Z / \partial A_{ij} = 0$ for all existing edges. GATv2~\cite{brody2022how} partially addresses this via dynamic attention, but still applies a binary mask at the neighborhood level. Our edge-weighted variant multiplies attention coefficients by $\Ahat_{ij}$, restoring continuous differentiability. With this modification, GAT achieves tightness 0.99, attack advantage 4.4$\times$, and $\tau = +0.36$.
 
+\textbf{Comparison with gradient attribution.} Against brute-force edge-removal ground truth, AEGIS rankings achieve positive $\tau$ (IGNN: $+0.32$; GCN-2: $+0.04$; GIN-2: $+0.06$) while gradient-based edge attribution~\cite{pope2019explainability,ying2019gnnexplainer} is consistently negative ($-0.07$, $-0.17$, $-0.21$ respectively). Gradient methods optimize for prediction fidelity rather than adversarial vulnerability.
+
 \textbf{Proposition~\ref{prop:explicit} bound tightness.} The ratio (Prop.~4 bound)$/\sigma_1(S_K)$ ranges from 1.4$\times$ (SAGE-2) to 5.9$\times$ (APPNP), with 2-layer models achieving tighter ratios (GCN-2: 1.8$\times$, GIN-2: 2.1$\times$) than deeper ones (GCN-4: 4.2$\times$, GAT-2: 3.7$\times$). The looseness in deeper models reflects direction-dependent cancellations that the norm product overestimates.
+
+\textbf{Degree-weighted $S_c$.} Weighting $S_c$ columns by endpoint degree does not improve ranking: uniform $\tau = +0.042$, degree-weighted $+0.037$, inverse-degree $-0.008$ (GCN-2, 10 seeds). High-degree nodes already contribute larger sensitivity columns via aggregation.
 
 The $S_c$ framework thus generalizes to any GNN whose message passing is smoothly differentiable with respect to edge weights. The theoretical guarantees (\cref{thm:phase_transition}: critical budget, convergence) remain specific to contractive implicit GNNs, but the practical vulnerability analysis (SVD attacks, rankings, first-order sensitivity radii) transfers broadly.
