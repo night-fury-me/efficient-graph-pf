@@ -107,28 +107,4 @@ $N$ & $|E|$ & $D$ & $J_z$ & $J_A$ & Total \\
 \end{tabular}
 \end{table}
 
-The practical GPU limit is $N \approx 200$ ($D = 12{,}800$). Empirical scaling is $16\times$ for $10\times$ growth in $D$, dominated by the $O(D \cdot N^2)$ numerical Jacobian $J_A$ rather than the $O(D^3)$ linear solve. This covers all IEEE test cases (14--118 buses) and practical ego-network sizes for node-level analysis.
-
-\subsection{Case Study: Power Flow N-1 Contingency}
-\label{sec:power_flow}
-
-As a cross-domain application, we train ContractiveGCN-PF on IEEE benchmark grids and compare the AEGIS vulnerability spectrum against brute-force N-1 contingency analysis (remove each line, re-solve, measure deviation).
-
-\begin{table}[t]
-\centering
-\caption{AEGIS on IEEE power flow benchmarks (10 seeds). Tightness $\approx 1.00$; N-1 ranking strongest on larger grids.}
-\label{tab:ieee}
-\small
-\begin{tabular}{@{}lrrccc@{}}
-\toprule
-Case & $N$ & $|E|$ & Tight. & N-1 $\tau$ & Top-5 \\
-\midrule
-case14  & 14  & 20  & 1.00$\pm$.01 & +.42$\pm$.19 & 70$\pm$10\% \\
-case30  & 30  & 41  & 1.00$\pm$.01 & +.37$\pm$.17 & 66$\pm$13\% \\
-case57  & 57  & 78  & 1.02$\pm$.01 & +.67$\pm$.09 & 52$\pm$24\% \\
-case118 & 118 & 179 & 1.01$\pm$.01 & +.62$\pm$.11 & 62$\pm$14\% \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Tightness of $\approx 1.00$ confirms that exact first-order prediction transfers to the power flow domain. N-1 ranking correlation is strongest on larger grids (case57: $\tau = +0.67$, case118: $\tau = +0.62$), where edges exhibit more diverse criticalities for IFT to differentiate. This demonstrates that the adversarial vulnerability spectrum and power grid contingency ranking are instances of the same mathematical object---the structural sensitivity matrix $S$.
+The practical GPU limit is $N \approx 200$ ($D = 12{,}800$). Empirical scaling is $16\times$ for $10\times$ growth in $D$, dominated by the $O(D \cdot N^2)$ numerical Jacobian $J_A$ rather than the $O(D^3)$ linear solve. This covers all standard IEEE test cases (14--118 buses) and practical ego-network sizes for node-level analysis.

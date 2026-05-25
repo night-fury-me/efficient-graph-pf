@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.16)  25 MAY 2026 13:45
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.16)  25 MAY 2026 13:49
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -676,7 +676,8 @@ Underfull \hbox (badness 10000) in paragraph at lines 86--87
 Z \OMS/cmsy/m/n/10 2
  []
 
-) (./sections/related_work.tex [3]) (./sections/conclusion.tex) (./aegis.bbl
+) (./sections/case_study.tex [3]) (./sections/related_work.tex)
+(./sections/conclusion.tex) (./aegis.bbl [4]
 Underfull \hbox (badness 1648) in paragraph at lines 81--84
 \OT1/ptm/m/n/8 con-stants of mono-tone deep equi-lib-rium mod-els,'' \OT1/ptm/m
 /it/8 arXiv preprint
@@ -694,22 +695,24 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[4] (./aegis.aux)
+[5
+
+] (./aegis.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
  ***********
 Package rerunfilecheck Info: File `aegis.out' has not changed.
-(rerunfilecheck)             Checksum: CE37630EDAFEE50631AD3DA33BD4E8F0;3082.
+(rerunfilecheck)             Checksum: 7976A66D4571B8EB3E8A1F196A3602C4;3488.
  ) 
 Here is how much of TeX's memory you used:
- 14739 strings out of 469515
- 244531 string characters out of 5470807
- 681065 words of memory out of 5000000
- 43129 multiletter control sequences out of 15000+600000
+ 14756 strings out of 469515
+ 244888 string characters out of 5470807
+ 680065 words of memory out of 5000000
+ 43139 multiletter control sequences out of 15000+600000
  677058 words of font info for 153 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 75i,14n,79p,1324b,451s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,14n,79p,1324b,592s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fon
 ts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texmf-dist/fonts/type1/public
@@ -729,10 +732,10 @@ ts/type1/urw/courier/ucrr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/ut
 mb8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/t
 exmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf-dist/fonts/type1/u
 rw/times/utmri8a.pfb>
-Output written on aegis.pdf (4 pages, 272256 bytes).
+Output written on aegis.pdf (5 pages, 276477 bytes).
 PDF statistics:
- 298 PDF objects out of 1000 (max. 8388607)
- 243 compressed objects within 3 object streams
- 54 named destinations out of 1000 (max. 500000)
- 137 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 316 PDF objects out of 1000 (max. 8388607)
+ 260 compressed objects within 3 object streams
+ 58 named destinations out of 1000 (max. 500000)
+ 161 words of extra memory for PDF output out of 10000 (max. 10000000)
 
