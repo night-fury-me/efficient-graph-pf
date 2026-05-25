@@ -1,4 +1,4 @@
-# AEGIS: Exact Structural Vulnerability Prediction for Deep Equilibrium Graph Neural Networks
+# AEGIS: Equilibrium Structure Mining for Certifiable Graph Robustness
 
 *(Adversarial Equilibrium Graph Implicit Sensitivity)*
 
