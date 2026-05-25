@@ -103,12 +103,12 @@ def mettack_edge_scores(
     # Symmetrize gradient
     grad = (grad + grad.T) / 2
 
-    # Score each existing edge by |gradient|
+    # Score existing edges for REMOVAL: negative gradient means removing helps attack
     edges = []
     for i in range(N):
         for j in range(i + 1, N):
             if A_sub[i, j].abs() > 1e-10:
-                score = float(grad[i, j].abs())
+                score = float(-grad[i, j])
                 edges.append((i, j, score))
 
     edges.sort(key=lambda x: x[2], reverse=True)
