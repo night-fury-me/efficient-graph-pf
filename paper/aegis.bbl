@@ -110,6 +110,11 @@ F.~Gu, H.~Chang, W.~Zhu, S.~Sojoudi, and L.~El~Ghaoui, ``Implicit graph neural
   networks,'' in \emph{Advances in Neural Information Processing Systems},
   vol.~33, 2020, pp. 11\,984--11\,995.
 
+\bibitem{kipf2017semi}
+T.~N. Kipf and M.~Welling, ``Semi-supervised classification with graph
+  convolutional networks,'' in \emph{International Conference on Learning
+  Representations}, 2017.
+
 \bibitem{sen2008collective}
 P.~Sen, G.~Namata, M.~Bilgic, L.~Getoor, B.~Galligher, and T.~Eliassi-Rad,
   ``Collective classification in network data,'' \emph{AI Magazine}, vol.~29,
@@ -194,11 +199,6 @@ L.~Thurner, A.~Scheidler, F.~Sch{\"a}fer, J.-H. Menke, J.~Dollichon, F.~Meier,
   convenient modeling, analysis, and optimization of electric power systems,''
   \emph{IEEE Transactions on Power Systems}, vol.~33, no.~6, pp. 6510--6521,
   2018.
-
-\bibitem{kipf2017semi}
-T.~N. Kipf and M.~Welling, ``Semi-supervised classification with graph
-  convolutional networks,'' in \emph{International Conference on Learning
-  Representations}, 2017.
 
 \bibitem{madry2018towards}
 A.~Madry, A.~Makelov, L.~Schmidt, D.~Tsipras, and A.~Vladu, ``Towards deep

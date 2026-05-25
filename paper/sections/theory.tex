@@ -77,3 +77,26 @@ where $S_v$ denotes the block-rows of $S$ corresponding to node $v$, $W_{y_v}$ a
 The radius $r_v$ has an intuitive interpretation: it is the classification margin $m_v$ (how confident the model is) divided by the product of two amplification factors. The term $\norm{W_{y_v} - W_{c^*}}_2$ measures how sensitive the decision boundary is to hidden-state changes, while $\norm{S_v}_2$ measures how sensitive node $v$'s equilibrium position is to structural perturbation. Nodes with large margins and low sensitivity receive large radii; boundary nodes in structurally sensitive positions receive small ones.
 
 These radii are deterministic (not probabilistic), unlike randomized smoothing~\cite{bojchevski2020efficient} which holds with probability $1-\alpha$. They are first-order guarantees: locally tight for small $\varepsilon$ but increasingly conservative as perturbation magnitude grows. Without bounding the second-order remainder $O(\norm{\delta A}_F^2)$, they should be interpreted as local sensitivity radii rather than global robustness certificates. \cref{sec:adaptive} verifies empirically that the radii hold (0\% breach rate at $\varepsilon = 0.01$, $< 1\%$ at $\varepsilon = 0.10$).
+
+\subsection{Generalization to Explicit GNNs}
+
+The sensitivity framework above is derived for implicit GNNs, but the core construction generalizes to any differentiable $K$-layer GNN.
+
+\begin{proposition}[Structural Sensitivity for $K$-Layer GNNs]
+\label{prop:explicit}
+Let $Z_K = g_K \circ \cdots \circ g_1(X, A)$ be a $K$-layer GNN where each layer $g_l$ is differentiable with respect to both its input and $A$. Define the \emph{unrolled sensitivity matrix}
+\begin{equation}
+S_K = \frac{\partial \mathrm{vec}(Z_K)}{\partial \mathrm{vec}(A)} = \sum_{l=1}^{K} \left(\prod_{k=l+1}^{K} J_z^{(k)}\right) J_A^{(l)},
+\label{eq:unrolled}
+\end{equation}
+where $J_z^{(k)} = \partial g_k / \partial Z_{k-1}$ and $J_A^{(l)} = \partial g_l / \partial \mathrm{vec}(A)$. Then:
+
+\noindent\textbf{(a)} The first-order shift bound $\norm{\Delta Z_K}_F \leq \sigma_1(S_K) \cdot \norm{\delta A}_F + O(\norm{\delta A}^2)$ holds, with
+\begin{equation}
+\sigma_1(S_K) \leq \sum_{l=1}^{K} \left(\prod_{k=l+1}^{K} \norm{J_z^{(k)}}_2\right) \norm{J_A^{(l)}}_2.
+\end{equation}
+
+\noindent\textbf{(b)} The constrained construction $S_c$ and per-node radius $r_v$ (\cref{prop:radius}) apply identically with $S_K$ in place of $S$.
+\end{proposition}
+
+For weight-tied models ($J_z^{(k)} = J_z$, $J_A^{(l)} = J_A$ for all $k, l$), the bound simplifies to $\sigma_1(S_K) \leq \norm{J_A}_2 \cdot (1 - \kappa^K)/(1-\kappa)$, which converges to the IGNN bound $\norm{J_A}_2 / (1-\kappa)$ as $K \to \infty$. For contractive implicit GNNs, \cref{thm:phase_transition} additionally provides the critical budget $\ecrit$ and convergence guarantees that explicit models lack. \cref{sec:explicit_extension} validates this generalization on six explicit architectures.
