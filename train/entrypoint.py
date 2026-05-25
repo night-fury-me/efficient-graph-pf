@@ -487,6 +487,7 @@ def _make_epoch_metrics_callback(
             "rmse": float(m.rmse),
             "rmse_mag": float(m.rmse_mag),
             "rmse_ang_deg": float(m.rmse_ang_deg),
+            "phys": float(m.phys),
         }
 
     return on_epoch_metrics
@@ -641,7 +642,7 @@ def _write_history_csv(rows: dict[tuple[int, str], dict[str, float]], artifacts_
         with hist_csv.open("w", newline="", encoding="utf-8") as f:
             w = csv.DictWriter(
                 f,
-                fieldnames=["epoch", "split", "loss", "rmse", "rmse_mag", "rmse_ang_deg"],
+                fieldnames=["epoch", "split", "loss", "rmse", "rmse_mag", "rmse_ang_deg", "phys"],
             )
             w.writeheader()
             for _, row in sorted(rows.items(), key=lambda kv: (kv[0][0], kv[0][1])):
@@ -653,6 +654,7 @@ def _write_history_csv(rows: dict[tuple[int, str], dict[str, float]], artifacts_
                         "rmse": row["rmse"],
                         "rmse_mag": row["rmse_mag"],
                         "rmse_ang_deg": row["rmse_ang_deg"],
+                        "phys": row.get("phys", 0.0),
                     }
                 )
     except Exception:
