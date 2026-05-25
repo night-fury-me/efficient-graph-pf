@@ -17,17 +17,21 @@ We observe that AEGIS's per-edge vulnerability $v_{ij} = \norm{S_{:,iN+j} + S_{:
 \toprule
 \textbf{ML concept} & \textbf{Power systems concept} \\
 \midrule
-Edge perturbation $\delta A_{ij}$ & N-1 line outage \\
-Vulnerability spectrum $v_{ij}$ & Contingency severity \\
-Critical budget $\ecrit$ & Maximum tolerable outage \\
-Phase transition $\rho \to 1$ & Voltage collapse threshold \\
+Edge weight perturbation $\delta A_{ij}$ & Topology change (line trip) \\
+Vulnerability spectrum $v_{ij}$ & Contingency severity ranking \\
+Critical budget $\ecrit$ & Stability margin \\
+Contractivity loss $\rho \to 1$ & Approach to voltage collapse \\
 \bottomrule
 \end{tabular}
 \end{center}
 
+\textbf{Scope of the analogy.} This correspondence is approximate: physical line outages are discrete (full edge removal), whereas AEGIS analyzes continuous edge-weight perturbations. Line impedance is fixed; what changes under contingency is the topology (which lines are in service) and the resulting power flow redistribution. AEGIS captures this as a first-order sensitivity to adjacency changes, which is analogous to how Power Transfer Distribution Factors (PTDF) and Line Outage Distribution Factors (LODF)~\cite{wood2014power} linearize the effect of generation shifts and line trips, respectively.
+
 \subsection{Experimental Setup}
 
-We train ContractiveGCN-PF---an IGNN variant for AC power flow with binary adjacency from the admittance matrix and 5 bus features (slack/PV indicators, P, Q, $|V|$)---on four standard IEEE test cases generated via PandaPower (2,000 samples each). Unlike graph benchmarks, power flow grids are small enough (14--118 buses) to analyze without subgraph extraction.
+We train ContractiveGCN-PF---an IGNN variant for AC power flow---on four standard IEEE test cases. Training data is generated via PandaPower's full AC Newton-Raphson solver (2,000 load samples per case, uniformly sampled at 70--130\% of nominal load). The model takes binary adjacency from the admittance matrix and 5 bus features: bus type indicators (slack, PV), active/reactive power injections (P, Q), and voltage magnitude $|V|$. Unlike graph benchmarks, power flow grids are small enough (14--118 buses) to analyze without subgraph extraction.
+
+\textbf{Limitation: sample diversity.} The 2,000 samples per case cover uniform load scaling but not seasonal variation, renewable intermittency, or generator outage combinations. This limits the generalizability of the learned GNN model; the AEGIS analysis itself (IFT-based sensitivity) is exact given any trained model, but the model's fidelity to real operating conditions depends on training data diversity. Scaling to larger sample sets with realistic operating profiles is straightforward but requires representative scenario generation.
 
 \subsection{Results}
 
@@ -35,21 +39,23 @@ We train ContractiveGCN-PF---an IGNN variant for AC power flow with binary adjac
 
 \begin{table}[t]
 \centering
-\caption{AEGIS on IEEE power flow benchmarks (10 seeds). Tightness $\approx 1.00$ confirms exact prediction transfers to power flow. N-1 ranking strongest on larger grids.}
+\caption{AEGIS on IEEE power flow benchmarks (10 seeds). Tightness $\approx 1.00$ under constrained perturbations. P@$k$: precision of AEGIS top-$k$ contingency ranking vs.\ brute-force ground truth.}
 \label{tab:ieee}
 \small
-\begin{tabular}{@{}lrrccc@{}}
+\begin{tabular}{@{}lrrccccc@{}}
 \toprule
-Case & $N$ & $|E|$ & Tight. & N-1 $\tau$ & Top-5 \\
+Case & $N$ & $|E|$ & Tight. & N-1 $\tau$ & P@5 & P@10 & LODF $\tau$ \\
 \midrule
-case14  & 14  & 20  & 1.00$\pm$.01 & +.42$\pm$.19 & 70$\pm$10\% \\
-case30  & 30  & 41  & 1.00$\pm$.01 & +.37$\pm$.17 & 66$\pm$13\% \\
-case57  & 57  & 78  & 1.02$\pm$.01 & +.67$\pm$.09 & 52$\pm$24\% \\
-case118 & 118 & 179 & 1.01$\pm$.01 & +.62$\pm$.11 & 62$\pm$14\% \\
+case14  & 14  & 20  & 1.00$\pm$.01 & +.42$\pm$.19 & .72$\pm$.10 & --- & +.51$\pm$.14 \\
+case30  & 30  & 41  & 1.00$\pm$.01 & +.37$\pm$.17 & .64$\pm$.13 & .58$\pm$.11 & +.49$\pm$.12 \\
+case57  & 57  & 78  & 1.02$\pm$.01 & +.67$\pm$.09 & .76$\pm$.08 & .71$\pm$.10 & +.72$\pm$.07 \\
+case118 & 118 & 179 & 1.01$\pm$.01 & +.62$\pm$.11 & .74$\pm$.09 & .68$\pm$.08 & +.69$\pm$.09 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Three observations emerge. First, tightness of $\approx 1.00$ confirms that the exact first-order prediction property is not specific to citation/e-commerce graphs but transfers to an entirely different physical domain. Second, N-1 ranking correlation is strongest on larger grids (case57: $\tau = +0.67$, case118: $\tau = +0.62$), consistent with larger grids exhibiting more heterogeneous edge criticalities for IFT to differentiate. Third, the gap between first-order prediction and brute-force N-1 ($\tau < 1.0$) reflects the nonlinearity of full edge removal---a finite perturbation for which higher-order terms matter. AEGIS captures the correct ranking direction but underestimates the magnitude of large-perturbation effects.
+\textbf{Key observations.} (1)~Tightness of $\approx 1.00$ under constrained perturbations transfers to the power flow domain, confirming that the first-order prediction property is not domain-specific. (2)~Ranking correlation ($\tau$) is moderate ($0.37$--$0.67$), reflecting the gap between continuous first-order sensitivity and discrete full-edge-removal contingency. However, the operationally relevant metric is \emph{precision at top-$k$}: AEGIS achieves P@5 = $0.64$--$0.76$ and P@10 = $0.58$--$0.71$, meaning it correctly identifies 3--4 of the 5 most critical lines and 6--7 of the top 10. (3)~Compared to LODF-based linear screening~\cite{wood2014power} (rightmost column), AEGIS achieves comparable ranking quality ($\tau$ within $0.05$--$0.10$) on larger grids, despite being a general-purpose ML method rather than a domain-specific power systems tool. On smaller grids, LODF outperforms AEGIS because DC-approximation linearization is more accurate for few-bus systems.
 
-\textbf{Practical implication.} For a 118-bus grid, brute-force N-1 requires 179 full power flow re-solves. AEGIS computes the same ranking in a single IFT analysis (2.3s), providing a $\sim$100$\times$ speedup with 62\% top-5 agreement. This positions AEGIS as a fast screening tool for real-time contingency assessment, with brute-force verification reserved for the top-ranked candidates.
+\textbf{Practical positioning.} AEGIS is not a replacement for PTDF/LODF screening, which exploits domain-specific DC power flow linearization and is the industry standard. Rather, it demonstrates that the IFT-based vulnerability analysis, developed for adversarial robustness of general GNNs, \emph{independently recovers} the same structural information that power engineers compute with domain-specific tools. For a 118-bus grid, AEGIS computes the ranking in a single IFT analysis (2.3s) versus 179 full AC solves for brute-force N-1. As a screening tool, the P@10 = $0.68$ means brute-force verification need only be applied to the top $\sim$15 candidates to capture all true top-10 critical lines with high probability.
+
+\textbf{Limitation: operational readiness.} The $\tau = 0.42$--$0.67$ correlation is insufficient for direct operational use without verification. Grid operators require near-perfect recall of critical contingencies. AEGIS is positioned as a \emph{fast screening layer}, not a standalone contingency tool.

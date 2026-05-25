@@ -47,6 +47,11 @@ F.~Gu, H.~Chang, W.~Zhu, S.~Sojoudi, and L.~El~Ghaoui, ``Implicit graph neural
   networks,'' in \emph{Advances in Neural Information Processing Systems},
   vol.~33, 2020, pp. 11\,984--11\,995.
 
+\bibitem{trefethen2005spectra}
+L.~N. Trefethen and M.~Embree, \emph{Spectra and Pseudospectra: The Behavior of
+  Nonnormal Matrices and Operators}.\hskip 1em plus 0.5em minus 0.4em\relax
+  Princeton University Press, 2005.
+
 \bibitem{lorraine2020optimizing}
 J.~Lorraine, P.~Vicol, and D.~Duvenaud, ``Optimizing millions of
   hyperparameters by implicit differentiation,'' in \emph{International
@@ -65,6 +70,16 @@ L.~El~Ghaoui, F.~Gu, B.~Travacca, A.~Askari, and A.~Tsai, ``Implicit deep
 \bibitem{revay2020lipschitz}
 M.~Revay, R.~Wang, and I.~R. Manchester, ``Lipschitz bounded equilibrium
   networks,'' in \emph{arXiv preprint arXiv:2010.01732}, 2020.
+
+\bibitem{wood2014power}
+A.~J. Wood, B.~F. Wollenberg, and G.~B. Shebl{\'e}, \emph{Power Generation,
+  Operation, and Control}, 3rd~ed.\hskip 1em plus 0.5em minus 0.4em\relax John
+  Wiley \& Sons, 2014.
+
+\bibitem{bojchevski2019certifiable}
+A.~Bojchevski and S.~G{\"u}nnemann, ``Certifiable robustness to graph
+  perturbations,'' in \emph{Advances in Neural Information Processing Systems},
+  vol.~32, 2019.
 
 \bibitem{zugner2019certifiable}
 D.~Z{\"u}gner and S.~G{\"u}nnemann, ``Certifiable robustness and robust

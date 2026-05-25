@@ -3,7 +3,7 @@
 \label{sec:framework}
 %% ===================================================================
 
-AEGIS packages the theory into a domain-agnostic Python API. Given any contractive DEQ-GNN with operator $F$, fixed point $\zstar$, and context (adjacency, features), the \texttt{IEMiner} class provides:
+AEGIS packages the theory into a Python API applicable to any contractive implicit GNN (IGNN-class architecture). Given an operator $F$ with factorized $A$/$W$ structure, fixed point $\zstar$, and context (adjacency, features), the \texttt{IEMiner} class provides:
 
 \begin{enumerate}
 \item \textbf{Vulnerability analysis}: compute $S$, $\sigma_1(S_c)$, and the per-edge vulnerability spectrum $v_{ij} = \norm{S_{:,iN+j} + S_{:,jN+i}}$.

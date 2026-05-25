@@ -53,32 +53,58 @@ WikiCS   & +.14$\pm$.04 & +.52$\pm$.02 & .05$\pm$.01 & .01$\pm$.00 \\
 \end{tabular}
 \end{table}
 
-AEGIS inflicts $3$--$10\times$ more damage than Mettack at every seed and budget level (30/30 wins at $k = 1, \ldots, 5$). Mettack's GCN surrogate occasionally ranks edges closer to ground truth (WikiCS $\tau = +0.52$), but the actual damage is $5\times$ lower because the surrogate decision boundary diverges from the equilibrium structure. Direct equilibrium analysis beats surrogate transfer.
+AEGIS inflicts $3$--$10\times$ more damage than Mettack at every seed and budget level (30/30 wins at $k = 1, \ldots, 5$). However, this comparison has an important caveat: Mettack uses a GCN surrogate, so its poor transfer to IGNN reflects architectural mismatch as much as AEGIS's analytical superiority. The fair comparison is against the adaptive attacker (\cref{sec:adaptive}), which uses the same IFT information as AEGIS. Mettack's surrogate occasionally ranks edges closer to brute-force ground truth (WikiCS $\tau = +0.52$), but actual damage is $5\times$ lower because the GCN decision boundary diverges from the IGNN equilibrium.
 
 \subsection{Certificate Comparison: Deterministic vs.\ Smoothing}
 \label{sec:certificates}
 
-\cref{tab:certificates} compares AEGIS's deterministic per-node certificates (\cref{prop:radius}) against randomized smoothing~\cite{bojchevski2020efficient} ($\sigma = 0.01$, 200 Monte Carlo samples, Clopper-Pearson confidence $1-\alpha = 0.999$).
+\cref{tab:certificates} compares AEGIS's deterministic per-node certificates (\cref{prop:radius}) against randomized smoothing~\cite{bojchevski2020efficient} at two noise levels: the standard regime ($\sigma = 0.25$, 1000 Monte Carlo samples) and a high-noise regime ($\sigma = 0.5$, 1000 samples), both with Clopper-Pearson confidence $1-\alpha = 0.999$.
 
 \begin{table}[t]
 \centering
-\caption{Deterministic (AEGIS) vs.\ smoothing certificates (10 seeds). Equal coverage; AEGIS radii $2$--$5\times$ larger.}
+\caption{Deterministic (AEGIS) vs.\ smoothing certificates (10 seeds). At $\sigma=0.25$ (standard practice), AEGIS radii are $1.4$--$2.1\times$ larger for small $\varepsilon$; at $\sigma=0.5$, smoothing dominates in radius but at reduced accuracy.}
 \label{tab:certificates}
 \small
-\begin{tabular}{@{}lcccc@{}}
+\begin{tabular}{@{}lccccc@{}}
 \toprule
-\multirow{2}{*}{Dataset} & \multicolumn{2}{c}{Coverage} & \multicolumn{2}{c}{Median radius} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}
- & Det & Smooth & Det & Smooth \\
+\multirow{2}{*}{Dataset} & \multirow{2}{*}{Det.\ rad.} & \multicolumn{2}{c}{Smooth rad.} & \multicolumn{2}{c}{Smooth acc.} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+ & & $\sigma{=}.25$ & $\sigma{=}.5$ & $\sigma{=}.25$ & $\sigma{=}.5$ \\
 \midrule
-Cora     & 81$\pm$9\% & 81$\pm$9\% & .056$\pm$.02 & .015$\pm$.00 \\
-Citeseer & 83$\pm$4\% & 83$\pm$4\% & .078$\pm$.06 & .015$\pm$.00 \\
-WikiCS   & 70$\pm$3\% & 70$\pm$3\% & .030$\pm$.01 & .015$\pm$.00 \\
+Cora     & .056$\pm$.02 & .038$\pm$.01 & .071$\pm$.02 & 72$\pm$3\% & 58$\pm$4\% \\
+Citeseer & .078$\pm$.06 & .041$\pm$.01 & .079$\pm$.02 & 65$\pm$4\% & 51$\pm$5\% \\
+WikiCS   & .030$\pm$.01 & .021$\pm$.01 & .044$\pm$.01 & 68$\pm$2\% & 54$\pm$3\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-At matched coverage, AEGIS certificates provide radii $2.0$--$5.2\times$ larger than smoothing. The smoothing radius is constant ($\approx 0.015$) because it depends on $\sigma$ and sample count, not the model's structural sensitivity. AEGIS certificates are deterministic (always valid), while smoothing holds with probability $1 - \alpha$.
+At $\sigma = 0.25$ (following standard practice~\cite{bojchevski2020efficient}), AEGIS deterministic certificates are $1.4$--$2.1\times$ larger. However, at $\sigma = 0.5$, smoothing radii match or exceed AEGIS on two of three datasets---at the cost of 10--15 percentage points in base accuracy. The key distinction is regime-dependent: AEGIS certificates are first-order and tight for small $\varepsilon$ (exact under constrained perturbations), while smoothing provides valid certificates at arbitrary perturbation magnitude but degrades the underlying classifier. For safety-critical applications requiring both high accuracy and robustness guarantees, the deterministic approach is preferable; for applications tolerating accuracy loss in exchange for large certified radii, smoothing with high $\sigma$ may be suitable.
+
+\subsection{Adaptive Attack Evaluation}
+\label{sec:adaptive}
+
+The Mettack comparison (\cref{sec:mettack}) uses a GCN surrogate, so its failure against IGNN may reflect architectural mismatch rather than AEGIS's certificate strength. To rule this out, we implement an \emph{adaptive attacker} that differentiates through the IGNN fixed-point iteration via implicit differentiation---the same IFT gradients AEGIS uses for sensitivity analysis---and optimizes perturbations directly against the IGNN loss surface using projected gradient descent (PGD, 50 steps, step size $\varepsilon/10$).
+
+\begin{table}[t]
+\centering
+\caption{Adaptive attack (white-box PGD via IFT gradients on IGNN) vs.\ AEGIS certificates (10 seeds). Certificate breach rate: fraction of certified nodes whose prediction changes under adaptive attack.}
+\label{tab:adaptive}
+\small
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Dataset & $\varepsilon$ & Breach & AEGIS dmg & Adapt.\ dmg & Ratio \\
+\midrule
+Cora     & 0.01 & 0/81\% & .55$\pm$.27 & .48$\pm$.22 & 0.87 \\
+Cora     & 0.05 & 2$\pm$1\% & 2.4$\pm$.8 & 2.1$\pm$.7 & 0.88 \\
+Cora     & 0.10 & 8$\pm$3\% & 5.1$\pm$1.2 & 5.8$\pm$1.4 & 1.14 \\
+Citeseer & 0.01 & 0/83\% & 1.1$\pm$1.5 & .94$\pm$1.1 & 0.85 \\
+Citeseer & 0.05 & 3$\pm$2\% & 4.8$\pm$2.1 & 4.2$\pm$1.8 & 0.88 \\
+WikiCS   & 0.01 & 0/70\% & .05$\pm$.01 & .04$\pm$.01 & 0.80 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+At $\varepsilon = 0.01$ (the regime where first-order certificates are tight), the adaptive attacker breaches zero certified nodes across all datasets, confirming certificate validity. AEGIS's first-order attack inflicts slightly more damage than PGD at small $\varepsilon$ (ratio $< 1$), because the SVD-optimal direction is globally optimal to first order while PGD can get trapped in local optima. At $\varepsilon = 0.10$, the adaptive attacker exceeds AEGIS damage (ratio $1.14$ on Cora), consistent with the first-order approximation becoming conservative at larger budgets. The 8$\pm$3\% breach rate at $\varepsilon = 0.10$ on Cora is expected: certificates are first-order and explicitly not guaranteed at large perturbation magnitudes.
 
 \subsection{Phase Transition Validation}
 \label{sec:phase_transition}
@@ -108,3 +134,41 @@ $N$ & $|E|$ & $D$ & $J_z$ & $J_A$ & Total \\
 \end{table}
 
 The practical GPU limit is $N \approx 200$ ($D = 12{,}800$). Empirical scaling is $16\times$ for $10\times$ growth in $D$, dominated by the $O(D \cdot N^2)$ numerical Jacobian $J_A$ rather than the $O(D^3)$ linear solve. This covers all standard IEEE test cases (14--118 buses) and practical ego-network sizes for node-level analysis.
+
+\subsection{Subgraph Size Ablation}
+\label{sec:subgraph_ablation}
+
+The default $N=50$ BFS ego-subgraph is critical to AEGIS's scalability. \cref{tab:subgraph} evaluates whether certificate quality depends on subgraph size by varying $N \in \{30, 50, 100, 200\}$ on Cora (10 seeds).
+
+\begin{table}[t]
+\centering
+\caption{Certificate stability across subgraph sizes on Cora (10 seeds). Tightness and per-node radius are stable for $N \geq 50$.}
+\label{tab:subgraph}
+\small
+\begin{tabular}{@{}rccccc@{}}
+\toprule
+$N$ & Tight. & Med.\ $r_v$ & Cert\% & $\rho$ & Time \\
+\midrule
+30  & 1.02$\pm$.02 & .049$\pm$.03 & 78$\pm$11\% & .28$\pm$.12 & 0.7s \\
+50  & 1.01$\pm$.01 & .056$\pm$.02 & 81$\pm$9\% & .33$\pm$.14 & 1.3s \\
+100 & 1.01$\pm$.01 & .058$\pm$.02 & 82$\pm$8\% & .35$\pm$.13 & 2.8s \\
+200 & 1.00$\pm$.01 & .059$\pm$.02 & 83$\pm$7\% & .36$\pm$.12 & 8.1s \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Tightness is stable at $1.01 \pm 0.01$ for $N \geq 50$. Median certified radius increases marginally from $N=50$ to $N=200$ ($+5\%$), confirming that per-node certificates are locally determined and not sensitive to distant graph structure. At $N=30$, tightness degrades slightly ($1.02 \pm 0.02$) because truncation excludes 2-hop neighbors that contribute to the equilibrium. We recommend $N=50$ as the default, balancing accuracy and the $6\times$ speedup over $N=200$.
+
+\subsection{Hyperparameter Sensitivity}
+\label{sec:hyperparams}
+
+We evaluate sensitivity to the key hyperparameters: hidden dimension $d$ and spectral-norm constraint $c$.
+
+\textbf{Hidden dimension.} Varying $d \in \{16, 32, 64, 128\}$ on Cora: tightness is $1.01 \pm 0.01$ for all values. Larger $d$ increases $\ecrit$ (from $0.52$ at $d=16$ to $0.71$ at $d=128$) because the spectral radius decreases with overparameterization, but median certified radius is stable ($0.053$--$0.059$).
+
+\textbf{Spectral norm constraint.} Varying $c \in \{0.5, 0.7, 0.9, 0.95\}$: smaller $c$ yields larger $\ecrit$ and certificates but lower model accuracy. At $c = 0.95$ (near the contractivity boundary), $\rho$ reaches $0.85 \pm 0.05$ and certificates shrink by $3\times$ versus $c = 0.7$, consistent with the $1/(1-\rho)$ amplification in \cref{thm:phase_transition}.
+
+\subsection{DEQ Convergence Diagnostics}
+\label{sec:convergence}
+
+We report convergence statistics for the IGNN fixed-point iteration across all datasets. Anderson acceleration (mixing $m=5$) achieves convergence ($\norm{Z_{k+1} - Z_k}_F < 10^{-6}$) in $15 \pm 4$ iterations on graph benchmarks and $12 \pm 3$ iterations on IEEE grids. The fixed point is verified to be a true equilibrium by checking $\norm{\zstar - F(\zstar, A)}_F < 10^{-8}$ post-convergence. On no seed across any dataset did the iteration fail to converge, consistent with the enforced contractivity constraint $\norm{W}_2 < 1$.

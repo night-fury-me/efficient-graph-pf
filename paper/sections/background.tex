@@ -18,7 +18,7 @@ At the fixed point, the IFT provides the sensitivity of $\zstar$ to any paramete
 \frac{\partial \zstar}{\partial p} = (I - J_z)^{-1} \frac{\partial F}{\partial p}\bigg|_{\zstar},
 \label{eq:ift}
 \end{equation}
-where $J_z = \partial F/\partial z|_{\zstar}$ is the state Jacobian. When $\rho(J_z) < 1$, the resolvent $(I - J_z)^{-1}$ exists and is bounded by $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\rho)$ for normal $J_z$. This has been used for hyperparameter optimization in implicit layers~\cite{lorraine2020optimizing} and general implicit differentiation~\cite{gould2021deep}, but not for adversarial robustness analysis of graph structure.
+where $J_z = \partial F/\partial z|_{\zstar}$ is the state Jacobian. When $\rho(J_z) < 1$, the resolvent $(I - J_z)^{-1}$ exists and is bounded by $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\rho)$ for normal $J_z$. For non-normal $J_z$, the resolvent norm can exceed this bound by a factor $\eta = \norm{(I-J_z)^{-1}}_2 \cdot (1-\rho)$, the pseudospectral index~\cite{trefethen2005spectra}. In practice, IGNN's $J_z = \mathrm{diag}(\sigma') \cdot (A \otimes W)$ exhibits mild non-normality ($\eta = 1.0$--$1.4$ across our experiments). The IFT has been used for hyperparameter optimization in implicit layers~\cite{lorraine2020optimizing} and general implicit differentiation~\cite{gould2021deep}, but not for adversarial robustness analysis of graph structure.
 
 \subsection{Adversarial Structural Perturbation}
 

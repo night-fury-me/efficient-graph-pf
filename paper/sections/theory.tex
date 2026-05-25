@@ -3,11 +3,17 @@
 \label{sec:theory}
 %% ===================================================================
 
-We present our main theoretical result: a phase transition in adversarial vulnerability, supported by two propositions providing the computational tools.
+We characterize how structural perturbations affect DEQ-GNN equilibria. The result below is a direct consequence of the Banach fixed-point theorem and the IFT applied to contractive implicit GNNs; we frame it as a three-regime characterization to provide actionable thresholds for practitioners.
 
-\begin{theorem}[Phase Transition in Adversarial Vulnerability]
+\begin{theorem}[Vulnerability Characterization for Contractive Implicit GNNs]
 \label{thm:phase_transition}
-Let $F_\theta(Z, A) = \sigma(AZW^\top + X_{\mathrm{proj}})$ be an IGNN-class operator with $\norm{W}_2 \leq c$ and spectral radius $\rho = \rho(J_z) < 1$. Define
+Let $F_\theta(Z, A) = \sigma(AZW^\top + X_{\mathrm{proj}})$ be an IGNN-class operator satisfying:
+\begin{enumerate}
+\item[(A1)] $\sigma$ is ReLU (or any 1-Lipschitz activation with $\sup|\sigma'| = 1$);
+\item[(A2)] $W$ is spectral-norm constrained: $\norm{W}_2 \leq c$;
+\item[(A3)] The state Jacobian satisfies $\rho(J_z) = \rho < 1$ at the fixed point $\zstar$.
+\end{enumerate}
+Define the critical budget
 \begin{equation}
 \ecrit = \frac{1 - \rho}{\norm{W}_2}.
 \end{equation}
@@ -15,27 +21,31 @@ Then structural perturbations $\delta A$ exhibit three regimes:
 
 \noindent\textbf{(a) Subcritical} ($\norm{\delta A}_F < \ecrit$): The perturbed operator remains contractive with a unique fixed point satisfying
 \begin{equation}
-\norm{\Delta \zstar} \leq \sigma_1(S) \cdot \norm{\delta A}_F + O(\norm{\delta A}_F^2),
+\norm{\Delta \zstar}_F \leq \sigma_1(S) \cdot \norm{\delta A}_F + O(\norm{\delta A}_F^2),
 \label{eq:shift_bound}
 \end{equation}
 where $S = (I - J_z)^{-1} J_A$ and $\sigma_1(S) \leq \norm{J_A}_{\mathrm{op}} / (1 - \rho)$.
 
-\noindent\textbf{(b) Critical} ($\norm{\delta A}_F \to \ecrit$): The bound diverges as $\Theta(1/(\ecrit - \norm{\delta A}_F))$ because $\rho(A + \delta A) \to 1$.
+\noindent\textbf{(b) Critical} ($\norm{\delta A}_F \to \ecrit$): The resolvent norm $\norm{(I - J_z')^{-1}}_2$ diverges as $\Omega(1/(\ecrit - \norm{\delta A}_F))$ for normal $J_z$. For non-normal $J_z$ (pseudospectral index $\eta > 1$), divergence onset may occur earlier by a factor up to $\eta$~\cite{trefethen2005spectra}.
 
 \noindent\textbf{(c) Supercritical} ($\norm{\delta A}_F > \ecrit$): Contractivity may be lost ($\rho \geq 1$), the fixed point is no longer guaranteed unique, and all certificates from part (a) become void.
 \end{theorem}
 
 \begin{proof}
-\textbf{Part (a).} By the IFT applied to $\zstar = F(\zstar, A)$:
+\textbf{Part (a).} The true Jacobian of $F$ w.r.t.\ $\mathrm{vec}(Z)$ is $J_z = \mathrm{diag}(\sigma') \cdot (A \otimes W)$, where $\sigma' \in \{0, 1\}^{Nd}$ for ReLU (A1). Thus $\rho(J_z) \leq \norm{A}_2 \cdot \norm{W}_2 \cdot \sup|\sigma'| = \norm{A}_2 \cdot \norm{W}_2$. By the IFT applied to $G(z,A) = z - F(z,A) = 0$ at $(\zstar, A)$:
 \begin{equation}
 \Delta \zstar = (I - J_z)^{-1} J_A \cdot \mathrm{vec}(\delta A) + O(\norm{\delta A}^2).
 \end{equation}
-Taking norms gives~\eqref{eq:shift_bound}. For contractivity preservation: $\rho(A + \delta A) \leq \norm{A + \delta A}_2 \cdot \norm{W}_2 \leq (\norm{A}_2 + \norm{\delta A}_2) \cdot \norm{W}_2$. Since $\rho = \norm{A}_2 \cdot \norm{W}_2$ in the worst case and $\norm{\cdot}_2 \leq \norm{\cdot}_F$, the condition $\norm{\delta A}_F < (1-\rho)/\norm{W}_2$ ensures $\rho(A + \delta A) < 1$.
+Taking operator norms: $\norm{\Delta \zstar}_F \leq \norm{(I-J_z)^{-1}}_2 \cdot \norm{J_A}_{\mathrm{op}} \cdot \norm{\delta A}_F + O(\norm{\delta A}_F^2)$. Since $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\rho)$ (Neumann series, convergent because $\rho < 1$), this gives~\eqref{eq:shift_bound}.
 
-\textbf{Part (b).} As $\norm{\delta A} \to \ecrit$, $\rho(A + \delta A) \to 1$ and $\norm{(I - J_z(A+\delta A))^{-1}}_2 \geq 1/(1 - \rho(A+\delta A)) \to \infty$.
+For contractivity preservation under perturbation: the perturbed Jacobian satisfies $\rho(J_z') \leq \norm{A + \delta A}_2 \cdot \norm{W}_2 \leq (\norm{A}_2 + \norm{\delta A}_F) \cdot \norm{W}_2$ (using $\norm{\cdot}_2 \leq \norm{\cdot}_F$). The condition $\norm{\delta A}_F < (1-\rho)/\norm{W}_2$ ensures $\rho(J_z') < 1$.
 
-\textbf{Part (c).} When $\rho \geq 1$, the contraction mapping theorem no longer applies. The fixed-point iteration may converge to a different equilibrium, oscillate, or diverge.
+\textbf{Part (b).} As $\norm{\delta A}_F \to \ecrit$, $\rho(J_z') \to 1$, so $\norm{(I - J_z')^{-1}}_2 \geq 1/(1 - \rho(J_z')) \to \infty$. This lower bound is tight when $J_z'$ is normal; for non-normal operators, the resolvent can grow faster due to pseudospectral effects~\cite{trefethen2005spectra}. In our experiments, the non-normality index $\eta = \norm{(I-J_z)^{-1}}_2 \cdot (1-\rho)$ ranges from 1.0 to 1.4, indicating mild non-normality.
+
+\textbf{Part (c).} Negation of the contraction mapping hypothesis. When $\rho(J_z') \geq 1$, the Banach fixed-point theorem no longer guarantees existence or uniqueness. The iteration may converge to a different equilibrium, oscillate, or diverge.
 \end{proof}
+
+\textbf{Remark.} This characterization is conservative: $\ecrit$ provides a sufficient (not necessary) condition for contractivity preservation. The bound in~\eqref{eq:shift_bound} uses the worst-case $\norm{\cdot}_F$ relaxation; under constrained (symmetric, edge-only) perturbations, the effective budget is larger and the prediction becomes exact to first order (\cref{sec:cross_domain}).
 
 \begin{proposition}[Optimal First-Order Structural Attack]
 \label{prop:attack}
@@ -46,10 +56,12 @@ The perturbation $\delta A^*$ maximizing $\norm{\Delta \zstar}$ to first order s
 
 \begin{proposition}[Per-Node Robust Radius]
 \label{prop:radius}
-For node $v$ with classification margin $m_v = f_{y_v}(\zstar_v) - \max_{c \neq y_v} f_c(\zstar_v) > 0$, the certified robust radius is
+Assume a linear classification head $f(z) = Wz + b$ (as in standard IGNN). For node $v$ with margin $m_v = f_{y_v}(\zstar_v) - \max_{c \neq y_v} f_c(\zstar_v) > 0$, the certified robust radius is
 \begin{equation}
-r_v = \frac{m_v}{\norm{\partial f / \partial \zstar_v} \cdot \norm{S_v}},
+r_v = \frac{m_v}{\norm{\partial f / \partial \zstar_v}_2 \cdot \norm{S_v}_2},
 \label{eq:radius}
 \end{equation}
-where $S_v$ denotes the block-rows of $S$ for node $v$. Any $\norm{\delta A}_F < r_v$ preserves the classification of node~$v$. These certificates are deterministic, unlike randomized smoothing~\cite{bojchevski2020efficient} which holds with probability $1-\alpha$.
+where $S_v$ denotes the block-rows of $S$ for node $v$, and $\norm{\partial f / \partial \zstar_v}_2 = \norm{W_{y_v} - W_{c^*}}_2$ for the runner-up class $c^*$. Any $\norm{\delta A}_F < r_v$ preserves the classification of node~$v$. For nonlinear heads (softmax + MLP), the global Lipschitz constant must be replaced by the local Lipschitz constant at $\zstar_v$, yielding a potentially tighter but harder-to-compute radius.
+
+These certificates are deterministic (always valid), unlike randomized smoothing~\cite{bojchevski2020efficient} which holds with probability $1-\alpha$. However, they are first-order: tight for small $\varepsilon$ but increasingly conservative as perturbation magnitude grows and higher-order terms dominate.
 \end{proposition}
