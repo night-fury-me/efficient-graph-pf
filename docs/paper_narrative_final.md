@@ -1,8 +1,10 @@
 # Paper Narrative — Final Positioning (2026-05-25)
 
-## Title (working)
+## Title
 
-**"Adversarial Equilibrium Theory: Exact Vulnerability Prediction for Deep Equilibrium Graph Neural Networks"**
+**"AEGIS: Exact Structural Vulnerability Prediction for Deep Equilibrium Graph Neural Networks"**
+
+*(AEGIS = **A**dversarial **E**quilibrium **G**raph **I**mplicit **S**ensitivity)*
 
 ## One-paragraph pitch
 

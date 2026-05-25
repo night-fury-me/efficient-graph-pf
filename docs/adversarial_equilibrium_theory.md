@@ -1,4 +1,6 @@
-# Adversarial Equilibrium Theory for Implicit Graph Models
+# AEGIS: Exact Structural Vulnerability Prediction for Deep Equilibrium Graph Neural Networks
+
+*(Adversarial Equilibrium Graph Implicit Sensitivity)*
 
 **Core insight**: For contractive DEQ-GNNs, structural perturbations to the graph adjacency exhibit a sharp **phase transition** in adversarial vulnerability at a critical budget ε_crit. Below this threshold, fixed-point shifts are bounded and certifiable via the structural sensitivity matrix S = (I - J_z)^{-1} J_A. Above it, contractivity is lost and certificates become void. This phase transition — the paper's main theoretical result — unifies adversarial ML robustness with infrastructure contingency analysis (N-1).
 
