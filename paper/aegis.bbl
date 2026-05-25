@@ -32,17 +32,51 @@ D.~Z{\"u}gner and S.~G{\"u}nnemann, ``Adversarial attacks on graph neural
   networks via meta learning,'' in \emph{International Conference on Learning
   Representations}, 2019.
 
+\bibitem{dai2018adversarial}
+H.~Dai, H.~Li, T.~Tian, X.~Huang, L.~Wang, J.~Zhu, and L.~Song, ``Adversarial
+  attack on graph structured data,'' in \emph{International Conference on
+  Machine Learning}, 2018, pp. 1115--1124.
+
 \bibitem{xu2019topology}
 K.~Xu, H.~Chen, S.~Liu, P.-Y. Chen, T.-W. Weng, M.~Hong, and X.~Lin, ``Topology
   attack and defense for graph neural networks: An optimization perspective,''
   in \emph{International Joint Conference on Artificial Intelligence}, 2019,
   pp. 3961--3967.
 
+\bibitem{zhu2019robust}
+D.~Zhu, Z.~Zhang, P.~Cui, and W.~Zhu, ``Robust graph convolutional networks
+  against adversarial attacks,'' in \emph{Proceedings of the 25th ACM SIGKDD
+  International Conference on Knowledge Discovery \& Data Mining}, 2019, pp.
+  1399--1407.
+
+\bibitem{zhang2020gnnguard}
+X.~Zhang and M.~Zitnik, ``{GNNGuard}: Defending graph neural networks against
+  adversarial attacks,'' in \emph{Advances in Neural Information Processing
+  Systems}, vol.~33, 2020, pp. 9263--9275.
+
+\bibitem{jin2020graph}
+W.~Jin, Y.~Ma, X.~Liu, X.~Tang, S.~Wang, and J.~Tang, ``Graph structure
+  learning for robust graph neural networks,'' in \emph{Proceedings of the 26th
+  ACM SIGKDD Conference on Knowledge Discovery \& Data Mining}, 2020, pp.
+  66--74.
+
+\bibitem{luo2021learning}
+D.~Luo, W.~Cheng, W.~Yu, B.~Zong, J.~Ni, H.~Chen, and X.~Zhang, ``Learning to
+  drop: Robust graph neural network via topological denoising,'' in
+  \emph{Proceedings of the 14th ACM International Conference on Web Search and
+  Data Mining}, 2021, pp. 779--787.
+
 \bibitem{bojchevski2020efficient}
 A.~Bojchevski, J.~Klicpera, and S.~G{\"u}nnemann, ``Efficient robustness
   certificates for discrete data: Sparsity-aware randomized smoothing for
   graphs, images and more,'' in \emph{International Conference on Machine
   Learning}, 2020, pp. 1003--1013.
+
+\bibitem{scholten2022randomized}
+Y.~Scholten, J.~Schuchardt, A.~Bojchevski, and S.~G{\"u}nnemann, ``Randomized
+  message-interception smoothing: Gray-box certificates for graph neural
+  networks,'' in \emph{Advances in Neural Information Processing Systems},
+  vol.~35, 2022.
 
 \bibitem{zugner2019certifiable}
 D.~Z{\"u}gner and S.~G{\"u}nnemann, ``Certifiable robustness and robust
@@ -54,6 +88,17 @@ D.~Z{\"u}gner and S.~G{\"u}nnemann, ``Certifiable robustness and robust
 A.~Bojchevski and S.~G{\"u}nnemann, ``Certifiable robustness to graph
   perturbations,'' in \emph{Advances in Neural Information Processing Systems},
   vol.~32, 2019.
+
+\bibitem{wang2021certified}
+B.~Wang, J.~Jia, X.~Cao, and N.~Z. Gong, ``Certified robustness of graph neural
+  networks against adversarial structural perturbation,'' in \emph{Proceedings
+  of the 27th ACM SIGKDD Conference on Knowledge Discovery \& Data Mining},
+  2021, pp. 1645--1653.
+
+\bibitem{li2025agnncert}
+J.~Li, G.~Tao, D.~Han, and X.~Zhang, ``{AGNNCert}: Defending graph neural
+  networks against arbitrary perturbations with certified robustness,'' in
+  \emph{USENIX Security Symposium}, 2025.
 
 \bibitem{jin2021adversarial}
 W.~Jin, Y.~Li, H.~Xu, Y.~Wang, S.~Ji, C.~Aggarwal, and J.~Tang, ``Adversarial
@@ -88,10 +133,31 @@ P.~Mernyei and M.~Caron, ``{Wiki-CS}: A {Wikipedia}-based benchmark for graph
 S.~Bai, J.~Z. Kolter, and V.~Koltun, ``Deep equilibrium models,'' in
   \emph{Advances in Neural Information Processing Systems}, vol.~32, 2019.
 
+\bibitem{bai2020multiscale}
+S.~Bai, V.~Koltun, and J.~Z. Kolter, ``Multiscale deep equilibrium models,'' in
+  \emph{Advances in Neural Information Processing Systems}, vol.~33, 2020, pp.
+  5238--5250.
+
 \bibitem{miyato2018spectral}
 T.~Miyato, T.~Kataoka, M.~Koyama, and Y.~Yoshida, ``Spectral normalization for
   generative adversarial networks,'' in \emph{International Conference on
   Learning Representations}, 2018.
+
+\bibitem{gould2021deep}
+S.~Gould, R.~Hartley, and D.~Campbell, ``Deep declarative networks,''
+  \emph{IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  vol.~44, no.~8, pp. 3988--4004, 2021.
+
+\bibitem{fung2022jfb}
+S.~W. Fung, H.~Heaton, Q.~Li, D.~McKenzie, S.~Osher, and W.~Yin, ``{JFB}:
+  {Jacobian}-free backpropagation for implicit networks,'' in \emph{Proceedings
+  of the AAAI Conference on Artificial Intelligence}, vol.~36, no.~6, 2022, pp.
+  6648--6656.
+
+\bibitem{bai2021stabilizing}
+S.~Bai, V.~Koltun, and J.~Z. Kolter, ``Stabilizing equilibrium models by
+  {Jacobian} regularization,'' in \emph{International Conference on Machine
+  Learning}, 2021, pp. 554--565.
 
 \bibitem{trefethen2005spectra}
 L.~N. Trefethen and M.~Embree, \emph{Spectra and Pseudospectra: The Behavior of
@@ -103,11 +169,6 @@ J.~Lorraine, P.~Vicol, and D.~Duvenaud, ``Optimizing millions of
   hyperparameters by implicit differentiation,'' in \emph{International
   Conference on Artificial Intelligence and Statistics}, 2020, pp. 1540--1552.
 
-\bibitem{gould2021deep}
-S.~Gould, R.~Hartley, and D.~Campbell, ``Deep declarative networks,''
-  \emph{IEEE Transactions on Pattern Analysis and Machine Intelligence},
-  vol.~44, no.~8, pp. 3988--4004, 2021.
-
 \bibitem{el2021implicit}
 L.~El~Ghaoui, F.~Gu, B.~Travacca, A.~Askari, and A.~Tsai, ``Implicit deep
   learning,'' \emph{SIAM Journal on Mathematics of Data Science}, vol.~3,
@@ -116,6 +177,10 @@ L.~El~Ghaoui, F.~Gu, B.~Travacca, A.~Askari, and A.~Tsai, ``Implicit deep
 \bibitem{revay2020lipschitz}
 M.~Revay, R.~Wang, and I.~R. Manchester, ``Lipschitz bounded equilibrium
   networks,'' in \emph{arXiv preprint arXiv:2010.01732}, 2020.
+
+\bibitem{stewart1990matrix}
+G.~W. Stewart and J.-g. Sun, \emph{Matrix Perturbation Theory}.\hskip 1em plus
+  0.5em minus 0.4em\relax Academic Press, 1990.
 
 \bibitem{paszke2019pytorch}
 A.~Paszke, S.~Gross, F.~Massa, A.~Lerner, J.~Bradbury, G.~Chanan, T.~Killeen,
@@ -140,10 +205,41 @@ A.~Madry, A.~Makelov, L.~Schmidt, D.~Tsipras, and A.~Vladu, ``Towards deep
   learning models resistant to adversarial attacks,'' in \emph{International
   Conference on Learning Representations}, 2018.
 
+\bibitem{donon2019graph}
+B.~Donon, B.~Donnot, I.~Guyon, and A.~Marot, ``Graph neural solver for power
+  systems,'' in \emph{International Joint Conference on Neural Networks}, 2019,
+  pp. 1--8.
+
+\bibitem{bolz2019power}
+V.~Bolz, J.~Rue{\ss}, and A.~Zell, ``Power flow approximation based on graph
+  convolutional networks,'' in \emph{18th IEEE International Conference on
+  Machine Learning and Applications}, 2019, pp. 1679--1686.
+
+\bibitem{nakiganda2023graph}
+A.~M. Nakiganda, C.~Weeraddana, N.~Popli, and T.~{van der Hagen}, ``Graph
+  neural networks for fast contingency analysis of power systems,'' \emph{arXiv
+  preprint arXiv:2310.04213}, 2023.
+
 \bibitem{wood2014power}
 A.~J. Wood, B.~F. Wollenberg, and G.~B. Shebl{\'e}, \emph{Power Generation,
   Operation, and Control}, 3rd~ed.\hskip 1em plus 0.5em minus 0.4em\relax John
   Wiley \& Sons, 2014.
+
+\bibitem{bojchevski2019adversarial}
+A.~Bojchevski and S.~G{\"u}nnemann, ``Adversarial attacks on node embeddings
+  via graph poisoning,'' in \emph{International Conference on Machine
+  Learning}, 2019, pp. 695--704.
+
+\bibitem{chang2020restricted}
+H.~Chang, Y.~Rong, T.~Xu, W.~Huang, H.~Zhang, P.~Cui, W.~Zhu, and J.~Huang, ``A
+  restricted black-box adversarial framework towards attacking graph embedding
+  models,'' in \emph{Proceedings of the AAAI Conference on Artificial
+  Intelligence}, vol.~34, no.~04, 2020, pp. 3389--3396.
+
+\bibitem{ma2020towards}
+J.~Ma, S.~Ding, and Q.~Mei, ``Towards more practical adversarial attacks on
+  graph neural networks,'' in \emph{Advances in Neural Information Processing
+  Systems}, vol.~33, 2020, pp. 4756--4766.
 
 \bibitem{wu2019adversarial}
 H.~Wu, C.~Wang, Y.~Tyshetskiy, A.~Docherty, K.~Lu, and L.~Zhu, ``Adversarial
@@ -151,16 +247,44 @@ H.~Wu, C.~Wang, Y.~Tyshetskiy, A.~Docherty, K.~Lu, and L.~Zhu, ``Adversarial
   \emph{International Joint Conference on Artificial Intelligence}, 2019, pp.
   4816--4823.
 
+\bibitem{scholten2023hierarchical}
+Y.~Scholten, J.~Schuchardt, A.~Bojchevski, and S.~G{\"u}nnemann, ``Hierarchical
+  randomized smoothing,'' in \emph{Advances in Neural Information Processing
+  Systems}, vol.~36, 2023.
+
+\bibitem{jia2020certified}
+J.~Jia, B.~Wang, X.~Cao, and N.~Z. Gong, ``Certified robustness of community
+  detection against adversarial structural perturbation via randomized
+  smoothing,'' in \emph{Proceedings of The Web Conference}, 2020, pp.
+  2718--2724.
+
 \bibitem{geisler2021robustness}
 S.~Geisler, T.~Schmidt, H.~Sirin, D.~Z{\"u}gner, A.~Bojchevski, and
   S.~G{\"u}nnemann, ``Robustness of graph neural networks at scale,'' in
   \emph{Advances in Neural Information Processing Systems}, vol.~34, 2021, pp.
   7637--7649.
 
-\bibitem{li2025agnncert}
-J.~Li, G.~Tao, D.~Han, and X.~Zhang, ``{AGNNCert}: Defending graph neural
-  networks against arbitrary perturbations with certified robustness,'' in
-  \emph{USENIX Security Symposium}, 2025.
+\bibitem{tang2020transferring}
+X.~Tang, Y.~Li, Y.~Sun, H.~Yao, P.~Mitra, and S.~Wang, ``Transferring
+  robustness for graph neural network against poisoning attacks,'' in
+  \emph{Proceedings of the 13th International Conference on Web Search and Data
+  Mining}, 2020, pp. 600--608.
+
+\bibitem{geisler2020reliable}
+S.~Geisler, D.~Z{\"u}gner, and S.~G{\"u}nnemann, ``Reliable graph neural
+  networks via robust aggregation,'' in \emph{Advances in Neural Information
+  Processing Systems}, vol.~33, 2020, pp. 13\,272--13\,284.
+
+\bibitem{entezari2020all}
+N.~Entezari, S.~A. Al-Sayouri, A.~Darvishzadeh, and E.~E. Papalexakis, ``All
+  you need is low (rank): Defending against adversarial attacks on graphs,'' in
+  \emph{Proceedings of the 13th International Conference on Web Search and Data
+  Mining}, 2020, pp. 169--177.
+
+\bibitem{geng2021training}
+Z.~Geng, X.-Y. Zhang, S.~Bai, Y.~Wang, and Z.~Lin, ``On training implicit
+  models,'' in \emph{Advances in Neural Information Processing Systems},
+  vol.~34, 2021, pp. 24\,247--24\,260.
 
 \bibitem{winston2020monotone}
 E.~Winston and J.~Z. Kolter, ``Monotone operator equilibrium networks,'' in
@@ -181,5 +305,15 @@ J.~Liu, K.~Kawaguchi, B.~Hooi, Y.~Wang, and J.~Feng, ``Eignn: Efficient
 S.~Liu, R.~Ying, H.~Dong, L.~Li, T.~Xu, Y.~Liang, J.~Leskovec, and H.~Peng,
   ``Stability and generalization of graph neural networks,'' in \emph{arXiv
   preprint}, 2021.
+
+\bibitem{novak2018sensitivity}
+R.~Novak, Y.~Bahri, D.~A. Abolafia, J.~Pennington, and J.~Sohl-Dickstein,
+  ``Sensitivity and generalization in neural networks: An empirical study,'' in
+  \emph{International Conference on Learning Representations}, 2018.
+
+\bibitem{raghu2017expressive}
+M.~Raghu, B.~Poole, J.~Kleinberg, S.~Ganguli, and J.~Sohl-Dickstein, ``On the
+  expressive power of deep neural networks,'' in \emph{International Conference
+  on Machine Learning}, 2017, pp. 2847--2854.
 
 \end{thebibliography}

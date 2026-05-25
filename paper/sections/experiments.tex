@@ -113,34 +113,13 @@ WikiCS   & 0.10 & 0.6\% & $\ms{2.10}{0.22}$ & $\ms{0.96}{0.97}$ & 0.46 \\
 
 The adaptive attacker breaches zero nodes within their first-order radius at $\varepsilon = 0.01$ across all datasets, and fewer than 1\% even at $\varepsilon = 0.10$ (\cref{tab:adaptive}). This confirms the empirical validity of the first-order radii in the small-budget regime. AEGIS's SVD-optimal attack consistently inflicts 20--50\% more damage than adaptive PGD across all tested budgets (ratio 0.46--0.84). The reason is that the SVD direction is the globally optimal first-order perturbation, while PGD explores a non-convex landscape and can become trapped in local optima. The advantage is largest on WikiCS (ratio 0.46), where the high-dimensional perturbation space makes PGD convergence hardest.
 
-\subsection{Phase Transition Validation}
+\subsection{Phase Transition and Scalability}
 \label{sec:phase_transition}
-
-To validate the three-regime picture of \cref{thm:phase_transition}, we scale the adjacency matrix to achieve target spectral radii $\rho \in \{0.3, 0.5, 0.7, 0.85, 0.9, 0.95, 0.99\}$ and measure the actual fixed-point shift under a random perturbation of $\varepsilon = 0.01$. The shift amplifies by $83\times$ as $\rho$ increases from 0.3 to 0.99, confirming the three-regime behavior: bounded shift in the subcritical regime, rapid growth near the critical threshold, and divergence in the supercritical regime. This validates the $1/(1-\kappa)$ amplification factor predicted by \cref{thm:phase_transition}.
-
-\subsection{Scalability}
 \label{sec:scalability}
 
-\cref{tab:scalability} reports wall-clock time for the full AEGIS pipeline on Cora ego-subgraphs of varying size (single NVIDIA RTX 4090 GPU).
+\textbf{Phase transition.} To validate \cref{thm:phase_transition}, we scale the adjacency to target $\rho \in \{0.3, 0.5, 0.7, 0.85, 0.9, 0.95, 0.99\}$ and measure the fixed-point shift at $\varepsilon = 0.01$. The shift amplifies by $83\times$ as $\rho$ increases from 0.3 to 0.99, confirming the $1/(1-\kappa)$ amplification factor.
 
-\begin{table}[t]
-\centering
-\caption{Scalability of AEGIS analysis on Cora ego-subgraphs. The bottleneck is $J_A$ computation for $N > 50$.}
-\label{tab:scalability}
-\small
-\begin{tabular}{@{}rrrrrr@{}}
-\toprule
-$N$ & $|E|$ & $D$ & $J_z$ & $J_A$ & Total \\
-\midrule
-20  & 22  & 1,280  & 0.2s & 0.2s & \textbf{0.5s} \\
-50  & 61  & 3,200  & 0.5s & 0.7s & \textbf{1.3s} \\
-100 & 158 & 6,400  & 1.1s & 1.6s & \textbf{2.8s} \\
-200 & 389 & 12,800 & 2.3s & 5.1s & \textbf{8.1s} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The practical GPU limit is $N \approx 200$ ($D = 12{,}800$). Empirical scaling is $16\times$ for $10\times$ growth in $D$, dominated by the $O(D \cdot N^2)$ numerical Jacobian $J_A$ rather than the $O(D^3)$ linear solve. This covers all standard IEEE test cases (14--118 buses) and practical ego-network sizes for node-level analysis.
+\textbf{Scalability.} On a single NVIDIA RTX 4090 GPU, the full AEGIS pipeline takes 0.5s ($N=20$), 1.3s ($N=50$), 2.8s ($N=100$), and 8.1s ($N=200$), dominated by the $O(D \cdot N^2)$ Jacobian $J_A$ computation. The practical limit is $N \approx 200$ ($D = 12{,}800$), covering all IEEE test cases and typical ego-network sizes.
 
 \subsection{Subgraph Size Ablation}
 \label{sec:subgraph_ablation}

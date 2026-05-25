@@ -9,7 +9,7 @@ This section establishes the notation, formalizes the model class under consider
 
 Let $G = (V, E, A)$ denote an undirected graph with $N = |V|$ nodes, edge set $E$, and adjacency matrix $A \in \R^{N \times N}$. Each node $v \in V$ carries a feature vector $x_v \in \R^{d_{\mathrm{in}}}$, collected into $X \in \R^{N \times d_{\mathrm{in}}}$. We write $\Ahat = D^{-1/2}(A + I)D^{-1/2}$ for the symmetric normalized adjacency with self-loops, where $D$ is the degree matrix of $A + I$.
 
-\textbf{Deep equilibrium GNNs.} A DEQ-GNN~\cite{bai2019deep} defines a weight-tied operator $F_\theta: \R^{N \times d} \times \R^{N \times N} \to \R^{N \times d}$ and iterates it from $Z_0 = 0$ until convergence:
+\textbf{Deep equilibrium GNNs.} A DEQ-GNN~\cite{bai2019deep,bai2020multiscale} defines a weight-tied operator $F_\theta: \R^{N \times d} \times \R^{N \times N} \to \R^{N \times d}$ and iterates it from $Z_0 = 0$ until convergence:
 \begin{equation}
 Z_{k+1} = F_\theta(Z_k, A), \quad \zstar = \lim_{k \to \infty} Z_k.
 \end{equation}
@@ -20,7 +20,7 @@ When $F_\theta$ is contractive in operator norm ($\kappa = \norm{J_z}_2 < 1$, wh
 F(Z, A) = \sigma(\Ahat Z W^\top + X_{\mathrm{proj}}),
 \label{eq:ignn_operator}
 \end{equation}
-where $W \in \R^{d \times d}$ is the shared weight matrix, $X_{\mathrm{proj}} \in \R^{N \times d}$ is a learned feature projection, and $\sigma$ is ReLU activation. Contractivity is enforced by constraining $\norm{W}_2$ via spectral normalization~\cite{miyato2018spectral}, ensuring $\kappa \leq \norm{\Ahat}_2 \cdot \norm{W}_2 < 1$. A linear classification head $f(\zstar) = W_{\mathrm{cls}} \zstar + b$ maps the equilibrium to class predictions.
+where $W \in \R^{d \times d}$ is the shared weight matrix, $X_{\mathrm{proj}} \in \R^{N \times d}$ is a learned feature projection, and $\sigma$ is ReLU activation. Contractivity is enforced by constraining $\norm{W}_2$ via spectral normalization~\cite{miyato2018spectral}, ensuring $\kappa \leq \norm{\Ahat}_2 \cdot \norm{W}_2 < 1$. Training uses implicit differentiation through the fixed point~\cite{gould2021deep,fung2022jfb}, and Jacobian regularization~\cite{bai2021stabilizing} can further stabilize convergence. A linear classification head $f(\zstar) = W_{\mathrm{cls}} \zstar + b$ maps the equilibrium to class predictions.
 
 \textbf{Implicit function theorem.} At the equilibrium, the equation $G(\zstar, A) = \zstar - F(\zstar, A) = 0$ defines $\zstar$ as an implicit function of $A$. The IFT gives the sensitivity of $\zstar$ to any parameter $p$:
 \begin{equation}

@@ -75,4 +75,4 @@ where $S_v$ denotes the block-rows of $S$ corresponding to node $v$, and $W_{y_v
 
 \subsection{Computational Cost}
 
-\cref{tab:scalability} in \cref{sec:scalability} reports wall-clock times. The dominant cost is Stage~2 (Jacobian computation) at $O(D \cdot N^2)$ for $J_A$, followed by Stage~3 (linear solve) at $O(D^3)$. For the default subgraph size $N = 50$ with $d = 64$ (giving $D = 3{,}200$), the full pipeline completes in 1.3 seconds on a single GPU. The practical limit is $N \approx 200$ ($D = 12{,}800$, 8.1 seconds), which covers all IEEE test cases and typical ego-network sizes for node-level analysis.
+The dominant cost is Stage~2 (Jacobian computation) at $O(D \cdot N^2)$ for $J_A$, followed by Stage~3 (linear solve) at $O(D^3)$. For the default subgraph size $N = 50$ with $d = 64$ (giving $D = 3{,}200$), the full pipeline completes in 1.3 seconds on a single GPU. The practical limit is $N \approx 200$ ($D = 12{,}800$, 8.1 seconds); see \cref{sec:scalability} for detailed timings.
