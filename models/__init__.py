@@ -12,3 +12,4 @@ To add a new model:
 
 from . import edge_selfattn  # noqa: F401  -- side-effect: registers GNSMsg_EdgeSelfAttn
 from . import pe_deq_pf  # noqa: F401  -- side-effect: registers PE_DEQ_PF
+from . import hyperdeq_pf_pilot  # noqa: F401  -- side-effect: registers HyperDEQ_PF_Pilot
