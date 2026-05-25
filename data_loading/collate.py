@@ -7,7 +7,7 @@ import torch
 # --------------------------------------------------------------------------- #
 # Per-bus vectors (length N). Complex vectors are fine here.
 _VECTOR_FIELDS = (
-    "bus_type U_start U_newton S_start S_newton I_newton".split()
+    "bus_type U_start U_newton S_start S_newton I_newton vn_log".split()
 )  # shape: (N,)
 
 # Two-channel per-bus tensors (mag, angle)

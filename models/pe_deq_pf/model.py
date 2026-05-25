@@ -279,7 +279,7 @@ class PE_DEQ_PF(nn.Module):
             [v_new.unsqueeze(-1), th_new.unsqueeze(-1), m_new], dim=-1
         )
 
-    def forward(self, bus_type, Line, Y, Ys, Yc, S, V0, n_nodes_per_graph):
+    def forward(self, bus_type, Line, Y, Ys, Yc, S, V0, n_nodes_per_graph, **_unused):
         device = bus_type.device
         B, N = bus_type.shape
 

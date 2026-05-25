@@ -19,6 +19,7 @@ class EpochMetrics:
     mse: float
     mse_mag: float
     mse_ang: float
+    phys: float = 0.0  # KCL residual; 0.0 when pinn=False (no phys term tracked)
 
     @property
     def rmse(self) -> float:
@@ -53,6 +54,7 @@ def run_epoch(
     sum_mse = 0.0
     sum_mse_mag = 0.0
     sum_mse_ang = 0.0
+    sum_phys = 0.0
     n_samples = 0
 
     if desc is None:
@@ -90,8 +92,16 @@ def run_epoch(
             Vstart = batch["V_start"].to(device)
             Vnewton = batch["V_newton"].to(device)
 
+            # Optional per-bus voltage-class feature (LVN). Passed only if
+            # the model accepts the kwarg AND the batch carries it -- HVN
+            # data + HVN-trained models behave unchanged.
+            vn_log_raw = batch.get("vn_log", None)
+            extra_kw = {}
+            if isinstance(vn_log_raw, torch.Tensor):
+                extra_kw["vn_log"] = vn_log_raw.to(device)
+
             if pinn:
-                Vpred, loss_phys = model(bus_type, Line, Y, Ys, Yc, Sstart, Vstart, n_nodes_per_graph)
+                Vpred, loss_phys = model(bus_type, Line, Y, Ys, Yc, Sstart, Vstart, n_nodes_per_graph, **extra_kw)
                 mse, mse_mag, mse_ang = mse_components(Vpred, Vnewton)
                 # Optional combined loss: phys_loss + GNN_MSE_WEIGHT * mse.
                 # Env-var gated -- default 0.0 preserves the old phys-only behavior.
@@ -99,7 +109,7 @@ def run_epoch(
                 _mse_weight = float(os.environ.get("GNN_MSE_WEIGHT", "0.0"))
                 loss = loss_phys + _mse_weight * mse if _mse_weight > 0 else loss_phys
             else:
-                Vpred = model(bus_type, Line, Y, Ys, Yc, Sstart, Vstart, n_nodes_per_graph)
+                Vpred = model(bus_type, Line, Y, Ys, Yc, Sstart, Vstart, n_nodes_per_graph, **extra_kw)
                 mse, mse_mag, mse_ang = mse_components(Vpred, Vnewton)
                 loss = mse
 
@@ -116,12 +126,15 @@ def run_epoch(
             sum_mse += float(mse.item()) * B
             sum_mse_mag += float(mse_mag.item()) * B
             sum_mse_ang += float(mse_ang.item()) * B
+            if pinn:
+                sum_phys += float(loss_phys.item()) * B
 
     return EpochMetrics(
         loss=sum_loss / n_samples,
         mse=sum_mse / n_samples,
         mse_mag=sum_mse_mag / n_samples,
         mse_ang=sum_mse_ang / n_samples,
+        phys=sum_phys / n_samples,
     )
 
 

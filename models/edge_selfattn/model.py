@@ -30,6 +30,7 @@ class GNSMsg_EdgeSelfAttn(nn.Module):
         v_min: float = 0.75,
         v_max: float = 1.20,
         tied_heads: bool = False,
+        bus_feat_extra_dim: int = 0,
     ):
         super().__init__()
         self.K, self.d, self.d_hi = int(K), int(d), int(d_hi)
@@ -49,7 +50,12 @@ class GNSMsg_EdgeSelfAttn(nn.Module):
             raise ValueError("d_model must be divisible by n_heads")
         self.num_attn_layers = int(num_attn_layers)
 
-        self.bus_feat_dim = 4 + self.d  # [v, θ, ΔP, ΔQ] + m
+        # bus_feat_extra_dim: extra per-bus scalar features appended to
+        # [v, theta, dP, dQ]. Currently used for vn_log (per-bus voltage
+        # class) on LVN data. HVN/default keeps it at 0 for backward compat
+        # with all existing checkpoints.
+        self.bus_feat_extra_dim = int(bus_feat_extra_dim)
+        self.bus_feat_dim = 4 + self.bus_feat_extra_dim + self.d
         self.edge_feat_dim = 4  # [Ysr, Ysi, Yc_real, Yc_imag]
 
         self.in_proj = nn.Linear(self.bus_feat_dim, self.d_model)
@@ -172,7 +178,7 @@ class GNSMsg_EdgeSelfAttn(nn.Module):
 
         return v.new_tensor(a_sel)
 
-    def forward(self, bus_type, Line, Y, Ys, Yc, S, V0, n_nodes_per_graph):
+    def forward(self, bus_type, Line, Y, Ys, Yc, S, V0, n_nodes_per_graph, *, vn_log=None, **_unused):
         device = bus_type.device
         B, N = bus_type.shape
 
@@ -242,6 +248,19 @@ class GNSMsg_EdgeSelfAttn(nn.Module):
             DQ = DQ.masked_fill(slack_mask | pv_mask, 0.0)
 
             bus_feat = torch.stack([v, th, DP, DQ], dim=-1)
+            if self.bus_feat_extra_dim > 0:
+                # Append per-bus extra features (e.g. vn_log for LVN voltage
+                # classes). Shape (B, N) -> (B, N, 1); concat to (B, N, 4+1).
+                if vn_log is None:
+                    extra = bus_feat.new_zeros(bus_feat.shape[:-1] + (self.bus_feat_extra_dim,))
+                else:
+                    extra = vn_log.unsqueeze(-1)
+                    if extra.shape[-1] != self.bus_feat_extra_dim:
+                        raise ValueError(
+                            f"vn_log last dim {extra.shape[-1]} != bus_feat_extra_dim "
+                            f"{self.bus_feat_extra_dim}"
+                        )
+                bus_feat = torch.cat([bus_feat, extra], dim=-1)
             x = self.in_proj(torch.cat([bus_feat, m], dim=-1))
 
             if n_nodes_per_graph is not None:

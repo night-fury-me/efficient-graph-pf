@@ -94,6 +94,15 @@ def build_dataloaders(
     # avoid DataLoader(shuffle=True) which uses RandomSampler and crashes on num_samples=0.
     train_is_empty = len(train_ds) == 0
 
+    # Optional DataLoader worker count, env-var gated. Default 0 preserves the
+    # original single-thread loader (HVN behaviour). Set GNN_NUM_WORKERS=4 (or
+    # similar) for LVN training, where per-row sparse->dense reconstruction in
+    # the lazy dataset is ~30-40 ms and benefits from parallelism.
+    import os as _os
+    _nw = int(_os.environ.get("GNN_NUM_WORKERS", "0"))
+    _persistent = _nw > 0
+    _loader_kw = dict(num_workers=_nw, persistent_workers=_persistent)
+
     if block_diag:
         # Important: collate_blockdiag provides the 'sizes' key expected by the
         # training/eval loop. Use it even for batch_size=1.
@@ -102,12 +111,15 @@ def build_dataloaders(
             batch_size=batch_size,
             shuffle=(not train_is_empty),
             collate_fn=collate_blockdiag,
+            **_loader_kw,
         )
         val_loader = DataLoader(
-            val_ds, batch_size=batch_size, shuffle=False, collate_fn=collate_blockdiag
+            val_ds, batch_size=batch_size, shuffle=False, collate_fn=collate_blockdiag,
+            **_loader_kw,
         )
         test_loader = DataLoader(
-            test_ds, batch_size=batch_size, shuffle=False, collate_fn=collate_blockdiag
+            test_ds, batch_size=batch_size, shuffle=False, collate_fn=collate_blockdiag,
+            **_loader_kw,
         )
     elif batch_size == 1:
         train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=(not train_is_empty))

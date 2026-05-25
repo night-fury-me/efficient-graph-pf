@@ -45,6 +45,15 @@ def _to_complex_array(val, dtype=COMPLEX_DTYPE) -> np.ndarray:
       - {'real': r, 'imag': i} or {'re': r, 'im': i}
       - plain reals (imag=0)
     """
+    # Fast path: already a numpy array of complex or numeric dtype. Avoids
+    # 260k-element Python iteration per call (the eager loop was the
+    # dominant cost in lazy-mode __getitem__, ~123 ms/row -> ~5 ms/row).
+    if isinstance(val, np.ndarray):
+        if val.dtype.kind == 'c':
+            return val.reshape(-1).astype(dtype, copy=False)
+        if val.dtype.kind in ('f', 'i', 'u'):
+            return val.reshape(-1).astype(dtype)
+
     lst = _safe_list(val)
     obj = np.array(lst, dtype=object).reshape(-1)
 
@@ -118,6 +127,48 @@ class ChanghunDataset(Dataset):
         self._per_unit = per_unit
         self._device = torch.device(device) if device else None
 
+        # Lazy load mode: store the parquet df with bytes-encoded columns
+        # and build tensors per __getitem__ instead of pre-computing all
+        # rows in __init__. Mandatory for large-N datasets where each row's
+        # dense Y arrays are multi-MB (e.g. LVN 722-bus snapshots: ~4.5 MB
+        # per row uncompressed -> 36k rows = 160 GB RAM and OOM-kill).
+        # Auto-detected by path pattern; eager path (default) unchanged.
+        _path_list = path if isinstance(path, (list, tuple)) else [path]
+        self._lazy = any("LVN_converted" in str(p) for p in _path_list)
+        if self._lazy:
+            log.info("ChanghunDataset: lazy-load mode enabled (auto-detected LVN_converted)")
+            dfs = []
+            for p in _path_list:
+                dfs.append(pd.read_parquet(p, engine="pyarrow"))
+            self._df = pd.concat(dfs, ignore_index=True) if len(dfs) > 1 else dfs[0]
+            self._df_columns = set(self._df.columns)
+            log.info("ChanghunDataset[lazy] %d rows, columns: %s",
+                     len(self._df), sorted(self._df_columns))
+
+            # Pre-decode all bytes columns to numpy arrays so __getitem__
+            # only does sparse->dense reconstruction + tensor conversion.
+            # Without this, single-threaded data loading at 138 ms per
+            # sample dominates training time (33k samples * 138 ms = 75
+            # min per pass, blocking even on the first eval). With
+            # pre-decode, __getitem__ drops to ~20-30 ms.
+            # Memory: sparse rows are ~50 KB each (active edges only), so
+            # 36k LVN rows -> ~1.8 GB -- safe.
+            cols_to_decode = [
+                c for c in [
+                    "bus_typ", "Y_Lines", "Y_C_Lines", "Lines_connected",
+                    "Y_matrix", "u_start", "u_newton", "S_start", "S_newton",
+                    "I_newton", "vn_log",
+                    "active_pair_idx", "active_Y_series", "active_Y_shunt",
+                ] if c in self._df_columns
+            ]
+            log.info("ChanghunDataset[lazy] pre-decoding %d binary columns...",
+                     len(cols_to_decode))
+            import time as _time
+            _t0 = _time.time()
+            self._df = decode_columns_mp_columnwise(self._df, cols_to_decode)
+            log.info("ChanghunDataset[lazy] pre-decode done in %.1fs", _time.time() - _t0)
+            return
+
         cache_path: Path | None = None
         if use_cache:
             cache_root = Path(cache_dir)
@@ -139,7 +190,10 @@ class ChanghunDataset(Dataset):
         df = pd.read_parquet(path, engine="pyarrow")
         binary_cols = [
             'bus_typ', 'Y_Lines', 'Y_C_Lines', 'Lines_connected',
-            'Y_matrix', 'u_start', 'u_newton', 'S_start', 'S_newton', 'I_newton'
+            'Y_matrix', 'u_start', 'u_newton', 'S_start', 'S_newton', 'I_newton',
+            # Optional LVN-only: per-bus voltage class log10(vn_kv).
+            # Decoder filters out columns that don't exist in the dataframe.
+            'vn_log',
         ]
         # Filter for columns that actually exist in the dataframe to avoid errors
         binary_cols_exist = [col for col in binary_cols if col in df.columns]
@@ -167,7 +221,25 @@ class ChanghunDataset(Dataset):
         # ------------------------------------------------------------------
         # remove per-unit outliers in u_newton (IQR, aggregated across rows)
         # ------------------------------------------------------------------
-        OUTLIER_K = 1.5  # IQR multiplier (same default as stats_pu.py)
+        # The row-level filter assumes a row-IQR designed for HVN's 4-32 bus
+        # grids. For datasets with hundreds of buses per row (e.g. LVN's
+        # fixed 722-bus snapshots), natural per-bus voltage variation flags
+        # every row as containing >=1 outlier and all rows get dropped.
+        #
+        # Bypass triggers:
+        #   GNN_SKIP_OUTLIER=1                : explicit env-var override
+        #   any path contains "LVN_converted" : auto-detect for converted LVN
+        # Both reach the same effect (OUTLIER_K=inf disables removal).
+        import os as _os
+        _path_list = path if isinstance(path, (list, tuple)) else [path]
+        _is_lvn_converted = any("LVN_converted" in str(p) for p in _path_list)
+        _env_skip = _os.environ.get("GNN_SKIP_OUTLIER", "0") == "1"
+        if _env_skip or _is_lvn_converted:
+            reason = "GNN_SKIP_OUTLIER=1" if _env_skip else "auto-detected LVN_converted dataset"
+            log.info("%s -> bypassing per-unit u_newton outlier filter", reason)
+            OUTLIER_K = float("inf")
+        else:
+            OUTLIER_K = 1.5  # IQR multiplier (same default as stats_pu.py)
 
         def _tolist(cell) -> list:
             if cell is None:
@@ -323,9 +395,47 @@ class ChanghunDataset(Dataset):
                 "Lines_connected": to_t(r.Lines_connected, dtype=torch.bool),
             }
 
-            # Admittance matrix (complex)
-            Ybus = _to_complex_array(r.Y_matrix).reshape(N, N) / Y_base
-            row["Ybus"] = to_t(Ybus, dtype=torch.complex64)
+            # Optional per-bus voltage class feature (LVN). HVN data has no
+            # vn_log column -- we emit zeros so the model's input dim stays
+            # consistent across datasets when bus_feat_extra is enabled.
+            if "vn_log" in df.columns:
+                row["vn_log"] = to_t(np.asarray(r.vn_log, dtype=FLOAT_DTYPE))
+            else:
+                row["vn_log"] = to_t(np.zeros(int(N), dtype=FLOAT_DTYPE))
+
+            # Admittance matrix (complex). If the dataset ships a precomputed
+            # Y_matrix, use it; otherwise build Ybus from Y_Lines +
+            # Lines_connected here so the collate function always has it
+            # (collate.torch.block_diag requires Ybus in every sample).
+            #
+            # Convention matches models.edge_selfattn.admittance.build_dense_Y:
+            #   off-diag: Y[j,i] = Y[i,j] = -y_series
+            #   diag:    Y[k,k] += y_series + y_shunt at each incident edge
+            if "Y_matrix" in df.columns:
+                Ybus = _to_complex_array(r.Y_matrix).reshape(N, N) / Y_base
+                row["Ybus"] = to_t(Ybus, dtype=torch.complex64)
+            else:
+                _pairs = np.triu_indices(N, k=1)  # (j_arr, i_arr) with j<i
+                _mask = np.asarray(r.Lines_connected, dtype=bool)
+                _y_s = (_to_complex_array(r.Y_Lines)[_mask] / float(Y_base)).astype(np.complex64)
+                _raw_yc = r.Y_C_Lines
+                if isinstance(_raw_yc, np.ndarray) and np.iscomplexobj(_raw_yc):
+                    _y_c = (_raw_yc[_mask] / float(Y_base)).astype(np.complex64)
+                else:
+                    _y_c_re = _to_float_array(_raw_yc)[_mask] / float(Y_base)
+                    _y_c = (1j * _y_c_re).astype(np.complex64)
+                _j = _pairs[0][_mask].astype(np.int64)
+                _i = _pairs[1][_mask].astype(np.int64)
+                Ybus = np.zeros((N, N), dtype=np.complex64)
+                np.add.at(Ybus, (_j, _i), -_y_s)
+                np.add.at(Ybus, (_i, _j), -_y_s)
+                _diag = np.zeros(N, dtype=np.complex64)
+                np.add.at(_diag, _j, _y_s)
+                np.add.at(_diag, _i, _y_s)
+                np.add.at(_diag, _j, _y_c)
+                np.add.at(_diag, _i, _y_c)
+                Ybus[np.arange(N), np.arange(N)] += _diag
+                row["Ybus"] = to_t(Ybus, dtype=torch.complex64)
 
             # Line admittances (series & shunt)
             if "Y_Lines" in df.columns:
@@ -333,8 +443,14 @@ class ChanghunDataset(Dataset):
                 row["Y_Lines"] = to_t(Y_lines, dtype=torch.complex64)
 
             if "Y_C_Lines" in df.columns:
-                # keep as real (historically shunt caps were real-valued here)
-                YC = _to_float_array(r.Y_C_Lines) / Y_base
+                # historically Y_C_Lines was real-valued (just the susceptance B).
+                # LVN converter stores it as imaginary-only complex; flatten back
+                # to float by taking the imag part if the column is complex.
+                raw_yc = r.Y_C_Lines
+                if isinstance(raw_yc, np.ndarray) and np.iscomplexobj(raw_yc):
+                    YC = raw_yc.imag.astype(FLOAT_DTYPE) / float(Y_base)
+                else:
+                    YC = _to_float_array(raw_yc) / Y_base
                 row["Y_C_Lines"] = to_t(YC)
 
             # Voltages
@@ -412,7 +528,169 @@ class ChanghunDataset(Dataset):
 
     # ----------------------------------------------------------------------- #
     def __len__(self) -> int:
+        if self._lazy:
+            return len(self._df)
         return len(self.rows)
 
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
+        if self._lazy:
+            return self._build_row_lazy(idx)
         return self.rows[idx]
+
+    # ----------------------------------------------------------------------- #
+    # Lazy row builder: decode bytes for one row and assemble the tensor
+    # dict on demand. Used by __getitem__ when self._lazy is True. Mirrors
+    # the eager loop body in __init__; kept separate to avoid risky refactor
+    # of the eager path. Tensors are built on CPU; the train loop moves them
+    # to the GPU when iterating batches.
+    # ----------------------------------------------------------------------- #
+    def _build_row_lazy(self, idx: int) -> Dict[str, torch.Tensor]:
+        from .npy_decode import npy_bytes_to_ndarray
+
+        r_raw = self._df.iloc[idx]
+        cols = self._df_columns
+
+        # Decode the binary columns for THIS row only.
+        # Includes both the legacy dense format (Y_Lines / Y_C_Lines /
+        # Lines_connected) and the new sparse format (active_pair_idx /
+        # active_Y_series / active_Y_shunt). The sparse format avoids the
+        # 160 GB pd.read_parquet OOM on 36k LVN rows -- dense arrays are
+        # 99.7% zero and were materializing as Python bytes objects.
+        binary_cols = [
+            "bus_typ", "Y_Lines", "Y_C_Lines", "Lines_connected",
+            "Y_matrix", "u_start", "u_newton", "S_start", "S_newton",
+            "I_newton", "vn_log",
+            "active_pair_idx", "active_Y_series", "active_Y_shunt",
+        ]
+        decoded: Dict[str, Any] = {}
+        for c in binary_cols:
+            if c not in cols:
+                continue
+            v = r_raw[c]
+            if isinstance(v, (bytes, bytearray)):
+                decoded[c] = npy_bytes_to_ndarray(v)
+            else:
+                decoded[c] = v
+
+        # Reconstruct dense Y_Lines / Y_C_Lines / Lines_connected from sparse
+        # triplets when the parquet ships sparse columns. Per-row scratch
+        # arrays of length E = N*(N-1)/2 ~ 2.1 MB each -- created and freed
+        # per __getitem__, so memory is bounded by batch_size, not row count.
+        if "active_pair_idx" in decoded:
+            # Infer N from bus_typ to know E
+            _N = int(len(decoded["bus_typ"])) if "bus_typ" in decoded else int(r_raw["bus_number"])
+            _E = _N * (_N - 1) // 2
+            _idx = np.asarray(decoded["active_pair_idx"], dtype=np.int64)
+            _Ys = np.asarray(decoded["active_Y_series"], dtype=np.complex64)
+            _Yc = np.asarray(decoded["active_Y_shunt"], dtype=np.complex64)
+            _lc = np.zeros(_E, dtype=bool)
+            _yl = np.zeros(_E, dtype=np.complex64)
+            _yc = np.zeros(_E, dtype=np.complex64)
+            _lc[_idx] = True
+            _yl[_idx] = _Ys
+            _yc[_idx] = _Yc
+            decoded["Lines_connected"] = _lc
+            decoded["Y_Lines"] = _yl
+            decoded["Y_C_Lines"] = _yc
+
+        per_unit = self._per_unit
+        device = self._device
+
+        # Tensor builder (CPU; train loop handles device transfer).
+        def to_t(x, dtype=torch.float32):
+            if isinstance(x, np.ndarray) and x.dtype == object:
+                if getattr(dtype, "is_complex", False):
+                    x = x.astype(np.complex64)
+                elif dtype in (torch.int32, torch.int64):
+                    x = x.astype(np.int64)
+                elif dtype is torch.bool:
+                    x = x.astype(np.bool_)
+                else:
+                    x = x.astype(np.float32)
+            if isinstance(x, (float, int, bool, complex)):
+                return torch.tensor(x, dtype=dtype)
+            return torch.as_tensor(x, dtype=dtype)
+
+        # Infer N
+        if "bus_typ" in decoded:
+            N = int(len(decoded["bus_typ"]))
+        else:
+            N = int(r_raw["bus_number"])
+
+        S_base = np.array(r_raw["S_base"] if per_unit else 1.0, dtype=FLOAT_DTYPE)
+        U_base = np.array(r_raw["U_base"] if per_unit else 1.0, dtype=FLOAT_DTYPE)
+        Y_base = np.array((S_base / (U_base ** 2)) if per_unit else 1.0, dtype=FLOAT_DTYPE)
+        I_base = np.array((S_base / U_base) if per_unit else 1.0, dtype=FLOAT_DTYPE)
+
+        row: Dict[str, Any] = {
+            "S_base": S_base,
+            "U_base": U_base,
+            "N": N,
+            "bus_type": to_t(decoded["bus_typ"], dtype=torch.int64),
+            "Lines_connected": to_t(decoded["Lines_connected"], dtype=torch.bool),
+        }
+
+        if "vn_log" in decoded:
+            row["vn_log"] = to_t(np.asarray(decoded["vn_log"], dtype=FLOAT_DTYPE))
+        else:
+            row["vn_log"] = to_t(np.zeros(N, dtype=FLOAT_DTYPE))
+
+        # Ybus: build from Y_Lines + Lines_connected (LVN_converted never
+        # carries the dense Y_matrix -- too big).
+        if "Y_matrix" in decoded:
+            Ybus = _to_complex_array(decoded["Y_matrix"]).reshape(N, N) / Y_base
+            row["Ybus"] = to_t(Ybus, dtype=torch.complex64)
+        else:
+            _pairs = np.triu_indices(N, k=1)
+            _mask = np.asarray(decoded["Lines_connected"], dtype=bool)
+            _y_s = (_to_complex_array(decoded["Y_Lines"])[_mask] / float(Y_base)).astype(np.complex64)
+            _raw_yc = decoded["Y_C_Lines"]
+            if isinstance(_raw_yc, np.ndarray) and np.iscomplexobj(_raw_yc):
+                _y_c = (_raw_yc[_mask] / float(Y_base)).astype(np.complex64)
+            else:
+                _y_c_re = _to_float_array(_raw_yc)[_mask] / float(Y_base)
+                _y_c = (1j * _y_c_re).astype(np.complex64)
+            _j = _pairs[0][_mask].astype(np.int64)
+            _i = _pairs[1][_mask].astype(np.int64)
+            Ybus = np.zeros((N, N), dtype=np.complex64)
+            np.add.at(Ybus, (_j, _i), -_y_s)
+            np.add.at(Ybus, (_i, _j), -_y_s)
+            _diag = np.zeros(N, dtype=np.complex64)
+            np.add.at(_diag, _j, _y_s)
+            np.add.at(_diag, _i, _y_s)
+            np.add.at(_diag, _j, _y_c)
+            np.add.at(_diag, _i, _y_c)
+            Ybus[np.arange(N), np.arange(N)] += _diag
+            row["Ybus"] = to_t(Ybus, dtype=torch.complex64)
+
+        if "Y_Lines" in decoded:
+            Y_lines = _to_complex_array(decoded["Y_Lines"]) / Y_base
+            row["Y_Lines"] = to_t(Y_lines, dtype=torch.complex64)
+        if "Y_C_Lines" in decoded:
+            raw_yc = decoded["Y_C_Lines"]
+            if isinstance(raw_yc, np.ndarray) and np.iscomplexobj(raw_yc):
+                YC = raw_yc.imag.astype(FLOAT_DTYPE) / float(Y_base)
+            else:
+                YC = _to_float_array(raw_yc) / Y_base
+            row["Y_C_Lines"] = to_t(YC)
+
+        U_start = _to_complex_array(decoded["u_start"]) / U_base
+        U_newton = _to_complex_array(decoded["u_newton"]) / U_base
+        row["U_start"] = to_t(U_start, dtype=torch.complex64)
+        row["U_newton"] = to_t(U_newton, dtype=torch.complex64)
+        for name, U in [("start", U_start), ("newton", U_newton)]:
+            mag = np.abs(U).astype(FLOAT_DTYPE)
+            ang = np.angle(U).astype(FLOAT_DTYPE)
+            row[f"V_{name}"] = to_t(np.stack([mag, ang], axis=1))
+
+        if "S_start" in decoded:
+            S_start = _to_complex_array(decoded["S_start"]) / S_base
+            row["S_start"] = to_t(S_start, dtype=torch.complex64)
+        if "S_newton" in decoded:
+            S_newton = _to_complex_array(decoded["S_newton"]) / S_base
+            row["S_newton"] = to_t(S_newton, dtype=torch.complex64)
+        if "I_newton" in decoded:
+            I_newton = _to_complex_array(decoded["I_newton"]) / I_base
+            row["I_newton"] = to_t(I_newton, dtype=torch.complex64)
+
+        return row
