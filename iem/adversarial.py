@@ -708,12 +708,19 @@ def randomized_smoothing_certificate(
     N = labels.shape[0]
     correct_counts = torch.zeros(N)
 
+    # Sparse edge mask: only perturb existing edges
+    edge_mask = (A.abs() > 1e-10).float()
+    edge_mask.fill_diagonal_(0)
+    clean_preds = model.head(z_clean).argmax(dim=1).cpu()
+
+    raw_sigma = sigma * (2 ** 0.5)  # compensate for symmetrization halving variance
+
     with torch.no_grad():
         for _ in range(n_samples):
-            dA = torch.randn_like(A) * sigma
+            dA = torch.randn_like(A) * raw_sigma * edge_mask
             dA = (dA + dA.T) / 2
-            dA.fill_diagonal_(0)
-            ctx_pert = {**ctx, A_key: A + dA}
+            A_pert = (A + dA).clamp(min=0)
+            ctx_pert = {**ctx, A_key: A_pert}
             Z = z_clean.clone()
             for _ in range(100):
                 Z_new = model.operator(Z, ctx_pert)
@@ -722,7 +729,7 @@ def randomized_smoothing_certificate(
                 Z = Z_new
             logits_pert = model.head(Z_new)
             pred = logits_pert.argmax(dim=1).cpu()
-            correct_counts += (pred == labels.cpu()).float()
+            correct_counts += (pred == clean_preds).float()
 
     p_A = correct_counts / n_samples
 

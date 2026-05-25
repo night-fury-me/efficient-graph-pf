@@ -215,31 +215,20 @@ def run_single(name, data, seed, device):
 
         ratio = adapt_dmg / aegis_actual if aegis_actual > 1e-10 else 0.0
 
-        # Breach rate: fraction of certified nodes breached by adaptive attack
-        logits_pert = model.head(Z_new)
+        # Breach rate: actually check if adaptive attack changes certified nodes' predictions.
+        # Apply the AEGIS perturbation (strongest first-order) and check prediction changes.
         pred_clean = logits_sub.argmax(dim=1)
-        pred_pert_ctx = {**ctx_sub, "A_hat": A_sub + dA}
-        # Recompute with adaptive attack perturbation
-        A_adapt = A_sub.clone()
-        # Use the same adaptive attack perturbation
-        adapt_result = adaptive_pgd_attack(model, Z_sub, ctx_sub, eps, edge_list)
-        # Check which certified nodes changed prediction
-        A_adapt_pert = A_sub.clone()
-        delta_final = torch.zeros(len(edge_list), device=A_sub.device)
-        # Reconverge with adapt perturbation (already done inside adaptive_pgd_attack)
-        # For breach check, re-run the attack and check predictions
-        Z_adapt = Z_sub.clone()
         with torch.no_grad():
-            for _ in range(100):
-                Z_new_a = model.operator(Z_adapt, ctx_sub)
-                if (Z_new_a - Z_adapt).norm() < 1e-7:
-                    break
-                Z_adapt = Z_new_a
+            logits_pert = model.head(Z_new)  # Z_new from AEGIS reconvergence above
+        pred_aegis = logits_pert.argmax(dim=1)
 
-        # Simple breach check: certified nodes whose radius < eps
         certified_mask = cert_radii > 1e-6
-        breached = (cert_radii > 1e-6) & (cert_radii < eps)
-        breach_rate = float(breached.float().sum() / max(certified_mask.float().sum(), 1))
+        n_certified = int(certified_mask.float().sum())
+        if n_certified > 0:
+            changed_aegis = (pred_clean != pred_aegis) & certified_mask.to(pred_clean.device)
+            breach_rate = float(changed_aegis.float().sum() / n_certified)
+        else:
+            breach_rate = 0.0
 
         results_per_eps.append({
             "epsilon": eps,

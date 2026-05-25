@@ -50,7 +50,12 @@ def set_seed(seed: int):
 
 
 class IGNN_Configurable(nn.Module):
-    """IGNN with configurable hidden dim and spectral norm constraint."""
+    """IGNN with configurable hidden dim and spectral norm constraint.
+
+    Does NOT use PyTorch's spectral_norm parametrization (which forces
+    ||W||_2=1 at every forward, defeating manual clamping). Instead,
+    projects W after each optimizer step via SVD clamping.
+    """
 
     def __init__(self, n_features: int, hidden: int, n_classes: int,
                  max_spectral_norm: float = 1.0):
@@ -61,18 +66,15 @@ class IGNN_Configurable(nn.Module):
         self.head = nn.Linear(hidden, n_classes)
 
         nn.init.xavier_normal_(self.W.weight, gain=0.5)
-
-        # Apply spectral norm parametrization
-        from torch.nn.utils.parametrizations import spectral_norm as _sn
-        self.W = _sn(self.W)
         self._max_sn = max_spectral_norm
+        self._project_spectral_norm()
 
-    def _clamp_spectral_norm(self):
-        """Clamp W's spectral norm to max_spectral_norm after each step."""
+    def _project_spectral_norm(self):
+        """Project W so that ||W||_2 <= max_spectral_norm."""
         with torch.no_grad():
-            s = torch.linalg.svdvals(self.W.weight)
-            if s[0] > self._max_sn:
-                self.W.weight.data *= self._max_sn / s[0]
+            U, s, Vh = torch.linalg.svd(self.W.weight, full_matrices=False)
+            s_clamped = s.clamp(max=self._max_sn)
+            self.W.weight.copy_(U @ torch.diag(s_clamped) @ Vh)
 
     def operator(self, Z, ctx):
         A_hat = ctx["A_hat"]
@@ -117,7 +119,7 @@ def run_single(data, seed, device, hidden=64, max_sn=1.0):
         optim.zero_grad()
         loss.backward()
         optim.step()
-        model._clamp_spectral_norm()
+        model._project_spectral_norm()
 
         if (ep + 1) % 10 == 0:
             model.eval()

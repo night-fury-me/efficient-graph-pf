@@ -89,10 +89,10 @@ def compute_lodf_ranking(A_sub: torch.Tensor) -> list:
     for i in range(N):
         for j in range(i + 1, N):
             if A_bin[i, j] > 0.5:
-                # PTDF for line (i,j): X_ij = L_pinv[i,i] + L_pinv[j,j] - 2*L_pinv[i,j]
+                # Effective resistance R_ij = L_pinv[i,i] + L_pinv[j,j] - 2*L_pinv[i,j]
+                # High R_ij = removing this edge is critical (bridge-like)
                 x_ij = float(L_pinv[i, i] + L_pinv[j, j] - 2 * L_pinv[i, j])
-                # LODF severity ~ 1/x_ij (lines with small reactance are more critical)
-                severity = 1.0 / max(abs(x_ij), 1e-10)
+                severity = abs(x_ij)
                 edges.append((i, j, severity))
 
     edges.sort(key=lambda x: x[2], reverse=True)

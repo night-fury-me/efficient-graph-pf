@@ -39,8 +39,11 @@ def set_seed(seed: int):
         torch.cuda.manual_seed_all(seed)
 
 
-def measure_convergence(model, X, A_hat, ctx, max_iter=200, tol=1e-6):
-    """Measure fixed-point iteration convergence statistics."""
+def measure_convergence(model, X, A_hat, ctx, max_iter=200, tol=1e-5):
+    """Measure fixed-point iteration convergence statistics.
+
+    Uses relative tolerance matching IGNN.forward(): ||Z_new - Z|| < tol * max(||Z||, 1).
+    """
     N = X.shape[0]
     Z = torch.zeros(N, model.hidden, device=X.device)
     residuals = []
@@ -50,11 +53,12 @@ def measure_convergence(model, X, A_hat, ctx, max_iter=200, tol=1e-6):
             Z_new = model.operator(Z, ctx)
             residual = float((Z_new - Z).norm())
             residuals.append(residual)
-            if residual < tol:
+            rel_tol = tol * max(float(Z_new.norm()), 1.0)
+            if residual < rel_tol:
                 break
             Z = Z_new
 
-    converged = residuals[-1] < tol
+    converged = residuals[-1] < tol * max(float(Z_new.norm()), 1.0)
     n_iter = len(residuals)
 
     # Convergence rate: geometric decay factor
@@ -198,19 +202,21 @@ def run_single_ieee(case_name, ds_path, seed, device):
     ctx_sub = {"A_hat": A_sub, "X_proj": ctx_pf["X_proj"][:N]}
     Z_sub = Z_star[:N]
 
-    # Measure convergence from scratch
+    # Measure convergence from scratch (relative tolerance)
     Z = torch.zeros_like(Z_sub)
     residuals = []
+    tol = 1e-5
     with torch.no_grad():
         for k in range(200):
             Z_new = model.operator(Z, ctx_sub)
             residual = float((Z_new - Z).norm())
             residuals.append(residual)
-            if residual < 1e-6:
+            rel_tol = tol * max(float(Z_new.norm()), 1.0)
+            if residual < rel_tol:
                 break
             Z = Z_new
 
-    converged = residuals[-1] < 1e-6
+    converged = residuals[-1] < tol * max(float(Z_new.norm()), 1.0)
     n_iter = len(residuals)
 
     if n_iter >= 3:
