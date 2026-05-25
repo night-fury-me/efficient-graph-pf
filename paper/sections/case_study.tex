@@ -23,7 +23,7 @@ We train ContractiveGCN-PF, an IGNN variant for AC power flow, on four standard 
 
 \begin{table}[t]
 \centering
-\caption{AEGIS on IEEE power flow benchmarks (10 seeds). Model quality (per-unit RMSE on test set): $|V|$ = voltage magnitude, $\theta$ = angle, $\Delta S$ = power-balance residual per bus (implicit physics). P@10: AEGIS top-10 precision vs.\ N-1 ground truth.}
+\caption{AEGIS on IEEE power flow benchmarks (10 seeds). Model quality (per-unit RMSE): $|V|$ = voltage magnitude, $\theta$ = angle, $\Delta S$ = power-balance residual per bus. $\tau$: Kendall rank correlation vs.\ brute-force N-1 contingency. P@10: top-10 precision.}
 \label{tab:ieee}
 \small
 \begin{tabular}{@{}lrr rrr rr@{}}

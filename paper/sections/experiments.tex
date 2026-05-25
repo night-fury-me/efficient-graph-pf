@@ -16,7 +16,7 @@ We begin by validating that the constrained first-order prediction is accurate a
 
 \begin{table}[t]
 \centering
-\caption{Cross-domain adversarial analysis (IGNN, 10 seeds). Test Acc: full-graph accuracy (\%). Cert\%: clean subgraph accuracy.}
+\caption{Cross-domain adversarial analysis (IGNN, 10 seeds). $\rho$: spectral radius of state Jacobian. Tight.: actual/predicted shift ratio. AtkAdv: AEGIS damage / random damage. $\ecrit$: critical perturbation budget (\cref{thm:phase_transition}). Test Acc / Cert\%: full-graph / subgraph accuracy (\%).}
 \label{tab:cross_domain}
 \small
 \setlength{\tabcolsep}{3pt}
@@ -71,7 +71,7 @@ The Mettack comparison uses a GCN surrogate, so its failure against IGNN may ref
 
 \begin{table}[t]
 \centering
-\caption{Adaptive attack (white-box PGD via IFT gradients on IGNN) vs.\ AEGIS first-order sensitivity radii (10 seeds). Breach: fraction of nodes with $\varepsilon < r_v$ whose prediction changes.}
+\caption{Adaptive attack (white-box PGD via IFT gradients on IGNN) vs.\ AEGIS (10 seeds). Breach: fraction of certified nodes whose prediction changes. AEGIS/Adapt.\ dmg: mean equilibrium shift ($\ell_2$). Ratio: Adapt./AEGIS damage.}
 \label{tab:adaptive}
 \small
 \begin{tabular}{@{}lcrrrc@{}}
@@ -126,7 +126,7 @@ A key question is whether the $S_c$ framework extends beyond implicit models. Fo
 
 \begin{table}[t]
 \centering
-\caption{$S_c$ framework applied to 7 GNN architectures (Cora, 10 seeds). Test Acc: full-graph test set accuracy. Tightness transfers to all architectures.}
+\caption{$S_c$ framework applied to 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: AEGIS/random damage. $\tau$: Kendall rank correlation vs.\ brute-force edge-removal ground truth. Test Acc: full-graph test accuracy.}
 \label{tab:explicit}
 \small
 \begin{tabular}{@{}lrrrr@{}}
