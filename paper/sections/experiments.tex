@@ -23,16 +23,16 @@ We begin by validating that the constrained first-order prediction is accurate a
 \toprule
 Dataset & Test Acc & $\rho$ & Tight. & AtkAdv & $\ecrit$ & Cert\% \\
 \midrule
-Cora     & $\ms{76.9}{2.2}$\% & $\ms{.33}{.14}$ & $\ms{1.01}{.01}$ & $\ms{3.6}{.6}$x & $\ms{.66}{.15}$ & $\ms{81}{\phantom{0}9}$\% \\
-Citeseer & $\ms{42.1}{2.8}$\% & $\ms{.59}{.02}$ & $\ms{1.01}{.01}$ & $\ms{4.1}{.5}$x & $\ms{.41}{.02}$ & $\ms{83}{\phantom{0}4}$\% \\
-Pubmed   & $\ms{78.2}{1.0}$\% & $\ms{.41}{.11}$ & $\ms{1.01}{.01}$ & $\ms{3.2}{.4}$x & $\ms{.59}{.11}$ & $\ms{74}{23}$\% \\
-Amazon   & $\ms{94.9}{0.4}$\% & $\ms{.14}{.02}$ & $\ms{1.00}{.00}$ & $\ms{3.8}{.2}$x & $\ms{.86}{.02}$ & $\ms{92}{\phantom{0}4}$\% \\
-WikiCS   & $\ms{77.8}{0.5}$\% & $\ms{.34}{.04}$ & $\ms{1.00}{.01}$ & $\ms{3.8}{.4}$x & $\ms{.66}{.04}$ & $\ms{70}{\phantom{0}3}$\% \\
+Cora     & $\ms{77.5}{1.7}$\% & $\ms{.33}{.14}$ & $\ms{1.01}{.01}$ & $\ms{3.6}{.6}$x & $\ms{.66}{.15}$ & $\ms{81}{\phantom{0}9}$\% \\
+Citeseer & $\ms{43.6}{4.9}$\% & $\ms{.59}{.02}$ & $\ms{1.01}{.01}$ & $\ms{4.1}{.5}$x & $\ms{.41}{.02}$ & $\ms{83}{\phantom{0}4}$\% \\
+Pubmed   & $\ms{78.9}{0.7}$\% & $\ms{.41}{.11}$ & $\ms{1.01}{.01}$ & $\ms{3.2}{.4}$x & $\ms{.59}{.11}$ & $\ms{74}{23}$\% \\
+Amazon   & $\ms{94.8}{0.3}$\% & $\ms{.14}{.02}$ & $\ms{1.00}{.00}$ & $\ms{3.8}{.2}$x & $\ms{.86}{.02}$ & $\ms{92}{\phantom{0}4}$\% \\
+WikiCS   & $\ms{77.9}{0.4}$\% & $\ms{.34}{.04}$ & $\ms{1.00}{.01}$ & $\ms{3.8}{.4}$x & $\ms{.66}{.04}$ & $\ms{70}{\phantom{0}3}$\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Tightness is $1.00 \pm 0.01$ across all datasets at $\varepsilon = 0.01$. First-order accuracy at small $\varepsilon$ is mathematically expected; the contribution is that $S_c$ makes this tractable under \emph{constrained} perturbations ($N^2 \to |E|$ projection). \cref{tab:tightness_eps} shows how tightness degrades at larger budgets: the first-order prediction remains within 7\% at $\varepsilon = 0.05$ and within 16\% at $\varepsilon = 0.10$ on Cora/Citeseer, and within 5\% at $\varepsilon = 0.20$ on WikiCS. Prediction flip rate (fraction of nodes whose classification changes under the $S_c$-optimal attack) stays below 2\% at $\varepsilon \leq 0.10$ and below 6\% at $\varepsilon = 0.20$. The attack advantage (3.2--4.1$\times$ over random in \cref{tab:cross_domain}) confirms that $S_c$ identifies the most vulnerable perturbation directions. Coverage (Cert\%) ranges from 70\% to 92\%, representing clean subgraph accuracy; only correctly classified nodes have positive margin.
+Tightness is $1.00 \pm 0.01$ across all datasets at $\varepsilon = 0.01$, including Citeseer where IGNN's spectral-norm constraint limits test accuracy to 43.6\% (the contractivity guarantee that enables \cref{thm:phase_transition} trades expressivity for analyzability). Crucially, AEGIS's tightness is independent of model accuracy --- it correctly characterizes vulnerability regardless of whether the model is strong or weak. First-order accuracy at small $\varepsilon$ is mathematically expected; the contribution is that $S_c$ makes this tractable under \emph{constrained} perturbations ($N^2 \to |E|$ projection). \cref{tab:tightness_eps} shows how tightness degrades at larger budgets: the first-order prediction remains within 7\% at $\varepsilon = 0.05$ and within 16\% at $\varepsilon = 0.10$ on Cora/Citeseer, and within 5\% at $\varepsilon = 0.20$ on WikiCS. Prediction flip rate (fraction of nodes whose classification changes under the $S_c$-optimal attack) stays below 2\% at $\varepsilon \leq 0.10$ and below 6\% at $\varepsilon = 0.20$. The attack advantage (3.2--4.1$\times$ over random in \cref{tab:cross_domain}) confirms that $S_c$ identifies the most vulnerable perturbation directions. Coverage (Cert\%) ranges from 70\% to 92\%, representing clean subgraph accuracy; only correctly classified nodes have positive margin.
 
 \begin{table}[t]
 \centering
