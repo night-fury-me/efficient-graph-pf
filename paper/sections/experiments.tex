@@ -9,7 +9,7 @@ We evaluate AEGIS on 9 datasets across 4 domains with 10 random seeds each (seed
 
 \textbf{Datasets.} We use five graph benchmarks: Cora (2,708 nodes), Citeseer (3,327), and Pubmed (19,717) from the Planetoid collection~\cite{sen2008collective}; Amazon Photo (7,650) from the Amazon co-purchase graphs~\cite{shchur2018pitfalls}; and WikiCS (11,701) from Wikipedia-based benchmarks~\cite{mernyei2020wiki}. For power flow, we use four IEEE standard test cases~\cite{ieee2024testcases}: case14 (14 buses), case30 (30), case57 (57), and case118 (118), with training data generated via PandaPower~\cite{thurner2018pandapower}.
 
-\textbf{Notation.} All formal bounds (\cref{thm:phase_transition}) and tables use the operator-norm contraction constant $\kappa = \norm{J_z}_2$, estimated via power iteration. Since non-normality is mild across our datasets ($\eta = 1.02$--$1.28$, \cref{sec:convergence}), the $\kappa$-based bounds are at most 28\% more conservative than spectral-radius bounds. The matrix-free pipeline (\cref{sec:framework}) sets the Neumann-series depth adaptively from~$\kappa$.
+\textbf{Notation.} All formal bounds (\cref{thm:phase_transition}) and tables use the operator-norm contraction constant $\kappa = \norm{J_z}_2$, estimated via power iteration. Since non-normality is mild across our datasets ($\eta = 1.02$--$1.28$, \cref{sec:convergence}), the $\kappa$-based bounds are at most 28\% more conservative than spectral-radius bounds; we report only $\kappa$ because the formal guarantees (\cref{thm:phase_transition}) require operator-norm contractivity, and $\eta$ near unity confirms that $\rho(J_z)$ would yield similar values. The matrix-free pipeline (\cref{sec:framework}) sets the Neumann-series depth adaptively from~$\kappa$.
 
 \subsection{Cross-Domain Adversarial Analysis}
 \label{sec:cross_domain}
@@ -59,7 +59,7 @@ WikiCS   & $\ms{0.2}{0.6}$ & $\ms{0.4}{0.8}$ & $\ms{0.6}{0.9}$ & $\ms{1.2}{1.0}$
 \end{tabular}
 \end{table}
 
-\textbf{Surrogate baseline.} We also compared against Mettack~\cite{zugner2019adversarial} (GCN~\cite{kipf2017semi} surrogate): AEGIS inflicts 3--10$\times$ more damage at every budget (30/30 wins across $k=1,\ldots,5$ edge removals). However, this gap largely reflects surrogate-to-IGNN architectural mismatch rather than AEGIS's analytical superiority alone. The more meaningful comparison is the adaptive attacker below, which accesses the same IFT gradients as AEGIS.
+\textbf{Surrogate baseline.} We also compared against Mettack~\cite{zugner2019adversarial} (GCN~\cite{kipf2017semi} surrogate): AEGIS inflicts 3--10$\times$ more damage at every budget (30/30 wins across $k=1,\ldots,5$ edge removals, 10 seeds). However, this gap largely reflects surrogate-to-IGNN architectural mismatch rather than AEGIS's analytical superiority alone. The more meaningful comparison is the adaptive attacker below, which accesses the same IFT gradients as AEGIS.
 
 \subsection{Radius Comparison: AEGIS vs.\ Smoothing}
 \label{sec:certificates}
@@ -101,7 +101,7 @@ The adaptive attacker breaches zero nodes at $\varepsilon = 0.01$ and fewer than
 
 \textbf{Phase transition.} Scaling $\kappa$ from 0.3 to 0.99 amplifies the fixed-point shift by $83\times$ at $\varepsilon = 0.01$, confirming the $1/(1-\kappa)$ divergence predicted by \cref{thm:phase_transition}.
 
-\textbf{Scalability.} The matrix-free pipeline removes the $O(D^3)$ bottleneck. On a single NVIDIA RTX 4090 (24\,GB), the dense path handles $N \leq 200$ (5.4s, 8.9\,GB) but exceeds 24\,GB at $N{=}500$. The matrix-free path scales to the full Cora graph ($N{=}2{,}708$, $Nd{=}173{,}312$) in 78\,s using 1\,GB, with $\sigma_1$ accuracy within 0.03\% of the dense reference at $N{=}200$.
+\textbf{Scalability.} The matrix-free pipeline removes the $O((Nd)^3)$ bottleneck. On a single NVIDIA RTX 4090 (24\,GB), the dense path handles $N \leq 200$ (5.4s, 8.9\,GB) but exceeds 24\,GB at $N{=}500$. The matrix-free path scales to the full Cora graph ($N{=}2{,}708$, $Nd{=}173{,}312$) in 78\,s using 1\,GB, with $\sigma_1$ accuracy within 0.03\% of the dense reference at $N{=}200$.
 \cref{tab:scalability} compares both paths.
 
 \begin{table}[t]
@@ -125,7 +125,7 @@ $N$ & Dense (s) & MatFree (s) & Mem-Dense & Mem-MF \\
 \subsection{Subgraph Size Ablation}
 \label{sec:subgraph_ablation}
 
-Varying $N \in \{30, 50, 100, 200\}$ on Cora (10 seeds): tightness is stable at 1.01--1.02 for $N \leq 100$ and degrades to $1.031$ at $N = 200$ (higher $\kappa$). Coverage is 82--89\% across all sizes. We use $N=50$ (tightness $1.013 \pm 0.003$, 1.3s) as the default for subgraph-level experiments: $66\times$ faster than $N=200$ with negligible quality loss. For full-graph analysis, the matrix-free pipeline (\cref{tab:scalability}) enables vulnerability assessment of the entire graph without subgraph extraction.
+Varying $N \in \{30, 50, 100, 200\}$ on Cora (10 seeds): tightness is stable at 1.01--1.02 for $N \leq 100$ and degrades to $1.031$ at $N = 200$ (higher $\kappa$). Coverage is 82--89\% across all sizes. We use $N=50$ (tightness $1.013 \pm 0.003$, 1.3s) as the default for subgraph-level experiments: $66\times$ faster than $N=200$ with negligible quality loss. For full-graph analysis, the matrix-free pipeline (\cref{tab:scalability}) enables vulnerability assessment of the entire graph without subgraph extraction; the power grid experiments (\cref{sec:power_flow}) provide full-graph validation on graphs of 14--118 nodes. The locality assumption underlying subgraph extraction holds when sensitivity is dominated by local neighborhood structure, but may weaken for graphs with strong long-range dependencies.
 
 \subsection{Sensitivity and Convergence}
 \label{sec:hyperparams}
@@ -166,7 +166,7 @@ APPNP         & $\ms{1.02}{.00}$ & $\ms{3.4}{0.3}$x & $\ms{+.35}{.01}$ & $\ms{82
 \end{tabular}
 \end{table}
 
-\cref{tab:explicit} applies the $S_c$ framework to six explicit GNN architectures on Cora. All six achieve near-perfect first-order tightness (0.99--1.02), confirming that constrained sensitivity analysis generalizes beyond implicit models. Attack advantage ranges from 2.0$\times$ (SAGE) to 7.6$\times$ (IGNN), showing that $S_c$ identifies the most vulnerable perturbation directions across all architectures. Test accuracy ranges from 76.6\% (GIN) to 82.2\% (APPNP), within 2--3\% of published baselines. GAT$^\dagger$ and GCN-4 produce the strongest vulnerability rankings ($\tau = +0.54$ and $+0.49$). APPNP achieves the best accuracy-vulnerability balance ($\tau = +0.35$, 82.2\% accuracy).
+\cref{tab:explicit} applies the $S_c$ framework to six explicit GNN architectures on Cora. All six achieve near-perfect first-order tightness (0.99--1.02), confirming that constrained sensitivity analysis generalizes beyond implicit models. Attack advantage ranges from 2.0$\times$ (SAGE) to 7.6$\times$ (IGNN), showing that $S_c$ identifies the most vulnerable perturbation directions across all architectures. Test accuracy ranges from 76.6\% (GIN) to 82.2\% (APPNP), competitive with deep residual architectures such as GCNII~\cite{chen2020simple}. GAT$^\dagger$ and GCN-4 produce the strongest vulnerability rankings ($\tau = +0.54$ and $+0.49$). APPNP achieves the best accuracy-vulnerability balance ($\tau = +0.35$, 82.2\% accuracy).
 
 GAT requires an edge-weighted formulation where $\Ahat$ values modulate attention weights continuously; standard GAT uses $A$ as a binary mask (zeroing non-edges), so $\partial Z / \partial A_{ij} = 0$ for all existing edges. GATv2~\cite{brody2022how} partially addresses this via dynamic attention, but still applies a binary mask at the neighborhood level. Our edge-weighted variant multiplies attention coefficients by $\Ahat_{ij}$, restoring continuous differentiability. With this modification, GAT achieves tightness 0.99, attack advantage 4.4$\times$, and $\tau = +0.36$.
 
