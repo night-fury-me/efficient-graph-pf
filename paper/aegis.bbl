@@ -235,6 +235,12 @@ A.~J. Wood, B.~F. Wollenberg, and G.~B. Shebl{\'e}, \emph{Power Generation,
   Operation, and Control}, 3rd~ed.\hskip 1em plus 0.5em minus 0.4em\relax John
   Wiley \& Sons, 2014.
 
+\bibitem{kim2025physicsinformed}
+C.~Kim, T.~Conrad, R.~Karim, J.~Oelhaf, D.~Riebesel, T.~Arias-Vergara, A.~K.
+  Maier, J.~J{\"a}ger, and S.~Bayer, ``Physics-informed {GNN} for medium-high
+  voltage {AC} power flow with edge-aware attention and line search correction
+  operator,'' \emph{arXiv preprint arXiv:2509.22458}, 2025.
+
 \bibitem{bojchevski2019adversarial}
 A.~Bojchevski and S.~G{\"u}nnemann, ``Adversarial attacks on node embeddings
   via graph poisoning,'' in \emph{International Conference on Machine

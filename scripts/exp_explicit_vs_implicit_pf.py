@@ -1,8 +1,8 @@
-"""Explicit GCN vs Implicit GCN power flow residual comparison (S5 reviewer request).
+"""Explicit GCN vs Implicit GCN vs PIGNN-Attn-LS power flow residual comparison.
 
-Trains both ContractiveGCN_PF (implicit/equilibrium) and a standard K-layer GCN
-on IEEE case14 and case30. Compares voltage RMSE and power-balance residual ΔS
-to test whether the equilibrium structure provides better physics compliance.
+Trains ContractiveGCN_PF (implicit/equilibrium), a standard 4-layer GCN, and
+PIGNN-Attn-LS (physics-informed with line search) on IEEE case14 and case30.
+Compares voltage RMSE and power-balance residual ΔS (10 seeds).
 
 Usage:
     .venv/bin/python scripts/exp_explicit_vs_implicit_pf.py
@@ -26,6 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import models  # noqa: register model builders
 
 from iem.examples.contractive_pf import ContractiveGCN_PF
+from models.edge_selfattn.model import GNSMsg_EdgeSelfAttn
 from data_loading.collate import collate_blockdiag
 from data_loading.dataset import ChanghunDataset
 from torch.utils.data import DataLoader, Subset
@@ -99,7 +100,7 @@ class ExplicitGCN_PF(nn.Module):
         v_pred = self.v_head(Z).squeeze(-1) + V0.reshape(N, 2)[:, 0]
         th_pred = self.th_head(Z).squeeze(-1) + V0.reshape(N, 2)[:, 1]
         out = torch.stack([v_pred, th_pred], dim=-1).unsqueeze(0)
-        return out, {"A_hat": A_hat, "Y": Y}
+        return out, {"Y": Y}
 
 
 def set_seed(seed: int):
@@ -110,22 +111,53 @@ def set_seed(seed: int):
         torch.cuda.manual_seed_all(seed)
 
 
-def compute_power_balance_residual(V_pred, Y_bus):
-    """Compute per-bus power balance residual ΔS = |S_computed - S_injected|.
+def build_Y_bus(batch, device):
+    """Build dense Y_bus from batch data for ΔS computation."""
+    N = int(batch["sizes"][0].item())
+    from models.edge_selfattn.admittance import build_dense_Y, build_edges_blockdiag
+    Line = batch["Lines_connected"].to(device)
+    Line_1d = Line.squeeze(0) if Line.dim() == 2 else Line
+    Ys_1d = batch["Y_Lines"].to(device).squeeze(0)
+    Yc_1d = batch["Y_C_Lines"].to(device).squeeze(0)
+    undirected, _, _, _, ys_edge, yc_edge = build_edges_blockdiag(
+        line_mask_1d=Line_1d, Ys_1d=Ys_1d, Yc_1d=Yc_1d,
+        n_nodes_per_graph=batch["sizes"].to(device), edge_feat_dim=4,
+        pairs_for_n=lambda n, d: torch.triu_indices(n, n, offset=1, device=d).t().contiguous(),
+        device=device,
+    )
+    return build_dense_Y(N, undirected, ys_edge, yc_edge, device=device)[:N, :N]
 
-    V_pred: (N, 2) tensor with [|V|, θ] per bus
-    Y_bus: (N, N) complex admittance matrix
-    Returns: per-bus |ΔS| in p.u.
-    """
-    Vm = V_pred[:, 0]
-    Va = V_pred[:, 1]
+
+def compute_power_balance_residual(V_2d, Y_bus):
+    """ΔS = |S(V_pred) - S(V_true)| per bus."""
+    Vm = V_2d[:, 0]
+    Va = V_2d[:, 1]
     V_complex = Vm * torch.exp(1j * Va)
     I_computed = Y_bus @ V_complex
-    S_computed = V_complex * I_computed.conj()
-    return S_computed
+    return V_complex * I_computed.conj()
 
 
-def train_and_evaluate(model, ds, device, n_epochs=30):
+def forward_model(model, batch, device, model_type):
+    """Unified forward pass for all three model types."""
+    args = (
+        batch["bus_type"].to(device), batch["Lines_connected"].to(device),
+        None, batch["Y_Lines"].to(device), batch["Y_C_Lines"].to(device),
+        batch["S_start"].to(device), batch["V_start"].to(device),
+        batch["sizes"].to(device),
+    )
+    result = model(*args)
+
+    if model_type == "pignn":
+        if isinstance(result, tuple) and len(result) == 2:
+            V_pred, phys_loss = result
+            return V_pred, phys_loss
+        return result, None
+    else:
+        V_pred, ctx = result
+        return V_pred, ctx
+
+
+def train_and_evaluate(model, ds, device, model_type, n_epochs=30):
     train_ds = Subset(ds, range(min(200, len(ds))))
     test_ds = Subset(ds, range(200, min(400, len(ds))))
     train_loader = DataLoader(train_ds, batch_size=32, shuffle=True, collate_fn=collate_blockdiag)
@@ -136,13 +168,11 @@ def train_and_evaluate(model, ds, device, n_epochs=30):
     for _ in range(n_epochs):
         model.train()
         for batch in train_loader:
-            V_pred, _ = model(
-                batch["bus_type"].to(device), batch["Lines_connected"].to(device),
-                None, batch["Y_Lines"].to(device), batch["Y_C_Lines"].to(device),
-                batch["S_start"].to(device), batch["V_start"].to(device),
-                batch["sizes"].to(device),
-            )
-            loss = ((V_pred - batch["V_newton"].to(device)) ** 2).mean()
+            V_pred, extra = forward_model(model, batch, device, model_type)
+            V_true = batch["V_newton"].to(device)
+            loss = ((V_pred - V_true) ** 2).mean()
+            if model_type == "pignn" and extra is not None:
+                loss = loss + 0.1 * extra
             optim.zero_grad()
             loss.backward()
             optim.step()
@@ -153,24 +183,14 @@ def train_and_evaluate(model, ds, device, n_epochs=30):
     with torch.no_grad():
         for batch in test_loader:
             N = int(batch["sizes"][0].item())
-            V_pred_out, ctx = model(
-                batch["bus_type"].to(device), batch["Lines_connected"].to(device),
-                None, batch["Y_Lines"].to(device), batch["Y_C_Lines"].to(device),
-                batch["S_start"].to(device), batch["V_start"].to(device),
-                batch["sizes"].to(device),
-            )
+            V_pred, _ = forward_model(model, batch, device, model_type)
             V_true = batch["V_newton"].to(device).reshape(N, 2)
-            V_pred_2d = V_pred_out.reshape(N, 2)
+            V_pred_2d = V_pred.reshape(N, 2)
 
             v_errors.append(float(((V_pred_2d[:, 0] - V_true[:, 0]) ** 2).mean().sqrt()))
             th_errors.append(float(((V_pred_2d[:, 1] - V_true[:, 1]) ** 2).mean().sqrt()))
 
-            # Power balance residual using predicted voltages
-            Y_bus = ctx["Y"]
-            if Y_bus.dim() == 3:
-                Y_bus = Y_bus.squeeze(0)
-            Y_bus = Y_bus[:N, :N]
-
+            Y_bus = build_Y_bus(batch, device)
             S_pred = compute_power_balance_residual(V_pred_2d, Y_bus)
             S_true = compute_power_balance_residual(V_true, Y_bus)
             ds_residuals.append(float((S_pred - S_true).abs().mean()))
@@ -183,20 +203,28 @@ def train_and_evaluate(model, ds, device, n_epochs=30):
 
 
 def run_single(case_name, ds_path, N_expected, seed, device):
-    set_seed(seed)
     ds = ChanghunDataset([ds_path], per_unit=True, device=device)
+    results = {}
 
-    # Train implicit (IGNN)
+    # IGNN (implicit equilibrium)
     set_seed(seed)
     ignn = ContractiveGCN_PF(n_bus_features=5, hidden=64).to(device)
-    ignn_res = train_and_evaluate(ignn, ds, device, n_epochs=30)
+    results["IGNN"] = train_and_evaluate(ignn, ds, device, "ignn", n_epochs=30)
 
-    # Train explicit GCN (4-layer)
+    # GCN-4 (explicit, no physics)
     set_seed(seed)
     gcn = ExplicitGCN_PF(n_bus_features=5, hidden=64, n_layers=4).to(device)
-    gcn_res = train_and_evaluate(gcn, ds, device, n_epochs=30)
+    results["GCN-4"] = train_and_evaluate(gcn, ds, device, "gcn", n_epochs=30)
 
-    return ignn_res, gcn_res
+    # PIGNN-Attn-LS (explicit, physics-informed with line search)
+    set_seed(seed)
+    pignn = GNSMsg_EdgeSelfAttn(
+        d=10, d_hi=32, K=30, pinn=True, use_armijo=True,
+        n_heads=4, num_attn_layers=1,
+    ).to(device)
+    results["PIGNN"] = train_and_evaluate(pignn, ds, device, "pignn", n_epochs=30)
+
+    return results
 
 
 def agg(vals):
@@ -209,36 +237,44 @@ def main():
     print(f"Device: {device}")
     t0 = time.time()
 
+    model_names = ["IGNN", "GCN-4", "PIGNN"]
+
     for case_name, ds_path, N in CASES:
         if not Path(ds_path).exists():
             print(f"SKIP {case_name}: dataset not found")
             continue
 
-        ignn_results = {"v_rmse": [], "th_rmse": [], "delta_s": []}
-        gcn_results = {"v_rmse": [], "th_rmse": [], "delta_s": []}
+        all_res = {m: {"v_rmse": [], "th_rmse": [], "delta_s": []} for m in model_names}
 
         for si, seed in enumerate(SEEDS):
             print(f"  {case_name} seed {seed} ({si+1}/{len(SEEDS)})...", end=" ", flush=True)
-            ignn_r, gcn_r = run_single(case_name, ds_path, N, seed, device)
-            for k in ignn_results:
-                ignn_results[k].append(ignn_r[k])
-                gcn_results[k].append(gcn_r[k])
-            print(f"IGNN ΔS={ignn_r['delta_s']:.4f}  GCN ΔS={gcn_r['delta_s']:.4f}", flush=True)
+            res = run_single(case_name, ds_path, N, seed, device)
+            ds_strs = []
+            for m in model_names:
+                for k in all_res[m]:
+                    all_res[m][k].append(res[m][k])
+                ds_strs.append(f"{m}={res[m]['delta_s']:.3f}")
+            print(f"ΔS: {', '.join(ds_strs)}", flush=True)
 
-        print(f"\n{'='*70}")
+        print(f"\n{'='*80}")
         print(f"  {case_name} (N={N}) — 10 seeds")
-        print(f"{'='*70}")
-        print(f"  {'Metric':<20} {'IGNN (implicit)':>20} {'GCN-4 (explicit)':>20}")
-        print(f"  {'-'*60}")
+        print(f"{'='*80}")
+        header = f"  {'Metric':<20}"
+        for m in model_names:
+            header += f" {m:>20}"
+        print(header)
+        print(f"  {'-'*76}")
         for k in ["v_rmse", "th_rmse", "delta_s"]:
             label = {
                 "v_rmse": "|V| RMSE (p.u.)",
                 "th_rmse": "θ RMSE (p.u.)",
                 "delta_s": "ΔS residual (p.u.)",
             }[k]
-            ig_str, _, _ = agg(ignn_results[k])
-            gc_str, _, _ = agg(gcn_results[k])
-            print(f"  {label:<20} {ig_str:>20} {gc_str:>20}")
+            row = f"  {label:<20}"
+            for m in model_names:
+                s, _, _ = agg(all_res[m][k])
+                row += f" {s:>20}"
+            print(row)
         print()
 
     print(f"Total time: {time.time()-t0:.0f}s")
