@@ -3,20 +3,20 @@
 \label{sec:experiments}
 %% ===================================================================
 
-We evaluate AEGIS on 9 datasets across 4 domains with 10 random seeds each (seeds: 42, 137, 271, 314, 1729, 2718, 3141, 5772, 6561, 9999). All graph benchmark experiments use IGNN~\cite{gu2020implicit} with hidden dimension 64, spectral-norm constrained weights, and early stopping on validation accuracy over 200 epochs. Power flow experiments use ContractiveGCN-PF (an IGNN variant for AC power flow).
+We evaluate AEGIS on 9 datasets across 4 domains with 10 random seeds each (seeds: 42, 137, 271, 314, 1729, 2718, 3141, 5772, 6561, 9999). All experiments are implemented in PyTorch~\cite{paszke2019pytorch}. Graph benchmark experiments use IGNN~\cite{gu2020implicit} with hidden dimension $d = 64$, spectral-norm constrained weights~\cite{miyato2018spectral}, and early stopping on validation accuracy over 200 epochs. Power flow experiments use ContractiveGCN-PF, an IGNN variant for AC power flow (\cref{sec:power_flow}).
+
+\textbf{Datasets.} We use five graph benchmarks: Cora (2,708 nodes), Citeseer (3,327), and Pubmed (19,717) from the Planetoid collection~\cite{sen2008collective}; Amazon Photo (7,650) from the Amazon co-purchase graphs~\cite{shchur2018pitfalls}; and WikiCS (11,701) from Wikipedia-based benchmarks~\cite{mernyei2020wiki}. For power flow, we use four IEEE standard test cases~\cite{ieee2024testcases}: case14 (14 buses), case30 (30), case57 (57), and case118 (118), with training data generated via PandaPower~\cite{thurner2018pandapower}.
 
 \textbf{Notation.} All formal bounds (\cref{thm:phase_transition}) use the operator-norm contraction constant $\kappa = \norm{J_z}_2$. Tables report the spectral radius $\rho(J_z)$ as a diagnostic quantity. Since non-normality is mild ($\eta = 1.02$--$1.28$, \cref{sec:convergence}), we have $\kappa \approx \rho$ in practice; the $\ecrit$ values computed with $\rho$ are at most 28\% optimistic relative to the $\kappa$-based formal threshold.
-
-\textbf{Datasets.} Graph benchmarks: Cora (2,708 nodes), Citeseer (3,327), Pubmed (19,717), Amazon Photo (7,650), WikiCS (11,701). Power flow: IEEE case14 (14 buses), case30 (30), case57 (57), case118 (118), generated via PandaPower with 2,000 samples each.
 
 \subsection{Cross-Domain Adversarial Analysis}
 \label{sec:cross_domain}
 
-\cref{tab:cross_domain} reports the constrained tightness ratio (actual shift / predicted shift at $\varepsilon = 0.01$), attack advantage over random perturbation, and per-node coverage (fraction with positive first-order radius) across 50-node BFS ego-subgraphs.
+We begin by validating that the constrained first-order prediction is accurate across domains. \cref{tab:cross_domain} reports the tightness ratio (actual equilibrium shift divided by predicted shift at $\varepsilon = 0.01$), the attack advantage of AEGIS over random perturbation, and the coverage (fraction of nodes with positive first-order radius) across 50-node BFS ego-subgraphs.
 
 \begin{table}[t]
 \centering
-\caption{Cross-domain adversarial analysis (mean $\pm$ std, 10 seeds). Constrained tightness $\approx 1.00$ across all domains.}
+\caption{Cross-domain adversarial analysis (mean $\pm$ std, 10 seeds). Constrained tightness $\approx 1.00$ confirms first-order accuracy.}
 \label{tab:cross_domain}
 \small
 \begin{tabular}{@{}lrrrrr@{}}
@@ -32,12 +32,12 @@ WikiCS   & $\ms{.34}{.04}$ & $\ms{1.00}{.01}$ & $\ms{3.8}{.4}$x & $\ms{.66}{.04}
 \end{tabular}
 \end{table}
 
-Tightness is $1.00 \pm 0.01$ across all datasets, confirming that the constrained first-order prediction is essentially exact under symmetric edge perturbations at $\varepsilon = 0.01$. The attack advantage (3.2--4.1$\times$ over random) demonstrates that AEGIS identifies the most vulnerable perturbation directions. Coverage (Cert\%) ranges from 70\% (WikiCS) to 92\% (Amazon Photo), reflecting nodes with positive classification margin.
+Tightness is $1.00 \pm 0.01$ across all datasets, confirming that the constrained first-order prediction is essentially exact under symmetric edge perturbations at $\varepsilon = 0.01$. The attack advantage (3.2--4.1$\times$ over random) demonstrates that $S_c$ successfully identifies the most vulnerable perturbation directions. Coverage ranges from 70\% (WikiCS) to 92\% (Amazon Photo), reflecting nodes with positive classification margin.
 
 \subsection{Attack Comparison: AEGIS vs.\ Mettack}
 \label{sec:mettack}
 
-We compare AEGIS's IFT-based structural attack against Mettack~\cite{zugner2019adversarial} (Meta-Self variant with 2-layer GCN surrogate). Both methods rank edges for removal; damage is measured by IGNN fixed-point shift $\norm{\Delta \zstar}$ after reconvergence.
+We compare AEGIS's IFT-based structural attack against Mettack~\cite{zugner2019adversarial} (Meta-Self variant using a 2-layer GCN~\cite{kipf2017semi} surrogate). Both methods rank edges for removal; damage is measured by IGNN fixed-point shift $\norm{\Delta \zstar}$ after reconvergence.
 
 \begin{table}[t]
 \centering
@@ -55,16 +55,16 @@ WikiCS   & $\ms{+.14}{.04}$ & $\ms{+.52}{.02}$ & $\ms{\phantom{0}.05}{\phantom{0
 \end{tabular}
 \end{table}
 
-AEGIS inflicts $3$--$10\times$ more damage than Mettack at every seed and budget level (30/30 wins at $k = 1, \ldots, 5$). However, this comparison has an important caveat: Mettack uses a GCN surrogate, so its poor transfer to IGNN reflects architectural mismatch as much as AEGIS's analytical superiority. The fair comparison is against the adaptive attacker (\cref{sec:adaptive}), which uses the same IFT information as AEGIS. Mettack's surrogate occasionally ranks edges closer to brute-force ground truth (WikiCS $\tau = +0.52$), but actual damage is $5\times$ lower because the GCN decision boundary diverges from the IGNN equilibrium.
+AEGIS inflicts 3--10$\times$ more damage than Mettack at every seed and budget level (30/30 wins at $k = 1, \ldots, 5$). However, this comparison has an important caveat: Mettack uses a GCN surrogate, so its poor transfer to IGNN reflects architectural mismatch as much as AEGIS's analytical superiority. Mettack's surrogate occasionally achieves higher brute-force correlation (WikiCS $\tau = +0.52$), but the actual damage is $5\times$ lower because the GCN decision boundary diverges from the IGNN equilibrium. The fair comparison is against the adaptive attacker in \cref{sec:adaptive}, which uses the same IFT information as AEGIS.
 
 \subsection{Certificate Comparison: Deterministic vs.\ Smoothing}
 \label{sec:certificates}
 
-We compare AEGIS's deterministic first-order per-node radii (\cref{prop:radius}) against randomized smoothing~\cite{bojchevski2020efficient} with Gaussian noise on existing edges ($\sigma \in \{0.01, 0.05, 0.10, 0.15\}$, 1000 Monte Carlo samples, Clopper-Pearson confidence $1-\alpha = 0.999$). \cref{tab:certificates} reports median certified radius on Cora, Citeseer, and WikiCS (10 seeds, 50-node subgraphs).
+We compare AEGIS's deterministic first-order radii (\cref{prop:radius}) against randomized smoothing~\cite{bojchevski2020efficient} with Gaussian noise on existing edges ($\sigma \in \{0.01, 0.05, 0.10, 0.15\}$, 1000 Monte Carlo samples, Clopper-Pearson confidence $1-\alpha = 0.999$). \cref{tab:certificates} reports median certified radius on Cora, Citeseer, and WikiCS (10 seeds, 50-node subgraphs).
 
 \begin{table}[t]
 \centering
-\caption{AEGIS deterministic vs.\ smoothing certificates (10 seeds). Smoothing at $\sigma \leq 0.10$ produces constant per-node radii (all nodes identical); AEGIS radii vary by node, reflecting structural vulnerability.}
+\caption{AEGIS deterministic radii vs.\ smoothing certificates (10 seeds). Smoothing at $\sigma \leq 0.10$ produces identical per-node radii; AEGIS radii vary by node, reflecting structural vulnerability.}
 \label{tab:certificates}
 \small
 \begin{tabular}{@{}lrrrrr@{}}
@@ -80,20 +80,18 @@ WikiCS   & $\ms{.040}{.004}$ & .025 & .123 & $\ms{.246}{.000}$ & $\ms{.341}{.017
 \end{tabular}
 \end{table}
 
-The comparison reveals a qualitative difference rather than a simple radius ordering. At $\sigma \leq 0.10$, smoothing radii are \emph{constant} across all nodes and datasets: every node receives the identical maximum-possible radius $r = \sigma \cdot \Phi^{-1}(p_{\mathrm{lower}})$ because essentially all 1000 Monte Carlo samples predict correctly. This yields larger absolute radii than AEGIS ($0.123$ vs.\ $0.046$ at $\sigma = 0.05$) but provides \emph{zero per-node differentiation}---the certificates do not distinguish between vulnerable and robust nodes. At $\sigma = 0.15$, smoothing begins to differentiate (some nodes lose consistency), but with high variance.
+The comparison reveals a qualitative difference rather than a simple radius ordering. At $\sigma \leq 0.10$, smoothing radii are \emph{constant} across all nodes and datasets: every node receives the identical maximum-possible radius $r = \sigma \cdot \Phi^{-1}(p_{\mathrm{lower}})$ because all 1000 Monte Carlo samples predict correctly. This produces larger absolute radii than AEGIS (0.123 vs.\ 0.046 at $\sigma = 0.05$) but provides zero per-node differentiation. The certificates do not distinguish between structurally vulnerable and robust nodes. At $\sigma = 0.15$, smoothing begins to differentiate (some nodes lose prediction consistency), but with high variance.
 
-AEGIS radii, by contrast, are \emph{structurally informative}: median radius $0.041$--$0.046$ with per-node variation reflecting actual equilibrium sensitivity. Nodes in dense, well-connected regions receive larger radii ($r_v \approx 0.09$), while boundary nodes get smaller ones ($r_v \approx 0.01$). This per-node differentiation is the key advantage for vulnerability ranking, not just worst-case bounds.
-
-The two approaches are complementary: smoothing provides uniform probabilistic guarantees scaled by $\sigma$, while AEGIS provides tight, deterministic, structurally differentiated certificates that identify which specific nodes and edges are vulnerable.
+AEGIS radii, by contrast, are structurally informative: median radius 0.041--0.046 with per-node variation that reflects actual equilibrium sensitivity. Nodes in dense, well-connected regions receive larger radii ($r_v \approx 0.09$), while boundary nodes in sensitive positions get smaller ones ($r_v \approx 0.01$). This per-node differentiation is the key advantage for applications that need vulnerability ranking rather than uniform worst-case bounds. The two approaches are complementary: smoothing provides uniform probabilistic guarantees, while AEGIS provides tight, deterministic, structurally differentiated first-order radii.
 
 \subsection{Adaptive Attack Evaluation}
 \label{sec:adaptive}
 
-The Mettack comparison (\cref{sec:mettack}) uses a GCN surrogate, so its failure against IGNN may reflect architectural mismatch rather than AEGIS's analytical strength. To rule this out, we implement an \emph{adaptive attacker} that differentiates through the IGNN fixed-point iteration via implicit differentiation---the same IFT gradients AEGIS uses for sensitivity analysis---and optimizes perturbations directly against the IGNN loss surface using projected gradient descent (PGD, 50 steps, step size $\varepsilon/10$).
+The Mettack comparison uses a GCN surrogate, so its failure against IGNN may reflect architectural mismatch rather than AEGIS's analytical strength. To address this, we implement an \emph{adaptive attacker} that differentiates through the IGNN fixed-point iteration via the same IFT gradients AEGIS uses for sensitivity analysis. This attacker optimizes perturbations directly against the IGNN loss surface using projected gradient descent~\cite{madry2018towards} (PGD, 50 steps, step size $\varepsilon/10$).
 
 \begin{table}[t]
 \centering
-\caption{Adaptive attack (white-box PGD via IFT gradients on IGNN) vs.\ AEGIS first-order radii (10 seeds). Breach rate: fraction of nodes with $\varepsilon < r_v$ whose prediction changes under adaptive attack.}
+\caption{Adaptive attack (white-box PGD via IFT gradients on IGNN) vs.\ AEGIS first-order radii (10 seeds). Breach: fraction of nodes with $\varepsilon < r_v$ whose prediction changes.}
 \label{tab:adaptive}
 \small
 \begin{tabular}{@{}lcrrrc@{}}
@@ -113,12 +111,12 @@ WikiCS   & 0.10 & 0.6\% & $\ms{2.10}{0.22}$ & $\ms{0.96}{0.97}$ & 0.46 \\
 \end{tabular}
 \end{table}
 
-The adaptive attacker breaches zero nodes within their first-order radius at $\varepsilon = 0.01$ across all datasets and $< 1\%$ even at $\varepsilon = 0.10$, confirming empirical validity of the first-order radii in the small-budget regime. AEGIS's SVD-optimal attack consistently inflicts $20$--$50\%$ more damage than adaptive PGD across all tested budgets (ratio $0.46$--$0.84$). This is because the SVD direction is the globally optimal first-order perturbation, while PGD explores a non-convex landscape and can get trapped in local optima. The AEGIS advantage is largest on WikiCS (ratio $0.46$), where the high-dimensional perturbation space makes PGD convergence hardest.
+The adaptive attacker breaches zero nodes within their first-order radius at $\varepsilon = 0.01$ across all datasets, and fewer than 1\% even at $\varepsilon = 0.10$ (\cref{tab:adaptive}). This confirms the empirical validity of the first-order radii in the small-budget regime. AEGIS's SVD-optimal attack consistently inflicts 20--50\% more damage than adaptive PGD across all tested budgets (ratio 0.46--0.84). The reason is that the SVD direction is the globally optimal first-order perturbation, while PGD explores a non-convex landscape and can become trapped in local optima. The advantage is largest on WikiCS (ratio 0.46), where the high-dimensional perturbation space makes PGD convergence hardest.
 
 \subsection{Phase Transition Validation}
 \label{sec:phase_transition}
 
-To validate \cref{thm:phase_transition}, we scale the adjacency matrix to achieve target spectral radii $\rho \in \{0.3, 0.5, 0.7, 0.85, 0.9, 0.95, 0.99\}$ and measure the actual fixed-point shift under a random perturbation of $\varepsilon = 0.01$. The shift amplifies by $83\times$ as $\rho$ increases from 0.3 to 0.99, confirming the three-regime behavior: bounded shift in the subcritical regime, rapid growth near $\rho = 1$, and divergence in the supercritical regime.
+To validate the three-regime picture of \cref{thm:phase_transition}, we scale the adjacency matrix to achieve target spectral radii $\rho \in \{0.3, 0.5, 0.7, 0.85, 0.9, 0.95, 0.99\}$ and measure the actual fixed-point shift under a random perturbation of $\varepsilon = 0.01$. The shift amplifies by $83\times$ as $\rho$ increases from 0.3 to 0.99, confirming the three-regime behavior: bounded shift in the subcritical regime, rapid growth near the critical threshold, and divergence in the supercritical regime. This validates the $1/(1-\kappa)$ amplification factor predicted by \cref{thm:phase_transition}.
 
 \subsection{Scalability}
 \label{sec:scalability}
@@ -127,7 +125,7 @@ To validate \cref{thm:phase_transition}, we scale the adjacency matrix to achiev
 
 \begin{table}[t]
 \centering
-\caption{Scalability of AEGIS analysis on Cora ego-subgraphs.}
+\caption{Scalability of AEGIS analysis on Cora ego-subgraphs. The bottleneck is $J_A$ computation for $N > 50$.}
 \label{tab:scalability}
 \small
 \begin{tabular}{@{}rrrrrr@{}}
@@ -147,11 +145,11 @@ The practical GPU limit is $N \approx 200$ ($D = 12{,}800$). Empirical scaling i
 \subsection{Subgraph Size Ablation}
 \label{sec:subgraph_ablation}
 
-The default $N=50$ BFS ego-subgraph is critical to AEGIS's scalability. \cref{tab:subgraph} evaluates whether certificate quality depends on subgraph size by varying $N \in \{30, 50, 100, 200\}$ on Cora (10 seeds).
+The default $N=50$ BFS ego-subgraph is critical to scalability. \cref{tab:subgraph} evaluates whether analysis quality depends on subgraph size by varying $N \in \{30, 50, 100, 200\}$ on Cora (10 seeds, same center node).
 
 \begin{table}[t]
 \centering
-\caption{First-order radius stability across subgraph sizes on Cora (10 seeds). Tightness and per-node radius are stable for $N \geq 50$.}
+\caption{First-order radius stability across subgraph sizes on Cora (10 seeds). Tightness and radius are stable for $N \geq 50$.}
 \label{tab:subgraph}
 \small
 \begin{tabular}{@{}rrrrrr@{}}
@@ -166,18 +164,18 @@ $N$ & Tight. & Med.\ $r_v$ & Cert\% & $\rho$ & Time \\
 \end{tabular}
 \end{table}
 
-Tightness is stable at $1.01$--$1.02$ for $N \in \{30, 50, 100\}$ and degrades mildly to $1.031 \pm 0.009$ at $N = 200$, where the larger subgraph captures higher spectral radius ($\rho = 0.75$ vs.\ $0.45$). Median radius \emph{decreases} with $N$ (from $0.064$ at $N=30$ to $0.019$ at $N=200$) because larger subgraphs include higher-degree nodes with smaller margins. Coverage remains stable at $82$--$89\%$. We recommend $N=50$ as the default: tightness $1.013 \pm 0.003$ with $66\times$ speedup over $N=200$ (1.3s vs.\ 86s).
+Tightness is stable at 1.01--1.02 for $N \in \{30, 50, 100\}$ and degrades mildly to $1.031 \pm 0.009$ at $N = 200$, where the larger subgraph captures higher spectral radius ($\rho = 0.75$ vs.\ $0.45$). Median radius decreases with $N$ (from 0.064 at $N=30$ to 0.019 at $N=200$) because larger subgraphs include peripheral nodes with smaller classification margins. Coverage remains stable at 82--89\%. We recommend $N=50$ as the default: tightness $1.013 \pm 0.003$ with $66\times$ speedup over $N=200$ (1.3s vs.\ 86s).
 
 \subsection{Hyperparameter Sensitivity}
 \label{sec:hyperparams}
 
-We evaluate sensitivity to the key hyperparameters: hidden dimension $d$ and spectral-norm constraint $c$.
+We evaluate sensitivity to the two key architectural hyperparameters: hidden dimension $d$ and spectral-norm constraint $c$ (the upper bound on $\norm{W}_2$).
 
-\textbf{Hidden dimension.} Varying $d \in \{16, 32, 64, 128\}$ on Cora: tightness is $1.012$--$1.013$ for all values, confirming robustness to architecture width. Accuracy improves from $74.7\%$ ($d=16$) to $79.1\%$ ($d=64$). The critical budget $\ecrit$ and median radius are stable across $d$: $\ecrit \in [0.53, 0.56]$, $r_v \in [0.037, 0.051]$.
+\textbf{Hidden dimension.} Varying $d \in \{16, 32, 64, 128\}$ on Cora: tightness is 1.012--1.013 for all values, confirming robustness to architecture width. Accuracy improves from 74.7\% ($d=16$) to 79.1\% ($d=64$). The critical budget and median radius are stable across $d$: $\ecrit \in [0.53, 0.56]$, $r_v \in [0.037, 0.051]$.
 
-\textbf{Spectral norm constraint.} Varying $c \in \{0.5, 0.7, 0.9, 0.95\}$ reveals the accuracy--robustness tradeoff predicted by \cref{thm:phase_transition}. At $c = 0.5$: $\rho = 0.25$, $\ecrit = 1.50$, median $r_v = 0.090$---the largest certificates, but accuracy drops to $72.1\%$. At $c = 0.9$: $\rho = 0.45$, $\ecrit = 0.61$, $r_v = 0.051$, accuracy peaks at $80.6\%$. Radii shrink by $1.8\times$ from $c = 0.5$ to $c = 0.9$ as $1/(1 - \kappa)$ grows, consistent with the theoretical amplification factor.
+\textbf{Spectral norm constraint.} Varying $c \in \{0.5, 0.7, 0.9, 0.95\}$ reveals the accuracy-robustness tradeoff predicted by \cref{thm:phase_transition}. At $c = 0.5$: $\rho = 0.25$, $\ecrit = 1.50$, median $r_v = 0.090$, giving the largest radii but accuracy drops to 72.1\%. At $c = 0.9$: $\rho = 0.45$, $\ecrit = 0.61$, $r_v = 0.051$, accuracy peaks at 80.6\%. Radii shrink by $1.8\times$ from $c = 0.5$ to $c = 0.9$ as $1/(1 - \kappa)$ grows, consistent with the theoretical amplification factor in \cref{eq:shift_bound}.
 
 \subsection{DEQ Convergence Diagnostics}
 \label{sec:convergence}
 
-We report convergence statistics for the IGNN fixed-point iteration across all 9 datasets (10 seeds, relative tolerance $\norm{Z_{k+1} - Z_k}_F < 10^{-5} \cdot \max(\norm{Z}_F, 1)$). Convergence is 100\% across all datasets and seeds. Graph benchmarks require $28 \pm 7$ (Amazon) to $113 \pm 39$ (Cora) iterations, while IEEE grids converge faster: $11 \pm 2$ (case14) to $44 \pm 13$ (case57). The non-normality index is $\eta = 1.02$--$1.05$ on graph benchmarks and $\eta = 1.20$--$1.28$ on IEEE grids, confirming mild non-normality across all domains. No seed on any dataset failed to converge, consistent with the enforced contractivity constraint $\kappa = \norm{J_z}_2 < 1$ (via spectral normalization of $W$).
+We report convergence statistics for the IGNN fixed-point iteration across all 9 datasets (10 seeds, relative tolerance $\norm{Z_{k+1} - Z_k}_F < 10^{-5} \cdot \max(\norm{Z_k}_F, 1)$). Convergence is 100\% across all datasets and seeds. Graph benchmarks require $28 \pm 7$ (Amazon) to $113 \pm 39$ (Cora) iterations, while IEEE grids converge faster: $11 \pm 2$ (case14) to $44 \pm 13$ (case57). The pseudospectral index is $\eta = 1.02$--$1.05$ on graph benchmarks and $\eta = 1.20$--$1.28$ on IEEE grids, confirming mild non-normality across all domains. No seed on any dataset failed to converge, consistent with the enforced contractivity $\kappa = \norm{J_z}_2 < 1$ via spectral normalization~\cite{miyato2018spectral} of $W$.

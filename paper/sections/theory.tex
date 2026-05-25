@@ -3,7 +3,7 @@
 \label{sec:theory}
 %% ===================================================================
 
-We formalize how structural perturbations affect DEQ-GNN equilibria, yielding actionable thresholds for practitioners. The characterization leverages the Banach fixed-point theorem and IFT; the central novel object is the \emph{constrained sensitivity matrix} $S_c$ (below), which enables tight first-order predictions under realistic perturbation constraints.
+Having formalized the problem in \cref{sec:background}, we now derive the theoretical foundation for answering the three questions posed there. The main result (\cref{thm:phase_transition}) characterizes vulnerability regimes as a function of perturbation magnitude, while the constrained sensitivity matrix $S_c$ provides the unified object from which vulnerability rankings, optimal attacks, and robustness radii are all extracted.
 
 \begin{theorem}[Vulnerability Characterization for Contractive Implicit GNNs]
 \label{thm:phase_transition}
@@ -17,51 +17,63 @@ Define the critical budget
 \begin{equation}
 \ecrit = \frac{1 - \kappa}{\norm{W}_2}.
 \end{equation}
-Then structural perturbations $\delta A$ exhibit three regimes:
+Then structural perturbations $\delta A$ with $\norm{\delta A}_F = \varepsilon$ exhibit three regimes:
 
-\noindent\textbf{(a) Subcritical} ($\norm{\delta A}_F < \ecrit$): The perturbed operator remains contractive with a unique fixed point satisfying
+\noindent\textbf{(a) Subcritical} ($\varepsilon < \ecrit$): The perturbed operator remains contractive with a unique fixed point satisfying
 \begin{equation}
-\norm{\Delta \zstar}_F \leq \sigma_1(S) \cdot \norm{\delta A}_F + O(\norm{\delta A}_F^2),
+\norm{\Delta \zstar}_F \leq \sigma_1(S) \cdot \varepsilon + O(\varepsilon^2),
 \label{eq:shift_bound}
 \end{equation}
-where $S = (I - J_z)^{-1} J_A$ and $\sigma_1(S) \leq \norm{J_A}_{\mathrm{op}} / (1 - \kappa)$.
+where $S = (I - J_z)^{-1} J_A$ is the structural sensitivity matrix and $\sigma_1(S) \leq \norm{J_A}_{\mathrm{op}} / (1 - \kappa)$.
 
-\noindent\textbf{(b) Critical} ($\norm{\delta A}_F \to \ecrit$): The resolvent norm $\norm{(I - J_z')^{-1}}_2$ diverges as $\Omega(1/(\ecrit - \norm{\delta A}_F))$. Since $\kappa = \norm{J_z}_2$ already accounts for non-normality (unlike the spectral radius $\rho(J_z)$, which can underestimate the resolvent norm by a factor $\eta \geq 1$~\cite{trefethen2005spectra}), the $\kappa$-based threshold requires no normality assumption.
+\noindent\textbf{(b) Critical} ($\varepsilon \to \ecrit$): The resolvent norm $\norm{(I - J_z')^{-1}}_2$ diverges as $\Omega(1/(\ecrit - \varepsilon))$. Intuitively, as the perturbation approaches the critical budget, the system's sensitivity to further perturbation grows without bound.
 
-\noindent\textbf{(c) Supercritical} ($\norm{\delta A}_F > \ecrit$): The sufficient contraction certificate becomes void ($\norm{J_z'}_2$ may exceed 1). The perturbed operator may still be contractive depending on perturbation direction, but the Banach fixed-point theorem no longer guarantees uniqueness, and all first-order guarantees from part~(a) cease to apply.
+\noindent\textbf{(c) Supercritical} ($\varepsilon > \ecrit$): The sufficient contraction certificate becomes void ($\norm{J_z'}_2$ may exceed 1). The perturbed operator may still be contractive depending on perturbation direction, but the Banach fixed-point theorem no longer guarantees uniqueness, and the first-order guarantees from part~(a) cease to apply.
 \end{theorem}
 
+The intuition behind this three-regime picture is physical: a contractive system has a restoring force that pulls trajectories toward the equilibrium. Small perturbations shift the equilibrium smoothly (subcritical). As the perturbation approaches $\ecrit$, the restoring force weakens until the system becomes critically sensitive. Beyond $\ecrit$, the restoring force may vanish entirely, and the equilibrium can bifurcate or disappear.
+
 \begin{proof}
-\textbf{Part (a).} The true Jacobian of $F$ w.r.t.\ $\mathrm{vec}(Z)$ is $J_z = \mathrm{diag}(\sigma') \cdot (A \otimes W)$, where $\sigma' \in \{0, 1\}^{Nd}$ for ReLU (A1). Thus $\kappa = \norm{J_z}_2 \leq \norm{A}_2 \cdot \norm{W}_2 \cdot \sup|\sigma'| = \norm{A}_2 \cdot \norm{W}_2$. By the IFT applied to $G(z,A) = z - F(z,A) = 0$ at $(\zstar, A)$:
+\textbf{Part (a).} The Jacobian of $F$ with respect to $\mathrm{vec}(Z)$ takes the form $J_z = \mathrm{diag}(\sigma') \cdot (\Ahat \otimes W)$, where $\sigma' \in \{0, 1\}^{Nd}$ for ReLU (A1). The operator norm satisfies $\kappa = \norm{J_z}_2 \leq \norm{\Ahat}_2 \cdot \norm{W}_2 \cdot \sup|\sigma'| = \norm{\Ahat}_2 \cdot \norm{W}_2$. Applying the IFT to $G(z,A) = z - F(z,A) = 0$ at $(\zstar, A)$:
 \begin{equation}
 \Delta \zstar = (I - J_z)^{-1} J_A \cdot \mathrm{vec}(\delta A) + O(\norm{\delta A}^2).
 \end{equation}
-Taking operator norms: $\norm{\Delta \zstar}_F \leq \norm{(I-J_z)^{-1}}_2 \cdot \norm{J_A}_{\mathrm{op}} \cdot \norm{\delta A}_F + O(\norm{\delta A}_F^2)$. Since $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\kappa)$ (Neumann series, convergent because $\kappa = \norm{J_z}_2 < 1$), this gives~\eqref{eq:shift_bound}.
+Taking operator norms and using the Neumann series bound $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\kappa)$ (convergent because $\kappa < 1$) yields~\eqref{eq:shift_bound}.
 
-For contractivity preservation under perturbation: the perturbed Jacobian satisfies $\norm{J_z'}_2 \leq \norm{A + \delta A}_2 \cdot \norm{W}_2 \leq (\norm{A}_2 + \norm{\delta A}_F) \cdot \norm{W}_2$ (using $\norm{\cdot}_2 \leq \norm{\cdot}_F$). The condition $\norm{\delta A}_F < (1-\kappa)/\norm{W}_2$ ensures $\norm{J_z'}_2 < 1$.
+For contractivity preservation: the perturbed Jacobian satisfies $\norm{J_z'}_2 \leq (\norm{A}_2 + \norm{\delta A}_F) \cdot \norm{W}_2$ (using $\norm{\cdot}_2 \leq \norm{\cdot}_F$ for the perturbation). The condition $\varepsilon < (1-\kappa)/\norm{W}_2$ ensures $\norm{J_z'}_2 < 1$.
 
-\textbf{Part (b).} As $\norm{\delta A}_F \to \ecrit$, $\norm{J_z'}_2 \to 1$, so $\norm{(I - J_z')^{-1}}_2 \geq 1/(1 - \norm{J_z'}_2) \to \infty$. Unlike the spectral-radius bound $1/(1-\rho)$, which requires normality, the $\kappa$-based bound holds for all $J_z$ with $\kappa < 1$. In our experiments, the pseudospectral index $\eta = \norm{(I-J_z)^{-1}}_2 \cdot (1-\rho)$ ranges from $1.02$ to $1.28$, confirming mild non-normality.
+\textbf{Part (b).} As $\varepsilon \to \ecrit$, we have $\norm{J_z'}_2 \to 1$, so $\norm{(I - J_z')^{-1}}_2 \geq 1/(1 - \norm{J_z'}_2) \to \infty$. Unlike the spectral-radius bound $1/(1-\rho)$, which requires normality, the operator-norm bound holds for all $J_z$ with $\kappa < 1$. In our experiments, the pseudospectral index $\eta$ ranges from $1.02$ to $1.28$ (\cref{sec:convergence}), confirming mild non-normality.
 
-\textbf{Part (c).} When $\norm{J_z'}_2 \geq 1$, the contraction mapping condition fails. The Banach fixed-point theorem no longer guarantees existence or uniqueness; the iteration may converge to a different equilibrium, oscillate, or diverge.
+\textbf{Part (c).} When $\norm{J_z'}_2 \geq 1$, the contraction mapping condition fails. The Banach theorem no longer guarantees existence or uniqueness; the iteration may converge to a different equilibrium, oscillate, or diverge.
 \end{proof}
 
-\textbf{Remark.} This characterization is conservative in two senses: (1)~$\ecrit$ is a sufficient, not necessary, condition---the perturbed system may remain contractive beyond $\ecrit$ depending on perturbation direction; (2)~the unconstrained bound uses worst-case $\norm{\cdot}_F$ relaxation. Under constrained perturbations, the first-order prediction achieves tightness $\approx 1.00$ empirically (\cref{sec:cross_domain}). We use the operator-norm contraction constant $\kappa = \norm{J_z}_2$ rather than the spectral radius $\rho(J_z)$; for normal $J_z$ these coincide, while for non-normal $J_z$ the $\kappa$-based bound is more conservative but requires no normality assumption.
+\textbf{Remark (conservativeness).} The critical budget $\ecrit$ is a sufficient, not necessary, condition for contractivity preservation. The perturbed system may remain contractive beyond $\ecrit$ if the perturbation is aligned with low-sensitivity directions. The unconstrained bound also uses worst-case $\norm{\cdot}_F$ relaxation. Under constrained perturbations, the first-order prediction achieves tightness $\approx 1.00$ (\cref{sec:cross_domain}). We use $\kappa = \norm{J_z}_2$ rather than the spectral radius $\rho(J_z)$ because the Neumann series requires operator-norm contractivity; for normal $J_z$ the two coincide, while for non-normal $J_z$ the $\kappa$-based bound is more conservative but requires no normality assumption.
 
 \begin{proposition}[Optimal First-Order Structural Attack]
 \label{prop:attack}
 The perturbation $\delta A^*$ maximizing $\norm{\Delta \zstar}$ to first order subject to $\norm{\delta A}_F \leq \varepsilon$ is $\delta A^* = \varepsilon \cdot \mathrm{reshape}(v_1, N \times N)$, where $v_1$ is the leading right singular vector of $S$. The maximum first-order shift is $\varepsilon \cdot \sigma_1(S)$.
 \end{proposition}
 
-\textbf{Threat model and constrained sensitivity.} We perturb the normalized adjacency $\Ahat$ directly, subject to $\norm{\delta \Ahat}_F \leq \varepsilon$, symmetry ($\delta \Ahat = \delta \Ahat^\top$), and edge-only support. This models continuous edge-weight perturbations; discrete edge additions that change topology and degree normalization are outside the formal guarantee. We construct the \emph{constrained sensitivity matrix} $S_c \in \R^{D \times |E|}$ with column $S_{:,iN+j} + S_{:,jN+i}$ for each edge $(i,j) \in E$, reducing the perturbation space from $N^2$ to $|E|$ dimensions. The constrained-optimal attack uses $\sigma_1(S_c)$, yielding tightness $\approx 1.00$ empirically (\cref{sec:cross_domain}). This $S_c$ construction is the central technical contribution: it transforms unconstrained sensitivity analysis into a tight, practical tool for realistic graph perturbations.
+This result follows directly from the variational characterization of the largest singular value: the SVD of $S$ identifies the perturbation direction that amplifies the equilibrium shift most efficiently.
 
-\begin{proposition}[Per-Node Robust Radius]
+\textbf{Threat model and constrained sensitivity.} As discussed in \cref{sec:background}, realistic graph perturbations are symmetric and edge-only. We perturb the normalized adjacency $\Ahat$ directly, subject to $\norm{\delta \Ahat}_F \leq \varepsilon$, symmetry ($\delta \Ahat = \delta \Ahat^\top$), and support restricted to existing edges. Discrete edge additions that change topology are outside the formal guarantee.
+
+To enforce these constraints, we construct the \emph{constrained sensitivity matrix} $S_c \in \R^{D \times |E|}$ with column
+\begin{equation}
+[S_c]_{:,k} = S_{:,iN+j} + S_{:,jN+i}
+\end{equation}
+for each edge $(i,j) \in E$. This reduces the perturbation space from $N^2$ dimensions to $|E|$ dimensions and enforces symmetry by construction. The constrained-optimal attack uses $\sigma_1(S_c)$, achieving tightness $\approx 1.00$ empirically (\cref{sec:cross_domain}). The construction of $S_c$ is the central technical contribution of this work: it transforms unconstrained sensitivity analysis into a tight, practical tool for realistic graph perturbations.
+
+\begin{proposition}[Per-Node First-Order Robust Radius]
 \label{prop:radius}
 Assume a linear classification head $f(z) = Wz + b$ (as in standard IGNN). For node $v$ with margin $m_v = f_{y_v}(\zstar_v) - \max_{c \neq y_v} f_c(\zstar_v) > 0$, the first-order robust radius is
 \begin{equation}
-r_v = \frac{m_v}{\norm{\partial f / \partial \zstar_v}_2 \cdot \norm{S_v}_2},
+r_v = \frac{m_v}{\norm{W_{y_v} - W_{c^*}}_2 \cdot \norm{S_v}_2},
 \label{eq:radius}
 \end{equation}
-where $S_v$ denotes the block-rows of $S$ for node $v$, and $\norm{\partial f / \partial \zstar_v}_2 = \norm{W_{y_v} - W_{c^*}}_2$ for the runner-up class $c^*$. Any $\norm{\delta A}_F < r_v$ preserves the classification of node~$v$. For nonlinear heads (softmax + MLP), the global Lipschitz constant must be replaced by the local Lipschitz constant at $\zstar_v$, yielding a potentially tighter but harder-to-compute radius.
-
-These radii are deterministic (not probabilistic), unlike randomized smoothing~\cite{bojchevski2020efficient} which holds with probability $1-\alpha$. They are first-order guarantees: locally tight for small $\varepsilon$ but increasingly conservative as perturbation magnitude grows and higher-order terms dominate. Without bounding the second-order remainder $O(\norm{\delta A}_F^2)$, they should be interpreted as local sensitivity radii rather than global robustness certificates.
+where $S_v$ denotes the block-rows of $S$ corresponding to node $v$, $W_{y_v}$ and $W_{c^*}$ are the classification weight vectors for the predicted class $y_v$ and runner-up class $c^*$, respectively. Any perturbation with $\norm{\delta \Ahat}_F < r_v$ preserves the classification of node $v$ to first order.
 \end{proposition}
+
+The radius $r_v$ has an intuitive interpretation: it is the classification margin $m_v$ (how confident the model is) divided by the product of two amplification factors. The term $\norm{W_{y_v} - W_{c^*}}_2$ measures how sensitive the decision boundary is to hidden-state changes, while $\norm{S_v}_2$ measures how sensitive node $v$'s equilibrium position is to structural perturbation. Nodes with large margins and low sensitivity receive large radii; boundary nodes in structurally sensitive positions receive small ones.
+
+These radii are deterministic (not probabilistic), unlike randomized smoothing~\cite{bojchevski2020efficient} which holds with probability $1-\alpha$. They are first-order guarantees: locally tight for small $\varepsilon$ but increasingly conservative as perturbation magnitude grows. Without bounding the second-order remainder $O(\norm{\delta A}_F^2)$, they should be interpreted as local sensitivity radii rather than global robustness certificates. \cref{sec:adaptive} verifies empirically that the radii hold (0\% breach rate at $\varepsilon = 0.01$, $< 1\%$ at $\varepsilon = 0.10$).

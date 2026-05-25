@@ -1,16 +1,78 @@
 %% ===================================================================
-\section{AEGIS Framework}
+\section{AEGIS Construction}
 \label{sec:framework}
 %% ===================================================================
 
-AEGIS packages the theory into a Python API applicable to any contractive implicit GNN (IGNN-class architecture). Given an operator $F$ with factorized $A$/$W$ structure, fixed point $\zstar$, and context (adjacency, features), the \texttt{IEMiner} class provides:
+The theoretical results of \cref{sec:theory} provide the mathematical foundation for vulnerability analysis, but translating them into a practical tool requires careful engineering. This section describes the AEGIS pipeline: how its components fit together, what each one computes, and how the system scales to real graphs.
 
-\begin{enumerate}
-\item \textbf{Vulnerability analysis}: compute $S$, $\sigma_1(S_c)$, and the per-edge vulnerability spectrum $v_{ij} = \norm{S_{:,iN+j} + S_{:,jN+i}}$.
-\item \textbf{First-order robustness radii}: per-node $r_v$ via \cref{prop:radius}, critical budget $\ecrit$ via \cref{thm:phase_transition}.
-\item \textbf{Contractivity verification}: contraction constant $\kappa = \norm{J_z}_2$ via largest singular value, non-normality index $\eta = \norm{(I-J_z)^{-1}}_2 \cdot (1-\rho)$.
-\end{enumerate}
+\subsection{Architecture Overview}
 
-\textbf{Subgraph-based analysis.} The framework operates on BFS ego-subgraphs (typically 50--200 nodes) extracted from the full graph. The model is trained on the full graph; only the adversarial analysis is local. This suffices because per-node radii and edge vulnerability are inherently local quantities---a node's first-order radius depends on its own margin and the sensitivity of its neighborhood, not distant parts of the graph.
+AEGIS takes as input a trained contractive implicit GNN (any IGNN-class model satisfying assumptions A1--A3) together with a target graph and produces three outputs: (i) a per-edge vulnerability spectrum ranking edges by adversarial impact, (ii) SVD-optimal attack perturbations, and (iii) per-node first-order robustness radii. The pipeline consists of four stages executed sequentially, as illustrated in \cref{fig:pipeline}.
 
-\textbf{Computational cost.} The dominant cost is computing $J_z \in \R^{D \times D}$ and $J_A \in \R^{D \times N^2}$ via row-by-row backward passes, followed by a linear solve for $S$. Total cost is $O(D \cdot N^2 + D^3)$ where $D = N \cdot d$. On a single GPU, this ranges from 0.5s ($N=20$) to 8.1s ($N=200$); see \cref{sec:scalability}.
+\begin{figure}[t]
+\centering
+\small
+\begin{tabular}{@{}c@{}}
+\framebox[\columnwidth]{%
+\parbox{0.92\columnwidth}{\centering\vspace{2pt}
+\textbf{Stage 1:} Subgraph Extraction \& Equilibrium\\[2pt]
+$\downarrow$ \small{BFS ego-subgraph ($N$ nodes) $\to$ iterate $F$ to fixed point $\zstar$}\\[4pt]
+\textbf{Stage 2:} Jacobian Computation\\[2pt]
+$\downarrow$ \small{Row-by-row backward passes $\to$ $J_z \in \R^{D \times D}$, $J_A \in \R^{D \times N^2}$}\\[4pt]
+\textbf{Stage 3:} Sensitivity Construction\\[2pt]
+$\downarrow$ \small{Linear solve $(I - J_z)^{-1} J_A \to S$; edge projection $\to S_c$}\\[4pt]
+\textbf{Stage 4:} Vulnerability Analysis\\[2pt]
+\small{SVD of $S_c$ $\to$ attack directions, vulnerability spectrum, radii $r_v$}
+\vspace{2pt}}%
+}
+\end{tabular}
+\caption{The AEGIS pipeline. Each stage feeds into the next; the bottleneck is Stage~2 (Jacobian computation), which dominates wall-clock time for $N > 50$.}
+\label{fig:pipeline}
+\end{figure}
+
+\subsection{Stage 1: Subgraph Extraction and Equilibrium}
+
+Full-graph analysis is infeasible for large graphs because the Jacobian $J_z$ has dimension $D \times D$ where $D = N \cdot d$ (number of nodes times hidden dimension). AEGIS addresses this by extracting a local BFS ego-subgraph of $N$ nodes centered on the target node. The model, trained on the full graph, is then run on this subgraph until convergence to the fixed point $\zstar = F(\zstar, A_{\text{sub}})$. Convergence is verified by checking the relative residual $\norm{Z_{k+1} - Z_k}_F / \max(\norm{Z_k}_F, 1) < 10^{-5}$. This localization is justified by the locality of per-node vulnerability: a node's robustness radius depends on its own classification margin and the sensitivity of its immediate neighborhood, both of which are well-captured within a 2--3 hop BFS subgraph (\cref{sec:subgraph_ablation}).
+
+\subsection{Stage 2: Jacobian Computation}
+
+The sensitivity matrix $S = (I - J_z)^{-1} J_A$ requires two Jacobian matrices:
+
+\textbf{State Jacobian} $J_z = \partial F / \partial \mathrm{vec}(Z) |_{\zstar} \in \R^{D \times D}$. Each row is obtained by a single backward pass through the operator $F$ with respect to the flattened state vector. For IGNN with ReLU activation, this takes the form $J_z = \mathrm{diag}(\sigma') \cdot (\Ahat \otimes W)$, where $\sigma' \in \{0,1\}^D$ records the activation pattern at $\zstar$.
+
+\textbf{Adjacency Jacobian} $J_A = \partial F / \partial \mathrm{vec}(A) |_{\zstar} \in \R^{D \times N^2}$. This captures how each entry of the adjacency matrix influences the operator output. It is computed analogously via $D$ backward passes, each probing one output dimension.
+
+Both Jacobians are computed using automatic differentiation~\cite{paszke2019pytorch}. The total cost is $O(D)$ backward passes, each of cost $O(D)$, giving $O(D^2)$ overall for this stage.
+
+\subsection{Stage 3: Sensitivity Matrix Construction}
+
+Given $J_z$ and $J_A$, AEGIS constructs the full sensitivity matrix by solving the linear system
+\begin{equation}
+(I - J_z) \, S = J_A.
+\end{equation}
+Since $\kappa = \norm{J_z}_2 < 1$ by assumption A3, the matrix $(I - J_z)$ is invertible and well-conditioned with condition number at most $1/(1-\kappa)$. AEGIS solves this system using a dense LU factorization, which costs $O(D^3)$ but is fast in practice for $D \leq 12{,}800$ (i.e., $N \leq 200$ with $d = 64$).
+
+The full sensitivity matrix $S \in \R^{D \times N^2}$ maps arbitrary vectorized adjacency perturbations to fixed-point shifts. However, realistic graph perturbations are constrained: they must be symmetric (undirected graphs) and supported only on existing edges. AEGIS therefore projects $S$ into the \emph{constrained sensitivity matrix} $S_c \in \R^{D \times |E|}$, whose $k$-th column (for edge $(i,j) \in E$) is
+\begin{equation}
+[S_c]_{:,k} = S_{:, iN+j} + S_{:, jN+i}.
+\label{eq:sc_construction}
+\end{equation}
+The summation enforces symmetry: perturbing edge $(i,j)$ affects both $A_{ij}$ and $A_{ji}$ simultaneously. This projection reduces the perturbation space from $N^2$ dimensions to $|E|$ dimensions and is what enables the tight first-order predictions reported in \cref{sec:cross_domain}.
+
+\subsection{Stage 4: Vulnerability Analysis}
+
+From $S_c$, AEGIS extracts three complementary outputs:
+
+\textbf{Optimal attack direction.} The SVD of $S_c = U \Sigma V^\top$ yields the first-order optimal perturbation as $\delta A^* = \varepsilon \cdot v_1$ (the leading right singular vector of $S_c$, reshaped to edge weights). This perturbation maximizes the fixed-point shift $\norm{\Delta \zstar}_F$ subject to the Frobenius-norm budget $\varepsilon$, and achieves a shift of $\varepsilon \cdot \sigma_1(S_c)$.
+
+\textbf{Per-edge vulnerability spectrum.} For each edge $(i,j) \in E$, the vulnerability score $v_{ij} = \norm{[S_c]_{:,k}}_2$ measures how much a unit perturbation of that edge shifts the equilibrium. Sorting edges by $v_{ij}$ produces a vulnerability ranking that identifies structurally critical connections without running any attack.
+
+\textbf{Per-node first-order radii.} For node $v$ with classification margin $m_v$ (gap between the predicted and runner-up class logits), the radius from \cref{prop:radius} is
+\begin{equation}
+r_v = \frac{m_v}{\norm{W_{y_v} - W_{c^*}}_2 \cdot \norm{S_v}_2},
+\end{equation}
+where $S_v$ denotes the block-rows of $S$ corresponding to node $v$, and $W_{y_v}, W_{c^*}$ are the classification head weights for the predicted and runner-up classes. Any perturbation with $\norm{\delta \Ahat}_F < r_v$ preserves the classification of node $v$ to first order.
+
+\subsection{Computational Cost}
+
+\cref{tab:scalability} in \cref{sec:scalability} reports wall-clock times. The dominant cost is Stage~2 (Jacobian computation) at $O(D \cdot N^2)$ for $J_A$, followed by Stage~3 (linear solve) at $O(D^3)$. For the default subgraph size $N = 50$ with $d = 64$ (giving $D = 3{,}200$), the full pipeline completes in 1.3 seconds on a single GPU. The practical limit is $N \approx 200$ ($D = 12{,}800$, 8.1 seconds), which covers all IEEE test cases and typical ego-network sizes for node-level analysis.
