@@ -213,13 +213,12 @@ def main():
     from iem import IEMiner
 
     # Use a SUBGRAPH for Jacobian tractability (full Cora N=2708 → D=2708*64=173k — too large)
-    # Take a 50-node ego subgraph around a high-degree node
-    deg = A_hat.sum(dim=1)
-    center = int(deg.argmax().item())
-    neighbors = (A_hat[center] > 0).nonzero(as_tuple=True)[0]
-    subgraph_idx = neighbors[:50]  # 50 nodes
+    # BFS ego subgraph ensures connectivity (first-k neighbors may be disconnected)
+    from iem.adversarial import extract_ego_subgraph
+    subgraph_idx = extract_ego_subgraph(A_hat, max_nodes=50)
     S = len(subgraph_idx)
-    print(f"  Subgraph: {S} nodes around center node {center} (deg={int(deg[center].item())})")
+    center = int(subgraph_idx[0].item())
+    print(f"  Subgraph: {S} nodes (BFS from center node {center})")
 
     A_sub = A_hat[subgraph_idx][:, subgraph_idx]
     X_proj_sub = ctx["X_proj"][subgraph_idx]

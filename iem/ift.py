@@ -114,14 +114,18 @@ def ift_solve_neumann(
     b = dF_dp.detach().reshape(-1)
 
     def jvp(v_in: Tensor) -> Tensor:
-        """Compute J · v via forward-mode AD."""
-        z_in = z_flat.detach().requires_grad_(True)
-        f_out = F(z_in.reshape(z_star.shape)).reshape(-1)
-        Jv = torch.autograd.grad(
-            f_out, z_in, grad_outputs=v_in,
-            create_graph=False, retain_graph=False,
-        )[0]
-        return Jv
+        """Compute J · v via forward-mode AD (true JVP, not VJP)."""
+        try:
+            from torch.func import jvp as torch_jvp
+            def F_flat(z):
+                return F(z.reshape(z_star.shape)).reshape(-1)
+            _, Jv = torch_jvp(F_flat, (z_flat,), (v_in,))
+            return Jv
+        except (ImportError, RuntimeError):
+            eps_fd = 1e-5
+            f_plus = F((z_flat + eps_fd * v_in).reshape(z_star.shape)).reshape(-1)
+            f_base = F(z_flat.reshape(z_star.shape)).reshape(-1)
+            return (f_plus - f_base) / eps_fd
 
     result = b.clone()
     term = b.clone()

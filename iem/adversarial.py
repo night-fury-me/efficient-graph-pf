@@ -265,6 +265,9 @@ def optimal_structural_attack(
 
     if symmetric and attack_direction.dim() == 2 and attack_direction.shape[0] == N:
         attack_direction = (attack_direction + attack_direction.T) / 2
+        sym_norm = attack_direction.norm()
+        if sym_norm > 1e-10:
+            attack_direction = attack_direction / sym_norm
 
     # Per-edge vulnerability spectrum
     edges = []
