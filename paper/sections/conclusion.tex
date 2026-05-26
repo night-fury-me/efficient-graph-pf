@@ -9,4 +9,4 @@
 
 \textbf{Ethical considerations.} \AEGIS identifies optimal attack directions and structurally vulnerable edges, which could be misused to attack deployed GNNs in safety-critical domains. We argue the diagnostic value outweighs this risk: defenders must understand their system's attack surface to protect it, and the same vulnerability map directly informs defense design (\cref{sec:defense_ablation}). We will release code with responsible-use guidelines, consistent with established practice in adversarial ML~\cite{wu2019adversarial}.
 
-\textbf{Future work.} Second-order bounds for formal certificates; discrete perturbation models; integration with defense mechanisms~\cite{jin2020graph,zhang2020gnnguard} for vulnerability-aware training; extending full-graph analysis beyond $N \approx 5{,}000$ via distributed JVP computation.
+\textbf{Future work.} Second-order bounds for formal certificates; discrete perturbation models; integration with defense mechanisms~\cite{jin2020graph,zhang2020gnnguard} for vulnerability-aware training; extending full-graph analysis beyond the current validated boundary ($N{=}7{,}650$ on a single GPU) via distributed JVP computation.

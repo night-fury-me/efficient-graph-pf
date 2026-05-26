@@ -7,7 +7,7 @@ Translating the results of \cref{sec:theory} into a practical tool requires over
 
 \subsection{Architecture Overview}
 
-\AEGIS takes as input a trained GNN (any differentiable architecture) together with a target graph and produces three outputs: (i) a per-edge vulnerability spectrum ranking edges by adversarial impact, (ii) SVD-optimal attack perturbations, and (iii) per-node first-order sensitivity radii. For contractive implicit GNNs (IGNN-class satisfying A1--A3), the pipeline additionally computes the critical budget $\ecrit$ and convergence diagnostics; these theoretical guarantees are specific to the implicit case. The pipeline consists of four stages executed sequentially, as illustrated in \cref{fig:pipeline}.
+\AEGIS takes as input a trained GNN (any architecture whose message passing is differentiable with respect to edge weights) together with a target graph and produces three outputs: (i) a per-edge vulnerability spectrum ranking edges by adversarial impact, (ii) SVD-optimal attack perturbations, and (iii) per-node first-order sensitivity radii. For contractive implicit GNNs (IGNN-class satisfying A1--A3), the pipeline additionally computes the critical budget $\ecrit$ and convergence diagnostics; these theoretical guarantees are specific to the implicit case. The pipeline consists of four stages executed sequentially, as illustrated in \cref{fig:pipeline}.
 
 \begin{figure}[t]
 \centering
@@ -32,7 +32,7 @@ Translating the results of \cref{sec:theory} into a practical tool requires over
 \draw[arr] (s4) -- (out);
 \end{tikzpicture}%
 }
-\caption{The \AEGIS pipeline. The matrix-free formulation (Stages~2--4) operates via JVP/VJP queries without materializing $S$ or $S_c$, enabling full-graph analysis up to $N \approx 5{,}000$.}
+\caption{The \AEGIS pipeline. The matrix-free formulation (Stages~2--4) operates via JVP/VJP queries without materializing $S$ or $S_c$, enabling full-graph analysis (tested up to $N{=}7{,}650$).}
 \label{fig:pipeline}
 \end{figure}
 
@@ -76,4 +76,4 @@ where $S_v$ denotes the block-rows of $S$ corresponding to node $v$, and $W_{y_v
 
 \textbf{Scalability.} On a single NVIDIA RTX 4090 (24\,GB), the matrix-free pipeline completes in 1.1s for $N{=}50$, 4.5s for $N{=}200$, 24s for $N{=}1{,}000$, and 78s for full Cora ($N{=}2{,}708$, $Nd{=}173{,}312$) using 1\,GB GPU memory (\cref{sec:scalability}). The dense path runs faster for $N \leq 100$ (0.7s at $N{=}50$) but exceeds 24\,GB at $N{=}500$.
 
-The matrix-free formulation removes the $O((Nd)^3)$ linear-solve bottleneck and the $O(N^3 d)$ storage requirement that previously limited analysis to $N \approx 300$, enabling full-graph vulnerability analysis on graphs with thousands of nodes.
+The matrix-free formulation removes the $O((Nd)^3)$ linear-solve bottleneck and the $O(N^3 d)$ storage requirement that previously limited analysis to $N \approx 300$, enabling full-graph vulnerability analysis on graphs with thousands of nodes (validated up to $N{=}7{,}650$; \cref{sec:scalability}).

@@ -153,6 +153,11 @@ L.~El~Ghaoui, F.~Gu, B.~Travacca, A.~Askari, and A.~Tsai, ``Implicit deep
 M.~Revay, R.~Wang, and I.~R. Manchester, ``Lipschitz bounded equilibrium
   networks,'' in \emph{arXiv preprint arXiv:2010.01732}, 2020.
 
+\bibitem{bolte2021conservative}
+J.~Bolte and E.~Pauwels, ``Conservative set valued fields, automatic
+  differentiation, stochastic gradient descent and deep learning,''
+  \emph{Mathematical Programming}, vol. 188, pp. 19--51, 2021.
+
 \bibitem{stewart1990matrix}
 G.~W. Stewart and J.-g. Sun, \emph{Matrix Perturbation Theory}.\hskip 1em plus
   0.5em minus 0.4em\relax Academic Press, 1990.
@@ -198,11 +203,6 @@ T.~N. Kipf and M.~Welling, ``Semi-supervised classification with graph
 A.~Madry, A.~Makelov, L.~Schmidt, D.~Tsipras, and A.~Vladu, ``Towards deep
   learning models resistant to adversarial attacks,'' in \emph{International
   Conference on Learning Representations}, 2018.
-
-\bibitem{chen2020simple}
-M.~Chen, Z.~Wei, Z.~Huang, B.~Ding, and Y.~Li, ``Simple and deep graph
-  convolutional networks,'' in \emph{International Conference on Machine
-  Learning}.\hskip 1em plus 0.5em minus 0.4em\relax PMLR, 2020, pp. 1725--1735.
 
 \bibitem{brody2022how}
 S.~Brody, U.~Alon, and E.~Yahav, ``How attentive are graph attention
@@ -278,5 +278,36 @@ J.~Liu, K.~Kawaguchi, B.~Hooi, Y.~Wang, and X.~Xiao, ``{EIGNN}: Efficient
 E.~Winston and J.~Z. Kolter, ``Monotone operator equilibrium networks,'' in
   \emph{Advances in Neural Information Processing Systems}, vol.~33, 2020, pp.
   10\,718--10\,728.
+
+\bibitem{luo2020parameterized}
+D.~Luo, W.~Cheng, D.~Xu, W.~Yu, B.~Zong, H.~Chen, and X.~Zhang, ``Parameterized
+  explainer for graph neural network,'' in \emph{Advances in Neural Information
+  Processing Systems}, vol.~33, 2020, pp. 19\,620--19\,631.
+
+\bibitem{chen2020simple}
+M.~Chen, Z.~Wei, Z.~Huang, B.~Ding, and Y.~Li, ``Simple and deep graph
+  convolutional networks,'' in \emph{International Conference on Machine
+  Learning}.\hskip 1em plus 0.5em minus 0.4em\relax PMLR, 2020, pp. 1725--1735.
+
+\bibitem{chamberlain2021grand}
+B.~P. Chamberlain, J.~Rowbottom, M.~I. Gorinova, M.~Bronstein, S.~Webb, and
+  E.~Rossi, ``{GRAND}: Graph neural diffusion,'' in \emph{International
+  Conference on Machine Learning}, 2021, pp. 1407--1418.
+
+\bibitem{thorpe2022grand}
+M.~Thorpe, T.~M. Nguyen, H.~Xia, T.~Strohmer, A.~Bertozzi, S.~Osher, and
+  B.~Wang, ``{GRAND++}: Graph neural diffusion with a source term,'' in
+  \emph{International Conference on Learning Representations}, 2022.
+
+\bibitem{entezari2020all}
+N.~Entezari, S.~A. Al-Sayouri, A.~Darvishzadeh, and E.~E. Papalexakis, ``All
+  you need is low (rank): Defending against adversarial attacks on graphs,'' in
+  \emph{Proceedings of the 13th International Conference on Web Search and Data
+  Mining}, 2020, pp. 169--177.
+
+\bibitem{mujkanovic2022defenses}
+F.~Mujkanovic, S.~Geisler, S.~G{\"u}nnemann, and A.~Bojchevski, ``Are defenses
+  for graph neural networks robust?'' in \emph{Advances in Neural Information
+  Processing Systems}, vol.~35, 2022, pp. 8940--8952.
 
 \end{thebibliography}
