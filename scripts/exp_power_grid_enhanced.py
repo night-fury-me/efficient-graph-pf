@@ -36,6 +36,7 @@ import models  # noqa — registers all model builders
 from iem.adversarial import (
     _compute_structural_jacobian,
     constrained_sensitivity_matrix,
+    extract_ego_subgraph,
     greedy_structural_attack,
     optimal_structural_attack,
     structural_sensitivity_matrix,
@@ -54,6 +55,7 @@ IEEE_CASES = [
     ("case30", "datasets/IEEE_case30_2000.parquet", 30),
     ("case57", "datasets/IEEE_case57_2000.parquet", 57),
     ("case118", "datasets/IEEE_case118_2000.parquet", 118),
+    ("case300", "datasets/IEEE_case300_2000.parquet", 300),
 ]
 
 RESULTS_DIR = Path("results/power_grid_enhanced")
@@ -257,9 +259,16 @@ def train_and_analyse(case_name, ds_path, N_expected, seed, device):
     A_hat = ctx_pf["A_hat"]
     N = int(eval_batch["sizes"][0].item())
 
-    A_sub = A_hat[:N, :N]
-    X_proj_sub = ctx_pf["X_proj"][:N]
-    Z_sub = Z_star[:N]
+    if N > 200:
+        idx = extract_ego_subgraph(A_hat[:N, :N], max_nodes=200)
+        A_sub = A_hat[:N, :N][idx][:, idx]
+        X_proj_sub = ctx_pf["X_proj"][:N][idx]
+        Z_sub = Z_star[:N][idx]
+        N = len(idx)
+    else:
+        A_sub = A_hat[:N, :N]
+        X_proj_sub = ctx_pf["X_proj"][:N]
+        Z_sub = Z_star[:N]
     ctx_sub = {"A_hat": A_sub, "X_proj": X_proj_sub}
 
     # Reconverge
