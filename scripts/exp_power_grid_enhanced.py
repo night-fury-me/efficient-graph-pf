@@ -15,6 +15,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import gc
 import itertools
 import json
 import random
@@ -297,18 +298,22 @@ def train_and_analyse(case_name, ds_path, N_expected, seed, device):
     # AEGIS vulnerability ranking
     attack = optimal_structural_attack(S, A_sub, epsilon=0.01)
     aegis_ranking = [(i, j, v) for i, j, v in attack["all_edge_vulnerabilities"]]
+    del attack
 
     # Brute-force N-1 ground truth
     t_bf_start = time.time()
     bf_ranking = greedy_structural_attack(model, Z_sub, ctx_sub)
     t_bf = time.time() - t_bf_start
 
+    Y_bus = ctx_pf.get("Y")
+    del ctx_pf, eval_batch, J_z, J_A, S
+    gc.collect()
+
     return {
         "model": model,
         "ctx_sub": ctx_sub,
         "Z_sub": Z_sub,
         "A_sub": A_sub,
-        "S": S,
         "S_c": S_c,
         "edge_list": edge_list,
         "sigma_c": sigma_c,
@@ -320,8 +325,7 @@ def train_and_analyse(case_name, ds_path, N_expected, seed, device):
         "t_train": t_train,
         "t_sc": t_sc,
         "t_bf": t_bf,
-        "Y_bus": ctx_pf.get("Y"),
-        "eval_batch": eval_batch,
+        "Y_bus": Y_bus,
         "device": device,
     }
 
@@ -717,6 +721,9 @@ def main():
             print(f"  N={ctx['N']}, |E|={len(ctx['edges'])}, "
                   f"t_train={ctx['t_train']:.1f}s, t_Sc={ctx['t_sc']:.1f}s",
                   flush=True)
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
     # -----------------------------------------------------------------------
     # Phase 2: Analysis 1 — LODF wall-clock timing
@@ -797,6 +804,15 @@ def main():
               f"{stab['n_seeds_evaluated']:>6} "
               f"{tau_s:>12} {consensus_s:>12} {stable80_s:>12} "
               f"{consensus_edges_s}")
+
+    # Free N-2 heavy objects (model, S_c, Vh_c no longer needed after this)
+    for case_name_k in list(all_ctx.keys()):
+        for ctx_k in all_ctx[case_name_k]:
+            for key_to_del in ["S_c", "Vh_c", "sigma_c"]:
+                ctx_k.pop(key_to_del, None)
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
     # -----------------------------------------------------------------------
     # Phase 5: Analysis 4 — Binary vs admittance
