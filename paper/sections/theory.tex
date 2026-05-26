@@ -78,6 +78,43 @@ The radius $r_v$ has an intuitive interpretation: it is the classification margi
 
 \textbf{Certificate semantics.} These radii are \emph{deterministic-local} guarantees: they hold with certainty but are first-order approximations, locally tight for small $\varepsilon$ but increasingly conservative as perturbation magnitude grows. This is fundamentally different from \emph{probabilistic-global} certificates such as randomized smoothing~\cite{bojchevski2020efficient}, which hold with probability $1-\alpha$ but are valid for all perturbation magnitudes up to the certified radius. The two approaches are complementary: smoothing provides uniform probabilistic coverage (every node gets the same certificate); \AEGIS provides structurally differentiated sensitivity measures that identify \emph{which} nodes and edges are most vulnerable. We present the comparison as complementary rather than competitive in \cref{sec:certificates}. Empirically, the first-order radii hold: 0\% breach rate at $\varepsilon = 0.01$ and $< 1\%$ at $\varepsilon = 0.10$ (\cref{sec:adaptive}).
 
+\subsection{Continuous-to-Discrete Transfer}
+
+The vulnerability scores $v_k = \norm{[S_c]_{:,k}}_2$ measure sensitivity to \emph{continuous} edge-weight perturbations, while practical adversarial threats involve \emph{discrete} edge removal (setting $\Ahat_{ij} = 0$). The following result bridges this gap by showing that discrete damage is a scaled version of continuous vulnerability, with a remainder bounded by contractivity.
+
+\begin{proposition}[Continuous-to-Discrete Ranking Transfer]
+\label{prop:transfer}
+Under (A1)--(A3), let $w_k = [\Ahat]_{ij}$ denote the normalized weight of edge $k = (i,j) \in E$, $v_k = \norm{[S_c]_{:,k}}_2$ the continuous vulnerability score, and $d_k = \norm{\zstar(A) - \zstar(A \setminus k)}_2$ the discrete damage from full removal of edge~$k$. Assume all single-edge removals are subcritical: $\sqrt{2} \max_k w_k < \ecrit$.
+
+\noindent\textbf{(a) First-order bridge.} The discrete damage satisfies
+\begin{equation}
+d_k = w_k \cdot v_k + R_k, \quad |R_k| \leq \frac{L_J}{2(1-\kappa)^2} \cdot w_k^2,
+\label{eq:transfer}
+\end{equation}
+where $L_J$ is the Lipschitz constant of the state Jacobian $J_z$ with respect to $\mathrm{vec}(A)$.
+
+\noindent\textbf{(b) Ranking preservation.} For two edges $k_1, k_2$ with $v_{k_1} > v_{k_2}$ and $w_{k_1} \geq w_{k_2}$, we have $d_{k_1} > d_{k_2}$ whenever
+\begin{equation}
+w_{k_1} < \frac{v_{k_1} - v_{k_2}}{L_J / (1-\kappa)^2}.
+\label{eq:ranking}
+\end{equation}
+Under uniform weights ($w_k = w$ for all $k$), $v_{k_1} > v_{k_2}$ implies $d_{k_1} > d_{k_2}$ whenever $w < \min_{k_1 \neq k_2} (v_{k_1} - v_{k_2}) \cdot (1-\kappa)^2 / L_J$.
+\end{proposition}
+
+\begin{proof}
+\textbf{Part (a).} Removing edge $k = (i,j)$ corresponds to the perturbation $\delta \Ahat$ with $[\delta \Ahat]_{ij} = [\delta \Ahat]_{ji} = -w_k$ and zero elsewhere. By the $S_c$ construction, the first-order equilibrium shift is
+$\Delta \zstar \approx S_c \cdot (-w_k \cdot e_k) = -w_k \cdot [S_c]_{:,k}$,
+so $\norm{\Delta \zstar} \approx w_k \cdot v_k$.
+
+For the remainder, define $g(t) = \zstar(A + t \cdot \delta \Ahat_k)$. By the IFT, $g$ is differentiable with $g'(0) = S \cdot \mathrm{vec}(\delta \Ahat_k)$. By Taylor's theorem,
+$g(1) - g(0) = g'(0) + \frac{1}{2} g''(\xi) \text{ for some } \xi \in [0,1]$.
+The second derivative $g''(t)$ involves the derivative of $(I - J_z(t))^{-1} J_A(t)$ with respect to $t$, which by the resolvent identity contributes a factor $\norm{(I - J_z)^{-1}}_2^2 \leq 1/(1-\kappa)^2$ times the rate of change of $J_z$ with respect to $A$, bounded by $L_J \cdot \norm{\delta \Ahat_k}_F^2 = 2 L_J w_k^2$. Combining gives $|R_k| = \norm{g(1) - g(0) - g'(0)} \leq L_J w_k^2 / (2(1-\kappa)^2)$.
+
+\textbf{Part (b).} From part (a), $d_{k_1} - d_{k_2} \geq w_{k_1} v_{k_1} - w_{k_2} v_{k_2} - C(w_{k_1}^2 + w_{k_2}^2)$ where $C = L_J/(2(1-\kappa)^2)$. Since $v_{k_1} > v_{k_2}$ and $w_{k_1} \geq w_{k_2}$, the first term is positive. The condition~\eqref{eq:ranking} ensures the first-order gap exceeds the second-order remainder.
+\end{proof}
+
+\textbf{Interpretation.} Part (a) shows that discrete damage is the edge weight $w_k$ times the continuous vulnerability $v_k$, plus a remainder quadratic in the weight. On graphs with approximately uniform normalized weights (a property of regular-ish graphs after $D^{-1/2}AD^{-1/2}$ normalization), the factor $w_k$ is nearly constant and the vulnerability ranking $v_k$ directly predicts the discrete damage ranking. Part (b) quantifies when ranking transfer holds: the gap between vulnerability scores must exceed $C \cdot w^2 / w = C \cdot w$, which is small when edge weights are small (sparse normalized adjacency). This explains our empirical observations (\cref{sec:explicit_extension}): models with near-uniform vulnerability scores (GCN-2, whose shallow depth limits sensitivity differentiation) fail the ranking condition, while models with larger gaps (GCN-4, GAT, APPNP) satisfy it. The constant $L_J$ can be estimated as $\norm{W}_2^2$ for IGNN-class operators (\cref{sec:convergence}).
+
 \textbf{Relationship to existing sensitivity analysis.} The individual mathematical ingredients of \AEGIS are classical: the IFT resolvent $(I-J_z)^{-1}$ and its Neumann-series expansion are standard in matrix perturbation theory~\cite{stewart1990matrix}, the SVD characterization of optimal linear perturbation follows from the variational characterization of singular values, and the contraction-mapping threshold is the Banach fixed-point theorem. The contribution of \AEGIS is not these individual tools but rather (i)~the \emph{constrained projection} $S_c$ that reduces the $N^2$-dimensional perturbation space to the $|E|$-dimensional space of realistic graph perturbations, transforming vacuous unconstrained bounds into tight predictions; (ii)~the three-output design (attacks, rankings, radii) from a single $S_c$ computation; and (iii)~the cross-architecture pipeline that applies this analysis to both implicit and explicit GNNs. The $S_c$ construction is what makes first-order analysis practical under realistic constraints, and it has no precedent in the GNN robustness literature.
 
 \subsection{Generalization to Explicit GNNs}
