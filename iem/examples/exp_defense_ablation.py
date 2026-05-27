@@ -64,16 +64,20 @@ def run_defense_ablation():
                 random_reductions.append(1.0 - (rand_damage / base_damage))
             results[k]['random_reduction'].append(np.mean(random_reductions))
 
+    from scipy.stats import wilcoxon
+
     print("Defense-Informed Edge Protection Results")
     print("=" * 50)
     for k in TOP_K_VALUES:
-        aegis_mean = np.mean(results[k]['aegis_reduction']) * 100
-        aegis_std = np.std(results[k]['aegis_reduction']) * 100
-        rand_mean = np.mean(results[k]['random_reduction']) * 100
-        rand_std = np.std(results[k]['random_reduction']) * 100
+        aegis_arr = np.array(results[k]['aegis_reduction']) * 100
+        rand_arr = np.array(results[k]['random_reduction']) * 100
+        aegis_mean, aegis_std = aegis_arr.mean(), aegis_arr.std()
+        rand_mean, rand_std = rand_arr.mean(), rand_arr.std()
+        stat, pval = wilcoxon(aegis_arr, rand_arr, alternative='two-sided')
         print(f"Top-{k} masking:")
         print(f"  AEGIS-guided: {aegis_mean:.0f} +/- {aegis_std:.0f}% reduction")
         print(f"  Random:       {rand_mean:.0f} +/- {rand_std:.0f}% reduction")
+        print(f"  Wilcoxon signed-rank: W={stat:.1f}, p={pval:.4f}, n={len(aegis_arr)}")
         print()
 
 

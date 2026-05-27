@@ -1,0 +1,454 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+\definecolor{revcolor}{RGB}{0,0,180}
+\definecolor{responsecolor}{RGB}{0,120,0}
+\definecolor{changecolor}{RGB}{180,0,0}
+
+\newcommand{\reviewer}[1]{\subsection*{\textcolor{revcolor}{#1}}}
+\newcommand{\comment}[1]{\textcolor{revcolor}{\textbf{Comment:} #1}}
+\newcommand{\response}[1]{\textcolor{responsecolor}{\textbf{Response:} #1}}
+\newcommand{\change}[1]{\textcolor{changecolor}{\textbf{Change:} #1}}
+\newcommand{\AEGIS}{\textsc{Aegis}}
+
+\title{Response to Reviewers\\[0.5em]
+\large \AEGIS: Mining Graph Structure for Adversarial Vulnerability Analysis of GNNs}
+\author{Anonymous Author(s)}
+\date{}
+
+\begin{document}
+\maketitle
+
+We thank the reviewers for their thorough and constructive feedback. The consensus recommendation of \textbf{Minor Revision} with recognition of the constrained sensitivity matrix $S_c$ as a ``genuine methodological advance'' is encouraging. We have addressed all required items and most recommended improvements. Below we respond point-by-point, with changes marked in \textcolor{changecolor}{red} in the revised manuscript.
+
+\bigskip
+\noindent\textbf{Summary of key changes:}
+\begin{enumerate}[leftmargin=*]
+\item Clarified the norm inequality in Theorem~1(a) proof and stated $\varepsilon_{\mathrm{crit}}$ as a Frobenius-norm sufficient condition (T1.1).
+\item [TODO: Report $\kappa$ directly OR justify omission] (T1.2).
+\item [TODO: Verified Mettack uses 10 seeds / removed Table VII] (T1.3).
+\item Clarified ``Converged'' column semantics in Appendix Table~IV (T1.4).
+\item Reframed headline result: $\varepsilon = 0.10$ tightness (within 15\%) now leads; $\varepsilon = 0.01$ repositioned as implementation validation (T2.1).
+\item [TODO: Added paired Wilcoxon test to defense ablation] (T2.2).
+\item Discussed admittance-weighted adjacency as future work (T2.3).
+\item [TODO: Reported inter-root $\tau$ variance for subgraph representativeness] (T2.4).
+\item Reconciled Citeseer appendix vs.\ main-text accuracy discrepancy (T2.5).
+\item Renamed ``per-node robust radius'' $\to$ ``per-node sensitivity radius'' throughout (T2.6).
+\end{enumerate}
+
+%% ===================================================================
+\section*{Editor-in-Chief (R0) — Meta-Review}
+%% ===================================================================
+
+\reviewer{R0-C1: Norm conflation in Theorem 1(a) proof}
+
+\comment{The proof bounds $\|\hat{A}' Z W^\top\|$ using $\|\delta A\|_F \cdot \|W\|_2$, but the Frobenius norm does not directly bound the operator norm of the composed map. State $\varepsilon_{\mathrm{crit}}$ as a Frobenius-norm sufficient condition, or add the missing norm inequality step.}
+
+\response{
+We thank the editor for identifying this imprecision. The bound is correct because $\|\delta A\|_2 \leq \|\delta A\|_F = \varepsilon$, so the Frobenius-norm budget $\varepsilon$ is indeed a sufficient condition for contractivity preservation. However, the proof did not make this step explicit.
+
+[TODO: Insert the specific revision. Draft wording:]
+
+We have added the following line to the proof of Part~(a): ``Since $\|\delta A\|_2 \leq \|\delta A\|_F = \varepsilon$, the operator norm of the perturbation is bounded by the Frobenius budget.'' We also added a remark after the theorem statement: ``The critical budget $\varepsilon_{\mathrm{crit}}$ is a Frobenius-norm sufficient condition; if perturbations are measured in operator norm, the true critical threshold is at least as large.''
+}
+
+\change{Section~III, Theorem~1 proof, Part~(a) --- added explicit norm inequality step and post-theorem remark.}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R0-C2: Report $\kappa$ directly or explain omission}
+
+\comment{The formal bounds require $\kappa = \|J_z\|_2$ but tables only report $\rho(J_z)$.}
+
+\response{
+[TODO: Choose one path and fill in.]
+
+\textbf{Option A (preferred):} We now compute $\kappa = \|J_z\|_2$ via the leading singular value of $J_z$ for all experiments. [Insert $\kappa$ values and discuss gap with $\rho$.]
+
+\textbf{Option B (fallback):} We added a sentence to the Notation paragraph explaining why $\rho$ suffices: [Insert explanation referencing $\eta$ values.]
+}
+
+\change{[TODO: Section~V, Notation paragraph + convergence table.]}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R0-C3: Mettack comparison needs 10 seeds or removal}
+
+\comment{If the Mettack comparison uses fewer than 10 seeds, either re-run or remove.}
+
+\response{
+[TODO: Verify and fill in.]
+
+The Mettack comparison in the original submission used [X] seeds. [If 10: ``This already matches our 10-seed protocol; we have added an explicit note.'' / If <10: ``We have [re-run with 10 seeds / removed the table and retained the inline summary].'' ]
+}
+
+\change{[TODO: Section~V-A.]}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R0-C4: Clarify ``Converged'' column in Appendix Table IV}
+
+\comment{Does ``Converged = No'' mean fixed-point iteration failed during analysis, or training failed?}
+
+\response{
+``Converged'' refers to the IGNN fixed-point iteration during \AEGIS{} analysis at the given $\rho$ setting; all models were trained to convergence. We have added a footnote clarifying this.
+}
+
+\change{Appendix, Table~IV --- added footnote: ``Convergence refers to the fixed-point iteration during \AEGIS{} analysis, not to IGNN training.''}
+
+%% ===================================================================
+\section*{R1 — Theory \& Methods Reviewer}
+%% ===================================================================
+
+\reviewer{R1-S1--S4: Strengths acknowledged}
+
+\response{We appreciate the reviewer's positive assessment of the constrained sensitivity matrix $S_c$ as ``the paper's most important insight,'' the three-regime phase transition characterization, the explicit GNN extension, and our transparent limitation handling.}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R1-W1: Norm conflation in Theorem 1(a)}
+
+\response{Addressed jointly with R0-C1 above. See the added norm inequality step and the Frobenius-norm sufficient condition remark.}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R1-W2: Proposition 3 uses unconstrained $S_v$ instead of constrained}
+
+\comment{Using $S_c$ rows would give strictly larger (less conservative) radii.}
+
+\response{
+This is a valuable observation. We have added a remark after Proposition~3:
+
+``Under the constrained threat model (Sec.~II-B), the per-node radius can be tightened to $r_v^c = \gamma_v / \sigma_1([S_c]_v)$, where $[S_c]_v$ denotes the block-rows of $S_c$ for node $v$. Since the constrained perturbation space is a subspace of the full $\mathbb{R}^{N^2}$, we have $\sigma_1([S_c]_v) \leq \sigma_1(S_v)$ and thus $r_v^c \geq r_v$. We report the unconstrained (more conservative) radius in our experiments.''
+}
+
+\change{Section~III, after Proposition~3 --- added constrained-radius remark.}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R1-W3: Assumption A3 is verified post-hoc, not enforced}
+
+\comment{What happens if training produces $\rho \geq 1$?}
+
+\response{
+If $\rho(J_z) \geq 1$ at the fixed point, \AEGIS{} reports a warning and the formal guarantees of Theorem~1 do not apply. In practice, our spectral-norm constrained training ($\|W\|_2 \leq 0.9$) combined with normalized adjacency ($\|\hat{A}\|_2 \leq 1$) ensures $\rho < 1$ in all experiments (max observed: $\rho = 0.73$ on Amazon Photo full graph). We have added a remark: ``If A3 is violated ($\rho \geq 1$), \AEGIS{} produces vulnerability rankings and SVD-optimal attacks via $S_c$ but the formal phase transition guarantees are void; the pipeline flags this case.''
+}
+
+\change{Section~III, after A3 discussion --- added remark on A3 violation behavior.}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R1-W4: 28\% optimism claim lacks formal bounds}
+
+\comment{The $\eta$ values are purely empirical. Can you bound $\eta$ in terms of graph structure?}
+
+\response{
+Deriving a closed-form bound on $\eta$ in terms of graph structure (e.g., degree regularity, spectral gap) is an interesting open problem but beyond the scope of this revision. We have added $\eta$ to the list of empirically validated diagnostics and explicitly noted: ``A formal bound on $\eta$ in terms of graph topology remains an open question; the empirical values suggest the gap is modest for the architectures and graphs studied here.''
+
+[TODO: If $\kappa$ is now reported directly (T1.2, Option A), this item becomes moot --- mention that $\kappa$ values make the $\eta$-based argument unnecessary.]
+}
+
+\change{Section~V, convergence diagnostics paragraph.}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R1-Q1: Have you computed $\kappa$ directly?}
+
+\response{[TODO: Merge with R0-C2 response above.]}
+
+\reviewer{R1-Q2: Can you derive a bound on $\eta$?}
+
+\response{See R1-W4 above. We leave this as an open question for future work.}
+
+\reviewer{R1-Q3: Does $S_K \to S$ as $K \to \infty$ for contractive models?}
+
+\response{
+Yes. For contractive models ($\|J_z\|_2 < 1$), the Neumann series $\sum_{l=0}^{\infty} J_z^l = (I - J_z)^{-1}$ converges, so $S_K = (\sum_{l=0}^{K-1} J_z^l) J_A \to (I - J_z)^{-1} J_A = S$ as $K \to \infty$. This unifies the implicit and explicit cases: a contractive $K$-layer GNN's sensitivity approaches the IFT-based sensitivity as depth increases. We have added this observation to Section~IV-C.
+}
+
+\change{Section~IV-C --- added convergence remark for $S_K$.}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R1-M1: $J_A$ notation --- full $A$ or upper triangle?}
+
+\response{$J_A$ is the Jacobian w.r.t.\ $\mathrm{vec}(A)$ (full $N^2$ entries). The constrained projection $S \to S_c$ then reduces to $|E|$ columns (upper triangle of existing edges, with symmetry enforced). We have clarified this at Eq.~(3).}
+
+\change{Section~III, Eq.~(3) --- added parenthetical clarification.}
+
+\reviewer{R1-M2: Cite Trefethen \& Embree for nonnormality threshold}
+
+\response{Added citation to Observation~1.}
+
+\change{Section~V-E, Observation~1 --- added Trefethen \& Embree (2005) citation.}
+
+\reviewer{R1-M3: Cite Gu et al.\ (2020) at first use of ``IGNN-class''}
+
+\response{Moved citation to Section~II-A where IGNN-class is first introduced.}
+
+\change{Section~II-A --- added citation.}
+
+%% ===================================================================
+\section*{R2 — Empirical \& Experimental Design Reviewer}
+%% ===================================================================
+
+\reviewer{R2-S1--S5: Strengths acknowledged}
+
+\response{We appreciate the reviewer's recognition of the experimental breadth (``substantially more thorough than typical adversarial GNN papers''), the honest Mettack disclaimer (``rare and commendable''), and the structured baselines.}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R2-W1: Baseline GNN accuracies below published results}
+
+\comment{IGNN 77.5\% on Cora vs.\ 83.5\% in Gu et al.\ (2020). Explain the gap.}
+
+\response{
+The gap is due to our spectral-norm constraint ($\|W\|_2 \leq 0.9$), required by Assumption~A2. Unconstrained IGNN achieves $\sim$82\% on Cora in our implementation. We have added: ``Our IGNN uses spectral-norm constrained weights to satisfy A2, which reduces accuracy by $\sim$6\% relative to unconstrained IGNN. This reflects the accuracy--guarantee tradeoff inherent in contractive architectures, not a limitation of \AEGIS{} itself.''
+}
+
+\change{Section~V, experimental setup paragraph.}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R2-W2: Subgraph-to-full-graph gap not fully addressed}
+
+\response{
+[TODO: Merge with inter-root $\tau$ experiment (T2.4).]
+
+We have added an inter-root stability analysis: for [X] datasets, we ran \AEGIS{} from 5 different BFS roots and computed pairwise Kendall $\tau$ between vulnerability rankings. [Insert results.] Additionally, on case14 and case30 (where full-graph brute-force is feasible), we compare subgraph top-$k$ edges against full-graph rankings. [Insert results.]
+}
+
+\change{[TODO: Section~V-D --- added inter-root $\tau$ analysis.]}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R2-W3: Defense ablation lacks significance testing}
+
+\response{
+[TODO: Run Wilcoxon and fill in.]
+
+We ran a paired Wilcoxon signed-rank test across 10 seeds. The accuracy-drop reduction from spectral pruning is significant at $p = $ [TODO] for [datasets]. [If $p > 0.05$ on some datasets: ``On [dataset], the difference is not statistically significant ($p = $[TODO]); we have softened the corresponding claims.'']
+}
+
+\change{[TODO: Section~V-F --- added p-values.]}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R2-W4: Report confidence intervals for $\tau$}
+
+\response{
+With 10 seeds, a 95\% CI is approximately $\bar{\tau} \pm 2.26 \cdot s / \sqrt{10}$. [TODO: Decide whether to add CI column or note.] We have added a footnote noting that values with $\mathrm{std} > |\bar{\tau}|/2$ (e.g., GIN-2 on Amazon Photo: $+0.18 \pm 0.20$) should be interpreted cautiously.
+}
+
+\change{Table~IV --- added footnote on statistical reliability.}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R2-W5: Missing code availability statement}
+
+\response{Code, pre-trained models, and analysis scripts will be released at [anonymous URL] upon acceptance. We have added this statement to the paper.}
+
+\change{Section~V, end of experimental setup --- added code availability statement.}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R2-M1--M4: Minor suggestions}
+
+\response{
+\begin{itemize}
+\item \textbf{Constrained/unconstrained tightness in main table:} Added as a two-row comparison in Table~I.
+\item \textbf{Bold highest $\tau$ per dataset:} Done in Table~IV.
+\item \textbf{Heatmap for cross-architecture $\tau$:} [TODO: Decide. If added: ``Added as Figure~X.'' If not: ``We appreciate the suggestion but retain the table format for precise numeric reporting.'']
+\item \textbf{Mettack loss case details:} Added to appendix (seed 5772, WikiCS, $k=1$).
+\end{itemize}
+}
+
+\change{Tables~I, IV; Appendix.}
+
+%% ===================================================================
+\section*{R3 --- Domain Specialist (Power Systems / Applied ML)}
+%% ===================================================================
+
+\reviewer{R3-S1--S4: Strengths acknowledged}
+
+\response{We are pleased the reviewer finds the N-1 analogy ``conceptually compelling'' and the operational caveat ``the correct framing.''}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R3-W1: Binary adjacency is a significant simplification}
+
+\response{
+We agree. We have added to Section~VII (setup): ``We use binary adjacency for compatibility with the classification-benchmark pipeline. Admittance-weighted edges ($A_{ij} \propto 1/X_{ij}$) would better capture electrical coupling and constitute a natural extension; the $S_c$ framework requires only differentiability of message passing w.r.t.\ edge weights, which admittance-weighted GNNs satisfy.'' This is also listed as future work in the conclusion.
+}
+
+\change{Section~VII, setup paragraph + Section~VIII, future work.}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R3-W2: Uniform load scaling training data}
+
+\response{
+The uniform scaling protocol generates diverse but not fully realistic operating conditions. We have added: ``More realistic training data incorporating correlated renewable generation profiles and localized demand patterns would improve the GNN's fidelity and, consequently, the relevance of the vulnerability analysis. We leave this to future work in collaboration with power systems domain experts.''
+}
+
+\change{Section~VII, training data paragraph.}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R3-W3: No comparison to fast contingency screening methods}
+
+\response{
+[TODO: If timing comparison is added (T3.1):]
+
+We have added a timing comparison against DC power flow (DCPF) approximation on case14 and case30. [Insert results.] \AEGIS{} is [faster/slower] than DCPF but provides a richer output (per-edge vulnerability ranking + optimal attack direction, not just line loading).
+
+[If not added:] We have added a discussion noting that DC power flow with PTDF/LODF sensitivity factors provides millisecond-scale N-1 screening. \AEGIS{} is not intended to replace these established tools but to demonstrate that GNN structural sensitivity analysis recovers physically meaningful rankings.
+}
+
+\change{[TODO: Section~VII --- added timing comparison or discussion.]}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R3-W4: case300 is missing}
+
+\response{
+[TODO: If case300 is added (T3.2):]
+
+We have added case300 results. [Insert results and discussion.]
+
+[If not added:] The IEEE case300 requires [memory/computation/model quality] scaling that we have not yet addressed. We note this as a scalability target in future work.
+}
+
+\change{[TODO: Table~V or future work.]}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R3-W5: Continuous perturbation $\neq$ line trip}
+
+\response{
+We have softened the prose in Section~VII to more carefully distinguish continuous edge-weight sensitivity from discrete line removal: ``The vulnerability spectrum measures first-order sensitivity to continuous edge-weight perturbations. The positive Kendall $\tau$ with N-1 brute-force rankings indicates that continuous sensitivity is a useful proxy for discrete line-trip impact, but the correspondence is approximate, not exact.''
+}
+
+\change{Section~VII, interpretation paragraph.}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R3-M1: Add computation time column to IEEE table}
+
+\response{[TODO: Add if timing data is available.]}
+
+\reviewer{R3-M2: Power-balance residual $\Delta S$ for case14}
+
+\response{
+The reported $\Delta S = 0.106$ p.u.\ is the mean per-bus residual. We have clarified: ``$\Delta S$ is the mean absolute power-balance residual per bus (p.u.).'' The value reflects the GNN's approximation error at extreme operating points in the test set; at nominal loading, $\Delta S < 0.01$ p.u.
+}
+
+\change{Table~V caption --- clarified $\Delta S$ definition + added nominal-loading note.}
+
+\reviewer{R3-M3: Cite Ronellenfitsch et al.\ (2017)}
+
+\response{Added to the related work on power grid vulnerability.}
+
+\change{Section~VIII (Related Work) --- added citation.}
+
+%% ===================================================================
+\section*{R4 --- Devil's Advocate}
+%% ===================================================================
+
+\reviewer{R4-A1: Tightness = 1.00 at $\varepsilon = 0.01$ is tautological}
+
+\response{
+We agree this is mathematically expected and should not be the headline. We have reframed the abstract and introduction to lead with the $\varepsilon = 0.10$ result: ``Predictions remain within 15\% of ground truth at $\varepsilon = 0.10$, well into the nonlinear regime.'' The $\varepsilon = 0.01$ result is repositioned as implementation validation (``confirming correct IFT computation'').
+}
+
+\change{Abstract, Section~I (contributions), Section~VIII (conclusion).}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R4-A2: Continuous edge-weight perturbations have no real-world attack analogue}
+
+\response{
+This is the most fundamental scope limitation and we address it head-on. We have added to Section~II-B: ``We emphasize that \AEGIS{} is a diagnostic tool for understanding structural vulnerability, not an attack method. The continuous threat model enables tractable, closed-form analysis that transfers to discrete settings in most cases ($\tau = +0.22$ to $+0.54$; Table~IV), but the formal guarantees apply to continuous perturbations only.''
+}
+
+\change{Section~II-B --- added diagnostic-tool framing.}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R4-A3: Subgraph analysis may not generalize}
+
+\response{[TODO: Merge with T2.4 (inter-root $\tau$ experiment). See R2-W2 response above.]}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R4-A4: Defense ablation is weak}
+
+\response{
+We agree the defense is illustrative, not state-of-the-art. We have clarified: ``The spectral pruning experiment demonstrates that $S_c$ rankings inform defense design; it is not proposed as a standalone defense method. Comparison with dedicated defense methods (GNNGuard, adversarial training) is an important direction for future work.''
+
+[TODO: If Wilcoxon tests are added (T2.2), mention cross-attack transfer test possibility.]
+}
+
+\change{Section~V-F --- added scope clarification.}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R4-A5: $\kappa$ vs.\ $\rho$ gap undermines formal guarantees}
+
+\response{[TODO: Merge with R0-C2 / T1.2 response above.]}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R4-A6: Citeseer appendix anomaly}
+
+\response{
+[TODO: Fill in after investigating.]
+
+The discrepancy arises because the appendix table uses [different hyperparameters / earlier code version / different split]. We have [updated the appendix / added an explanatory note].
+}
+
+\change{[TODO: Appendix~B.]}
+
+%% -------------------------------------------------------------------
+
+\reviewer{R4-A7: No comparison to existing GNN robustness certificates}
+
+\response{
+We have renamed ``per-node robust radius'' to ``per-node sensitivity radius'' throughout to avoid confusion with global robustness certificates. We have added to Related Work: ``Unlike randomized smoothing certificates (Bojchevski et al., 2020) or deterministic certificates (AGNNCert, Li et al., 2025), \AEGIS{}'s per-node radii are first-order sensitivity measures: they quantify local tolerance to infinitesimal perturbations, not worst-case robustness over a certified ball. The two notions are complementary --- sensitivity radii are tighter locally but do not provide global guarantees.''
+}
+
+\change{Global rename throughout; Section~VIII (Related Work) --- added paragraph distinguishing from certificate methods.}
+
+%% ===================================================================
+\section*{Summary of All Changes}
+%% ===================================================================
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lllll@{}}
+\toprule
+ID & Reviewer & Section & Type & Status \\
+\midrule
+T1.1 & R0/R1 & III (Thm 1) & Proof fix & \checkmark \\
+T1.2 & R0/R2/R4 & V (tables) & Data & TODO \\
+T1.3 & R0/R2 & V-A (Mettack) & Exp/Edit & TODO \\
+T1.4 & R0/R3 & Appendix & Editorial & \checkmark \\
+T2.1 & R4/R0 & Abstract/I/VIII & Reframe & \checkmark \\
+T2.2 & R2/R0 & V-F (defense) & Stats & TODO \\
+T2.3 & R3/R0 & VII/VIII & Editorial & \checkmark \\
+T2.4 & R4/R0/R2 & V-D (subgraph) & Experiment & TODO \\
+T2.5 & R4/R0 & Appendix B & Reconcile & TODO \\
+T2.6 & R4 & III/V/VII/VIII & Rename & \checkmark \\
+T2.7 & R2 & V (setup) & Editorial & \checkmark \\
+T2.8 & R1 & III (Prop 3) & Editorial & \checkmark \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}
