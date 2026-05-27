@@ -26,7 +26,7 @@ We train ContractiveGCN-PF, an IGNN-class model (same operator form as \cref{eq:
 \caption{\AEGIS on IEEE power flow benchmarks (10 seeds). Model quality (per-unit RMSE, mean over 10 seeds; std $<0.003$ for all entries): $|V|$ = voltage magnitude, $\theta$ = angle. $\tau$: Kendall rank correlation vs.\ brute-force N-1 contingency. P@10: top-10 precision.}
 \label{tab:ieee}
 \small
-\setlength{\tabcolsep}{3.5pt}
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{@{}lrr rr rr@{}}
 \toprule
  & & & \multicolumn{2}{c}{Model (p.u.)} & \multicolumn{2}{c}{\AEGIS} \\
@@ -40,7 +40,8 @@ case118 & 118 & 179 & .014 & .076 & $\ms{+.62}{.11}$ & $\ms{.81}{.10}$ \\
 case300$^\ddagger$ & 300 & 411 & .031 & .394 & $\ms{+.72}{.03}$ & $\ms{.87}{.06}$ \\
 \bottomrule
 \multicolumn{7}{@{}l}{\scriptsize $^\ddagger$200-node BFS subgraph; 1{,}000 training samples (dense analysis OOMs at $N{>}200$).}
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \textbf{Key observations.} First, tightness transfers to the power flow domain ($\approx 1.00$), confirming that the first-order prediction is not domain-specific. Second, ranking correlation ($\tau = 0.37$--$0.72$) is moderate to strong and the operationally relevant P@10 is 0.66--0.87, identifying 7--9 of the top 10 critical lines. Notably, case300 achieves $\tau = +0.72$ and P@10 $= 0.87$ using a 200-node subgraph, demonstrating that \AEGIS scales to grids beyond the 118-bus systems used in prior work.

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.16)  27 MAY 2026 23:15
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.16)  27 MAY 2026 23:24
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -832,16 +832,6 @@ Underfull \hbox (badness 5622) in paragraph at lines 27--29
 ts and sat-is-fies
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 40--41
-[]\OT1/ptm/m/n/9 Unconstrained sen-si-tiv-ity
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 41--42
-[]\OT1/ptm/m/n/9 Constrained (sym-met-ric,
- []
-
 [2]) (./sections/theory.tex
 
 LaTeX Font Warning: Font shape `OT1/ptm/m/scit' undefined
@@ -853,7 +843,7 @@ Underfull \hbox (badness 3407) in paragraph at lines 43--44
 ies
  []
 
-[3] [4]
+[3]
 
 LaTeX Font Warning: Font shape `OT1/ptm/m/scit' undefined
 (Font)              using `OT1/ptm/m/sc' instead on input line 94.
@@ -876,7 +866,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 94--95
 sures
  []
 
-[5]
+[4] [5]
 <figures/aegis--overview--diagram.pdf, id=291, 1145.23856pt x 775.93887pt>
 File: figures/aegis--overview--diagram.pdf Graphic file (type pdf)
 <use figures/aegis--overview--diagram.pdf>
@@ -889,20 +879,22 @@ LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 2
 
 (/usr/share/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
-) [6] [7 <./figures/aegis--overview--diagram.pdf>]) (./sections/experiments.tex
- [8]
+) [6]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [7 <./figures/aegis--overview--diagram.pdf>]) (./sections/experiments.tex [8]
 
 LaTeX Font Warning: Font shape `OT1/ptm/m/scit' undefined
-(Font)              using `OT1/ptm/m/sc' instead on input line 86.
+(Font)              using `OT1/ptm/m/sc' instead on input line 87.
 
 [9] [10]
-Underfull \hbox (badness 4981) in paragraph at lines 205--206
+Underfull \hbox (badness 4981) in paragraph at lines 206--207
 []\OT1/ptm/b/n/10 Hyperparameters. \OT1/ptm/m/n/10 Tight-ness is sta-ble across
  $\OML/cmm/m/it/10 d \OMS/cmsy/m/n/10 2
  []
 
 
-Underfull \hbox (badness 1655) in paragraph at lines 205--206
+Underfull \hbox (badness 1655) in paragraph at lines 206--207
 \OMS/cmsy/m/n/10 f\OT1/cmr/m/n/10 16\OML/cmm/m/it/10 ; \OT1/cmr/m/n/10 32\OML/c
 mm/m/it/10 ; \OT1/cmr/m/n/10 64\OML/cmm/m/it/10 ; \OT1/cmr/m/n/10 128\OMS/cmsy/
 m/n/10 g$ \OT1/ptm/m/n/10 ($\OT1/cmr/m/n/10 1\OML/cmm/m/it/10 :\OT1/cmr/m/n/10 
@@ -911,7 +903,7 @@ m/n/10 g$ \OT1/ptm/m/n/10 ($\OT1/cmr/m/n/10 1\OML/cmm/m/it/10 :\OT1/cmr/m/n/10
  []
 
 
-Underfull \hbox (badness 2326) in paragraph at lines 205--206
+Underfull \hbox (badness 2326) in paragraph at lines 206--207
 \OT1/ptm/m/n/10 Vary-ing $\OML/cmm/m/it/10 c \OMS/cmsy/m/n/10 2 f\OT1/cmr/m/n/1
 0 0\OML/cmm/m/it/10 :\OT1/cmr/m/n/10 5\OML/cmm/m/it/10 ; \OT1/cmr/m/n/10 0\OML/
 cmm/m/it/10 :\OT1/cmr/m/n/10 7\OML/cmm/m/it/10 ; \OT1/cmr/m/n/10 0\OML/cmm/m/it
@@ -926,16 +918,11 @@ Underfull \vbox (badness 3128) has occurred while \output is active []
 <figures/tau_heatmap.pdf, id=575, 299.2857pt x 192.9609pt>
 File: figures/tau_heatmap.pdf Graphic file (type pdf)
 <use figures/tau_heatmap.pdf>
-Package pdftex.def Info: figures/tau_heatmap.pdf  used on input line 282.
+Package pdftex.def Info: figures/tau_heatmap.pdf  used on input line 283.
 (pdftex.def)             Requested size: 252.0pt x 162.47469pt.
 )
 (./sections/case_study.tex [13 <./figures/tau_heatmap.pdf>]
-Overfull \hbox (0.71886pt too wide) in paragraph at lines 30--44
- [][] 
- []
-
-
-Underfull \hbox (badness 3271) in paragraph at lines 48--49
+Underfull \hbox (badness 3271) in paragraph at lines 49--50
 []\OT1/ptm/b/n/10 Baseline com-par-i-son and tim-ing. \OT1/ptm/m/n/10 LODF (ind
 ustry-
  []
@@ -969,13 +956,13 @@ Package rerunfilecheck Info: File `aegis.out' has not changed.
 (rerunfilecheck)             Checksum: 3C58280F3F98864345BAB792BC7DEBDA;5680.
  ) 
 Here is how much of TeX's memory you used:
- 25906 strings out of 469515
- 490202 string characters out of 5470807
+ 25908 strings out of 469515
+ 490262 string characters out of 5470807
  901170 words of memory out of 5000000
- 53965 multiletter control sequences out of 15000+600000
+ 53967 multiletter control sequences out of 15000+600000
  682397 words of font info for 147 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 84i,12n,94p,2535b,593s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,13n,94p,2535b,593s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/share/t
 exmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/font
 s/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public
@@ -996,7 +983,7 @@ rier/ucrr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/s
 hare/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texmf-dist/fonts/
 type1/urw/times/utmr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmri8a
 .pfb>
-Output written on aegis.pdf (17 pages, 1477615 bytes).
+Output written on aegis.pdf (17 pages, 1477416 bytes).
 PDF statistics:
  855 PDF objects out of 1000 (max. 8388607)
  678 compressed objects within 7 object streams
