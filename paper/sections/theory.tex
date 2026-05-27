@@ -7,9 +7,9 @@ We now derive the theoretical machinery for the three questions posed in \cref{s
 
 \begin{theorem}[Vulnerability Characterization for Contractive Implicit GNNs]
 \label{thm:phase_transition}
-Let $F_\theta(Z, A) = \phi(AZW^\top + X_{\mathrm{proj}})$ be an IGNN-class operator satisfying:
+Let $F_\theta(Z, \Ahat) = \phi(\Ahat ZW^\top + X_{\mathrm{proj}})$ be an IGNN-class operator satisfying:
 \begin{enumerate}
-\item[(A1)] $\phi$ is ReLU (or any 1-Lipschitz activation with $\sup|\phi'| = 1$; ReLU is non-differentiable at zero, but the set of measure zero where $\phi' = 0$ does not affect the Jacobian computation in practice~\cite{bolte2021conservative});
+\item[(A1)] $\phi$ is ReLU (or any 1-Lipschitz activation with $\sup|\phi'| = 1$). ReLU is non-differentiable at zero; we invoke the nonsmooth implicit function theorem for piecewise-linear maps~\cite{bolte2021conservative}: the equilibrium $\zstar$ is a piecewise-linear function of $A$ whose IFT-form derivative exists within each linear region of the ReLU network, covering all perturbation directions except a measure-zero set of activation-boundary crossings;
 \item[(A2)] $W$ is spectral-norm constrained: $\norm{W}_2 \leq c$;
 \item[(A3)] The state Jacobian satisfies $\norm{J_z}_2 \leq \kappa < 1$ at the fixed point $\zstar$ (contraction in operator norm). This is verified empirically after training ($\kappa = 0.14$--$0.59$ across all datasets; \cref{sec:convergence}). If A3 is violated ($\kappa \geq 1$), \AEGIS still computes $S_c$ rankings and SVD-optimal attacks, but the formal guarantees of parts (a)--(c) below are void; the pipeline flags this case.
 \end{enumerate}
@@ -17,7 +17,7 @@ Define the critical budget
 \begin{equation}
 \ecrit = \frac{1 - \kappa}{\norm{W}_2}.
 \end{equation}
-Then structural perturbations $\delta A$ with $\norm{\delta A}_F = \varepsilon$ exhibit three regimes:
+Then structural perturbations $\delta \Ahat$ with $\norm{\delta \Ahat}_F = \varepsilon$ exhibit three regimes:
 
 \noindent\textbf{(a) Subcritical} ($\varepsilon < \ecrit$): The perturbed operator remains contractive with a unique fixed point satisfying
 \begin{equation}
@@ -34,13 +34,13 @@ where $S = (I - J_z)^{-1} J_A$ is the structural sensitivity matrix and $\sigma_
 The intuition behind this three-regime picture is physical: a contractive system has a restoring force that pulls trajectories toward the equilibrium. Small perturbations shift the equilibrium smoothly (subcritical). As the perturbation approaches $\ecrit$, the restoring force weakens until the system becomes critically sensitive. Beyond $\ecrit$, the restoring force may vanish entirely, and the equilibrium can bifurcate or disappear.
 
 \begin{proof}
-\textbf{Part (a).} The Jacobian of $F$ with respect to $\mathrm{vec}(Z)$ takes the form $J_z = \mathrm{diag}(\phi') \cdot (\Ahat \otimes W)$ (column-major vectorization throughout), where $\phi' \in \{0, 1\}^{Nd}$ for ReLU (A1). The operator norm satisfies $\kappa = \norm{J_z}_2 \leq \norm{\Ahat}_2 \cdot \norm{W}_2 \cdot \sup|\phi'| = \norm{\Ahat}_2 \cdot \norm{W}_2$. Applying the IFT to $G(z,A) = z - F(z,A) = 0$ at $(\zstar, A)$:
+\textbf{Part (a).} The Jacobian of $F$ with respect to $\mathrm{vec}(Z)$ takes the form $J_z = \mathrm{diag}(\phi') \cdot (\Ahat \otimes W)$ (column-major vectorization throughout), where $\phi' \in \{0, 1\}^{Nd}$ for ReLU (A1). The operator norm satisfies $\kappa = \norm{J_z}_2 \leq \norm{\Ahat}_2 \cdot \norm{W}_2 \cdot \sup|\phi'| = \norm{\Ahat}_2 \cdot \norm{W}_2$. Applying the IFT to $G(z,\Ahat) = z - F(z,\Ahat) = 0$ at $(\zstar, \Ahat)$:
 \begin{equation}
-\Delta \zstar = (I - J_z)^{-1} J_A \cdot \mathrm{vec}(\delta A) + O(\norm{\delta A}^2),
+\Delta \zstar = (I - J_z)^{-1} J_A \cdot \mathrm{vec}(\delta \Ahat) + O(\norm{\delta \Ahat}^2),
 \end{equation}
 where $J_A = \partial F / \partial \mathrm{vec}(A) \in \R^{Nd \times N^2}$ is the Jacobian with respect to the full (not upper-triangular) vectorized adjacency; the constrained projection to $|E|$ edge dimensions is applied subsequently via $S_c$ (below). Taking operator norms and using the Neumann series bound $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\kappa)$ (convergent because $\kappa < 1$) yields~\eqref{eq:shift_bound}.
 
-For contractivity preservation: by sub-multiplicativity and the triangle inequality, the perturbed Jacobian satisfies $\norm{J_z'}_2 \leq \norm{A + \delta A}_2 \cdot \norm{W}_2 \leq (\norm{A}_2 + \norm{\delta A}_2) \cdot \norm{W}_2$; since $\norm{\delta A}_2 \leq \norm{\delta A}_F = \varepsilon$, the condition $\varepsilon < (1-\kappa)/\norm{W}_2$ ensures $\norm{J_z'}_2 < 1$. Note that $\ecrit$ is a Frobenius-norm sufficient condition: perturbation budgets are measured in $\norm{\cdot}_F$, while $\kappa$ is the operator norm $\norm{J_z}_2$. For a rank-$r$ perturbation, $\norm{\delta A}_F \leq \sqrt{r} \cdot \norm{\delta A}_2$, so $\ecrit$ may be conservative by a factor up to $\sqrt{\mathrm{rank}(\delta A)}$; the constrained projection $S_c$ mitigates this by restricting to realistic perturbation directions.
+For contractivity preservation: by sub-multiplicativity and the triangle inequality, the perturbed Jacobian satisfies $\norm{J_z'}_2 \leq \norm{\Ahat + \delta \Ahat}_2 \cdot \norm{W}_2 \leq (\norm{\Ahat}_2 + \norm{\delta \Ahat}_2) \cdot \norm{W}_2$; since $\norm{\delta \Ahat}_2 \leq \norm{\delta \Ahat}_F = \varepsilon$, the condition $\varepsilon < (1-\kappa)/\norm{W}_2$ ensures $\norm{J_z'}_2 < 1$. Note that $\ecrit$ is a Frobenius-norm sufficient condition: perturbation budgets are measured in $\norm{\cdot}_F$, while $\kappa$ is the operator norm $\norm{J_z}_2$. For a rank-$r$ perturbation, $\norm{\delta \Ahat}_F \leq \sqrt{r} \cdot \norm{\delta \Ahat}_2$, so $\ecrit$ may be conservative by a factor up to $\sqrt{\mathrm{rank}(\delta \Ahat)}$; the constrained projection $S_c$ mitigates this by restricting to realistic perturbation directions.
 
 \textbf{Part (b).} As $\varepsilon \to \ecrit$, we have $\norm{J_z'}_2 \to 1$, so $\norm{(I - J_z')^{-1}}_2 \geq 1/(1 - \norm{J_z'}_2) \to \infty$. Unlike the spectral-radius bound $1/(1-\rho)$, which requires normality, the operator-norm bound holds for all $J_z$ with $\kappa < 1$. In our experiments, the pseudospectral index $\eta$ ranges from $1.02$ to $1.28$ (\cref{sec:convergence}), confirming mild non-normality.
 
@@ -89,7 +89,10 @@ The radius $r_v$ has an intuitive interpretation: it is the classification margi
 
 \textit{Proof sketch.} By Theorem~1(a), $\Delta \zstar_v \approx S_v \cdot \mathrm{vec}(\delta A)$, so $|\Delta f_{y_v}| \leq \norm{\partial f / \partial \zstar_v} \cdot \norm{S_v} \cdot \norm{\delta A}_F$. Misclassification requires $|\Delta f_{y_v}| \geq m_v$; inverting gives $r_v$. Note $S_v$ already contains the $(I-J_z)^{-1}$ factor.
 
-\textbf{Certificate semantics.} These radii are \emph{deterministic-local} guarantees: they hold with certainty but are first-order approximations, locally tight for small $\varepsilon$ but increasingly conservative as perturbation magnitude grows. This is fundamentally different from \emph{probabilistic-global} certificates such as randomized smoothing~\cite{bojchevski2020efficient}, which hold with probability $1-\alpha$ but are valid for all perturbation magnitudes up to the certified radius. The two approaches are complementary: smoothing provides uniform probabilistic coverage (every node gets the same certificate); \AEGIS provides structurally differentiated sensitivity measures that identify \emph{which} nodes and edges are most vulnerable. We present the comparison as complementary rather than competitive in \cref{sec:certificates}. Empirically, the first-order radii hold: 0\% breach rate at $\varepsilon = 0.01$ and $< 1\%$ at $\varepsilon = 0.10$ (\cref{sec:adaptive}).
+\begin{remark}[Certificate Semantics]
+\label{rem:certificates}
+These radii are \emph{deterministic-local} guarantees: they hold with certainty but are first-order approximations, locally tight for small $\varepsilon$ but increasingly conservative as perturbation magnitude grows. This is fundamentally different from \emph{probabilistic-global} certificates such as randomized smoothing~\cite{bojchevski2020efficient}, which hold with probability $1-\alpha$ but are valid for all perturbation magnitudes up to the certified radius. The two approaches are complementary: smoothing provides uniform probabilistic coverage (every node gets the same certificate); \AEGIS provides structurally differentiated sensitivity measures that identify \emph{which} nodes and edges are most vulnerable. We present the comparison as complementary rather than competitive in \cref{sec:certificates}. Empirically, the first-order radii hold: 0\% breach rate at $\varepsilon = 0.01$ and $< 1\%$ at $\varepsilon = 0.10$ (\cref{sec:adaptive}).
+\end{remark}
 
 \subsection{Continuous-to-Discrete Transfer}
 
@@ -121,7 +124,9 @@ so $\norm{\Delta \zstar} \approx w_k \cdot v_k$.
 
 For the remainder, define $g(t) = \zstar(A + t \cdot \delta \Ahat_k)$. By the IFT, $g$ is differentiable with $g'(0) = S \cdot \mathrm{vec}(\delta \Ahat_k)$. By Taylor's theorem,
 $g(1) - g(0) = g'(0) + \frac{1}{2} g''(\xi) \text{ for some } \xi \in [0,1]$.
-The second derivative $g''(t)$ involves the derivative of $(I - J_z(t))^{-1} J_A(t)$ with respect to $t$, which by the resolvent identity contributes a factor $\norm{(I - J_z)^{-1}}_2^2 \leq 1/(1-\kappa)^2$ times the rate of change of $J_z$ with respect to $A$, bounded by $L_J \cdot \norm{\delta \Ahat_k}_F^2 = 2 L_J w_k^2$. Combining gives $|R_k| = \norm{g(1) - g(0) - g'(0)} \leq L_J w_k^2 / (2(1-\kappa)^2)$.
+Differentiating $g'(t) = (I - J_z(t))^{-1} J_A(t) \cdot \mathrm{vec}(\delta \Ahat_k)$ via the product rule and the resolvent identity $\frac{d}{dt}(I-M)^{-1} = (I-M)^{-1}\frac{dM}{dt}(I-M)^{-1}$ yields two terms:
+\[g''(t) = \underbrace{(I{-}J_z)^{-1} \tfrac{dJ_z}{dt} (I{-}J_z)^{-1} J_A \mathrm{vec}(\delta \Ahat_k)}_{\text{resolvent term}} + \underbrace{(I{-}J_z)^{-1} \tfrac{dJ_A}{dt} \mathrm{vec}(\delta \Ahat_k)}_{\text{Jacobian term}}.\]
+Within a fixed ReLU linear region (activation pattern $\phi' \in \{0,1\}^{Nd}$ constant), the Jacobian term involves only the change in $\zstar$ along the path and is $O(\varepsilon)$, dominated by the resolvent term. For the resolvent term: $\norm{dJ_z/dt}_2 \leq L_J \norm{\delta \Ahat_k}_2$, where $L_J$ is the Lipschitz constant of $J_z$ with respect to $A$ (for IGNN: $L_J \leq \norm{W}_2^2$). The symmetric perturbation $\delta \Ahat_k = w_k(e_i e_j^\top + e_j e_i^\top)$ has spectral norm $\norm{\delta \Ahat_k}_2 = w_k$. Combining: $\norm{g''(\xi)} \leq (1{-}\kappa)^{-2} \cdot L_J w_k^2$. Taylor's $\frac{1}{2}$ factor gives $|R_k| = \frac{1}{2}\norm{g''(\xi)} \leq L_J w_k^2 / (2(1-\kappa)^2)$.
 
 \textbf{Part (b).} From part (a), $d_{k_1} - d_{k_2} \geq w_{k_1} v_{k_1} - w_{k_2} v_{k_2} - C(w_{k_1}^2 + w_{k_2}^2)$ where $C = L_J/(2(1-\kappa)^2)$. Since $v_{k_1} > v_{k_2}$ and $w_{k_1} \geq w_{k_2}$, the first term is positive. The condition~\eqref{eq:ranking} ensures the first-order gap exceeds the second-order remainder.
 \end{proof}
@@ -131,6 +136,13 @@ The second derivative $g''(t)$ involves the derivative of $(I - J_z(t))^{-1} J_A
 \textbf{Interpretation.} Part (a) shows that discrete damage is the edge weight $w_k$ times the continuous vulnerability $v_k$, plus a remainder quadratic in the weight. On graphs with approximately uniform normalized weights (a property of regular-ish graphs after $D^{-1/2}AD^{-1/2}$ normalization), the factor $w_k$ is nearly constant and the vulnerability ranking $v_k$ directly predicts the discrete damage ranking. Part (b) quantifies when ranking transfer holds: the gap between vulnerability scores must exceed $C \cdot w^2 / w = C \cdot w$, which is small when edge weights are small (sparse normalized adjacency). This explains our empirical observations (\cref{sec:explicit_extension}): models with near-uniform vulnerability scores (GCN-2, whose shallow depth limits sensitivity differentiation) fail the ranking condition, while models with larger gaps (GCN-4, GAT, APPNP) satisfy it. The constant $L_J$ can be estimated as $\norm{W}_2^2$ for IGNN-class operators (\cref{sec:convergence}).
 
 \textbf{Relationship to existing sensitivity analysis.} The individual mathematical ingredients of \AEGIS are classical: the IFT resolvent $(I-J_z)^{-1}$ and its Neumann-series expansion are standard in matrix perturbation theory~\cite{stewart1990matrix}, the SVD characterization of optimal linear perturbation follows from the variational characterization of singular values, and the contraction-mapping threshold is the Banach fixed-point theorem. The contribution of \AEGIS is not these individual tools but rather (i)~the \emph{constrained projection} $S_c$ that reduces the $N^2$-dimensional perturbation space to the $|E|$-dimensional space of realistic graph perturbations, transforming vacuous unconstrained bounds into tight predictions; (ii)~the three-output design (attacks, rankings, radii) from a single $S_c$ computation; and (iii)~the cross-architecture pipeline that applies this analysis to both implicit and explicit GNNs. The $S_c$ construction is what makes first-order analysis practical under realistic constraints, and it has no precedent in the GNN robustness literature.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/aegis--overview--diagram.pdf}
+\caption{The \AEGIS pipeline. Inputs (left) flow through four layers: (1)~Graph Processing (BFS subgraph extraction, forward pass or fixed-point convergence), (2)~Sensitivity Computation (dense Jacobian path for $N \leq 200$; matrix-free Neumann/JVP path for larger graphs), (3)~Constrained Projection ($N^2 \to |E|$ reduction via $P_c$), and (4)~Vulnerability Analysis (randomized SVD, column norms of $S_c$, per-node radii). The matrix-free formulation operates via JVP/VJP queries without materializing $S$ or $S_c$, enabling full-graph analysis (tested up to $N{=}7{,}650$).}
+\label{fig:pipeline}
+\end{figure*}
 
 \subsection{Generalization to Explicit GNNs}
 

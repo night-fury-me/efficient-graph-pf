@@ -8,49 +8,58 @@ Reallocated singl_function (elt_size=8) to 100 items from 50.
 Reallocated wiz_functions (elt_size=8) to 6000 items from 3000.
 Reallocated singl_function (elt_size=8) to 100 items from 50.
 Database file #1: aegis.bib
+Repeated entry---line 177 of file aegis.bib
+ : @book{trefethen2005spectra
+ :                           ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 628 of file aegis.bib
+ : @inproceedings{pei2020geomgcn
+ :                              ,
+I'm skipping whatever remains of this entry
 -- IEEEtran.bst version 1.14 (2015/08/26) by Michael Shell.
 -- http://www.michaelshell.org/tex/ieeetran/bibtex/
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
 
 Done.
-You've used 14 entries,
+You've used 60 entries,
             4087 wiz_defined-function locations,
-            888 strings with 9791 characters,
-and the built_in function-call counts, 11517 in all, are:
-= -- 869
-> -- 286
-< -- 95
-+ -- 168
-- -- 60
-* -- 563
-:= -- 1605
-add.period$ -- 28
-call.type$ -- 14
-change.case$ -- 14
-chr.to.int$ -- 240
-cite$ -- 14
-duplicate$ -- 805
-empty$ -- 1007
-format.name$ -- 62
-if$ -- 2711
+            1097 strings with 18409 characters,
+and the built_in function-call counts, 49872 in all, are:
+= -- 3725
+> -- 1385
+< -- 398
++ -- 777
+- -- 279
+* -- 2379
+:= -- 6844
+add.period$ -- 121
+call.type$ -- 60
+change.case$ -- 59
+chr.to.int$ -- 996
+cite$ -- 60
+duplicate$ -- 3514
+empty$ -- 4379
+format.name$ -- 308
+if$ -- 11848
 int.to.chr$ -- 0
-int.to.str$ -- 14
-missing$ -- 141
-newline$ -- 65
-num.names$ -- 14
-pop$ -- 357
+int.to.str$ -- 60
+missing$ -- 648
+newline$ -- 203
+num.names$ -- 60
+pop$ -- 1663
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 891
+skip$ -- 3890
 stack$ -- 0
-substring$ -- 606
-swap$ -- 640
-text.length$ -- 15
+substring$ -- 2462
+swap$ -- 2790
+text.length$ -- 66
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 14
+type$ -- 60
 warning$ -- 0
-while$ -- 46
-width$ -- 16
-write$ -- 149
+while$ -- 202
+width$ -- 62
+write$ -- 566
+(There were 2 error messages)
