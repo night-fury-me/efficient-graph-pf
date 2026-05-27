@@ -1,0 +1,56 @@
+Proposition 3(b) Ranking Condition Coverage
+======================================================================
+Condition: w_{k1} >= w_{k2} whenever v_{k1} > v_{k2}
+  w_k = A_hat[i,j] (normalized edge weight)
+  v_k = ||S_c[:, k]|| (column norm of constrained sensitivity)
+Seeds: [42, 137, 271, 314, 1729, 2718, 3141, 5772, 6561, 9999]
+Subgraph size: 50 nodes (BFS)
+
+--- Cora ---
+  seed=   42  satisfy=  1173/1830    coverage=0.6410
+  seed=  137  satisfy=  1155/1830    coverage=0.6311
+  seed=  271  satisfy=  1156/1830    coverage=0.6317
+  seed=  314  satisfy=  1130/1830    coverage=0.6175
+  seed= 1729  satisfy=  1085/1830    coverage=0.5929
+  seed= 2718  satisfy=  1163/1830    coverage=0.6355
+  seed= 3141  satisfy=  1129/1830    coverage=0.6169
+  seed= 5772  satisfy=  1133/1830    coverage=0.6191
+  seed= 6561  satisfy=  1165/1830    coverage=0.6366
+  seed= 9999  satisfy=  1147/1830    coverage=0.6268
+
+--- Citeseer ---
+  seed=   42  satisfy=  1233/2628    coverage=0.4692
+  seed=  137  satisfy=  1229/2628    coverage=0.4677
+  seed=  271  satisfy=  1240/2628    coverage=0.4718
+  seed=  314  satisfy=  1229/2628    coverage=0.4677
+  seed= 1729  satisfy=  1252/2628    coverage=0.4764
+  seed= 2718  satisfy=  1241/2628    coverage=0.4722
+  seed= 3141  satisfy=  1255/2628    coverage=0.4775
+  seed= 5772  satisfy=  1272/2628    coverage=0.4840
+  seed= 6561  satisfy=  1240/2628    coverage=0.4718
+  seed= 9999  satisfy=  1270/2628    coverage=0.4833
+
+--- WikiCS ---
+  seed=   42  satisfy=   780/1485    coverage=0.5253
+  seed=  137  satisfy=   772/1485    coverage=0.5199
+  seed=  271  satisfy=   786/1485    coverage=0.5293
+  seed=  314  satisfy=   790/1485    coverage=0.5320
+  seed= 1729  satisfy=   797/1485    coverage=0.5367
+  seed= 2718  satisfy=   856/1485    coverage=0.5764
+  seed= 3141  satisfy=   798/1485    coverage=0.5374
+  seed= 5772  satisfy=   834/1485    coverage=0.5616
+  seed= 6561  satisfy=   804/1485    coverage=0.5414
+  seed= 9999  satisfy=   785/1485    coverage=0.5286
+
+======================================================================
+SUMMARY (mean +/- std across seeds)
+======================================================================
+Dataset                     Coverage    N seeds
+--------------------------------------------------
+Cora            0.6249+/-0.0133          10
+Citeseer        0.4742+/-0.0057          10
+WikiCS          0.5389+/-0.0165          10
+--------------------------------------------------
+Overall         0.5460+/-0.0630          30
+
+Total time: 311s (5.2min)
