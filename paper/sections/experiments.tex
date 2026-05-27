@@ -102,7 +102,7 @@ We evaluate \AEGIS against baselines spanning four quadrants: gradient-based vs.
 \caption{Full attack comparison (IGNN, 50-node subgraph, 10 seeds). SVD: \AEGIS optimal. Cls-PGD: classification-loss PGD (autograd, cross-entropy). Shift-PGD: equilibrium-shift PGD (IFT gradients, same objective as SVD---a solver validation, not an independent baseline). Flip\%: prediction flip rate.}
 \label{tab:attack_full}
 \small
-\setlength{\tabcolsep}{2.5pt}
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{@{}ll rrrr rr@{}}
 \toprule
  & & \multicolumn{4}{c}{Equil.\ damage ($\ell_2$)} & \multicolumn{2}{c}{Flip\%} \\
@@ -116,7 +116,8 @@ Cite & .10 & $\ms{4.63}{.71}$ & $\ms{2.97}{.42}$ & $\ms{3.35}{.57}$ & $\ms{1.01}
 Wiki & .01 & $\ms{.21}{.02}$ & $\ms{.06}{.01}$ & $\ms{.19}{.02}$ & $\ms{.05}{.01}$ & $\ms{0.2}{0.6}$ & $\ms{0.2}{0.6}$ \\
 Wiki & .10 & $\ms{2.10}{.22}$ & $\ms{.67}{.11}$ & $\ms{1.93}{.20}$ & $\ms{.53}{.09}$ & $\ms{0.6}{0.9}$ & $\ms{0.4}{0.8}$ \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \textbf{Classification-gradient edge ranking.} To test whether a classification-targeted attacker identifies the same vulnerable edges, we compute per-edge gradients $|\partial \mathcal{L}_{\mathrm{CE}} / \partial A_{ij}|$ via autograd and compare the resulting ranking against the brute-force discrete ground truth (single-edge removal). The classification-gradient ranking is anti-correlated with discrete vulnerability on Cora ($\tau = \ms{-0.20}{0.05}$, vs.\ \AEGIS's $\ms{+0.32}{0.04}$) and near-zero elsewhere (Citeseer: $\ms{-0.03}{0.09}$ vs.\ $\ms{+0.32}{0.04}$; WikiCS: $\ms{+0.05}{0.04}$ vs.\ $\ms{+0.14}{0.03}$; all 10 seeds). P@10 for \AEGIS is 2--6$\times$ higher. The two methods identify genuinely different edges: cross-correlation $\tau$ is only $\ms{+0.19}{0.15}$ (Cora) to $\ms{-0.06}{0.11}$ (WikiCS), confirming that equilibrium sensitivity and classification sensitivity are distinct vulnerability surfaces.
@@ -287,7 +288,7 @@ The $\tau$ column in \cref{tab:explicit} directly measures whether continuous $S
 
 \textbf{Comparison with gradient attribution.} Against the same brute-force discrete ground truth, gradient-based edge attribution~\cite{pope2019explainability,ying2019gnnexplainer} produces consistently negative $\tau$ ($-0.07$, $-0.17$, $-0.21$ for IGNN, GCN-2, GIN-2 respectively). Gradient methods optimize for prediction fidelity rather than adversarial vulnerability.
 
-\textbf{Proposition~\ref{prop:explicit} bound tightness.} The ratio (Prop.~4 bound)$/\sigma_1(S_K)$ ranges from 1.4$\times$ (SAGE-2) to 5.9$\times$ (APPNP), with 2-layer models achieving tighter ratios (GCN-2: 1.8$\times$, GIN-2: 2.1$\times$) than deeper ones (GCN-4: 4.2$\times$, GAT-2: 3.7$\times$). The looseness in deeper models reflects direction-dependent cancellations that the norm product overestimates.
+\textbf{Proposition~\ref{prop:explicit} bound tightness.} The ratio of the Prop.~4 bound to $\sigma_1(S_K)$ ranges from $1.4\times$ (SAGE-2) to $5.9\times$ (APPNP). Two-layer models achieve tighter ratios (GCN-2: $1.8\times$, GIN-2: $2.1\times$) than deeper ones (GCN-4: $4.2\times$, GAT-2: $3.7\times$). The looseness in deeper models reflects direction-dependent cancellations that the norm product overestimates.
 
 \textbf{Degree-vulnerability correlation.} To assess whether $S_c$ merely recapitulates graph topology, we compute the Kendall $\tau$ between per-edge vulnerability $v_{ij}$ and endpoint degree $\max(d_i, d_j)$ across all datasets and architectures. The correlation varies substantially: strong on Citeseer (IGNN: $\tau = +0.63$), moderate on Cora ($+0.43$) and Pubmed ($+0.38$), and weak on WikiCS (IGNN: $+0.27$, GCN-2: $-0.10$). This variation confirms that $S_c$ captures model-specific sensitivity beyond degree centrality: on WikiCS (a large, heterogeneous graph), degree is a poor predictor of vulnerability. Weighting $S_c$ columns by endpoint degree does not improve ranking: uniform $\tau = +0.042$, degree-weighted $+0.037$, inverse-degree $-0.008$ (GCN-2, 10 seeds).
 

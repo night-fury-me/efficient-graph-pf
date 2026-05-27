@@ -32,19 +32,20 @@ where the resolvent $(I - J_z)^{-1}$ exists and satisfies $\norm{(I-J_z)^{-1}}_2
 \caption{Key sensitivity objects in \AEGIS.}
 \label{tab:notation}
 \small
-\begin{tabular}{@{}lll@{}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llp{3.6cm}@{}}
 \toprule
 Symbol & Size & Description \\
 \midrule
 $S$ & $Nd \times N^2$ & Unconstrained sensitivity matrix \\
 $S_c$ & $Nd \times |E|$ & Constrained (symmetric, edge-only) \\
-$S_K$ & $Nd \times N^2$ & Unrolled sensitivity for $K$-layer GNN (\cref{prop:explicit}) \\
+$S_K$ & $Nd \times N^2$ & Unrolled $K$-layer sensitivity (\cref{prop:explicit}) \\
 $S_v$ & $d \times N^2$ & Block-rows of $S$ for node $v$ \\
 $\kappa$ & scalar & Operator-norm contractivity $\norm{J_z}_2$ \\
 $\rho$ & scalar & Spectral radius $\rho(J_z)$ \\
 $\eta$ & scalar & Pseudospectral index $\geq 1$ \\
 $\ecrit$ & scalar & Critical perturbation budget \\
-$r_v$ & scalar & Per-node first-order sensitivity radius \\
+$r_v$ & scalar & Per-node sensitivity radius \\
 \bottomrule
 \end{tabular}
 \end{table}

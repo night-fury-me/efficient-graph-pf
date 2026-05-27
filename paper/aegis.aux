@@ -31,8 +31,6 @@
 \citation{trefethen2005spectra}
 \citation{lorraine2020optimizing}
 \citation{gould2021deep}
-\citation{el2021implicit}
-\citation{revay2020lipschitz}
 \@writefile{toc}{\contentsline {section}{\numberline {II}Preliminaries and Threat Model}{2}{section.2}\protected@file@percent }
 \newlabel{sec:background}{{II}{2}{Preliminaries and Threat Model}{section.2}{}}
 \newlabel{sec:background@cref}{{[section][2][]II}{[1][2][]2}{}{}{}}
@@ -48,6 +46,8 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}Threat Model}{2}{subsection.2.2}\protected@file@percent }
 \newlabel{eq:threat}{{4}{2}{Threat Model}{equation.4}{}}
 \newlabel{eq:threat@cref}{{[equation][4][]4}{[1][2][]2}{}{}{}}
+\citation{el2021implicit}
+\citation{revay2020lipschitz}
 \citation{bolte2021conservative}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}Problem Statement}{3}{subsection.2.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {III}Adversarial Equilibrium Theory}{3}{section.3}\protected@file@percent }
@@ -60,7 +60,6 @@
 \citation{stewart1990matrix}
 \citation{stewart1990matrix}
 \citation{trefethen2005spectra}
-\citation{bojchevski2020efficient}
 \newlabel{obs:eta_bound}{{2}{4}{Graph-Independent Nonnormality Bound}{theorem.2}{}}
 \newlabel{obs:eta_bound@cref}{{[theorem][2][]2}{[1][4][]4}{}{}{}}
 \newlabel{prop:attack}{{3}{4}{Optimal First-Order Structural Attack}{theorem.3}{}}
@@ -69,10 +68,11 @@
 \newlabel{prop:radius@cref}{{[theorem][4][]4}{[1][4][]4}{}{}{}}
 \newlabel{eq:radius}{{9}{4}{Per-Node First-Order Sensitivity Radius}{equation.9}{}}
 \newlabel{eq:radius@cref}{{[equation][9][]9}{[1][4][]4}{}{}{}}
-\newlabel{rem:certificates}{{5}{4}{Certificate Semantics}{theorem.5}{}}
-\newlabel{rem:certificates@cref}{{[theorem][5][]5}{[1][4][]4}{}{}{}}
+\citation{bojchevski2020efficient}
 \citation{bolte2021conservative}
 \citation{stewart1990matrix}
+\newlabel{rem:certificates}{{5}{5}{Certificate Semantics}{theorem.5}{}}
+\newlabel{rem:certificates@cref}{{[theorem][5][]5}{[1][4][]5}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Continuous-to-Discrete Transfer}{5}{subsection.3.1}\protected@file@percent }
 \newlabel{prop:transfer}{{6}{5}{Continuous-to-Discrete Ranking Transfer}{theorem.6}{}}
 \newlabel{prop:transfer@cref}{{[theorem][6][]6}{[1][5][]5}{}{}{}}
@@ -91,13 +91,12 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Architecture Overview}{6}{subsection.4.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Stage 1: Subgraph Extraction and Forward Pass}{6}{subsection.4.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Stage 2: Matrix-Free Sensitivity Computation}{6}{subsection.4.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}Stage 3: Constrained Projection}{6}{subsection.4.4}\protected@file@percent }
 \citation{halko2011finding}
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces The \textsc  {Aegis}\xspace  pipeline. Inputs (left) flow through four layers: (1)~Graph Processing (BFS subgraph extraction, forward pass or fixed-point convergence), (2)~Sensitivity Computation (dense Jacobian path for $N \leq 200$; matrix-free Neumann/JVP path for larger graphs), (3)~Constrained Projection ($N^2 \to |E|$ reduction via $P_c$), and (4)~Vulnerability Analysis (randomized SVD, column norms of $S_c$, per-node radii). The matrix-free formulation operates via JVP/VJP queries without materializing $S$ or $S_c$, enabling full-graph analysis (tested up to $N{=}7{,}650$).}}{7}{figure.caption.2}\protected@file@percent }
 \newlabel{fig:pipeline}{{1}{7}{The \AEGIS pipeline. Inputs (left) flow through four layers: (1)~Graph Processing (BFS subgraph extraction, forward pass or fixed-point convergence), (2)~Sensitivity Computation (dense Jacobian path for $N \leq 200$; matrix-free Neumann/JVP path for larger graphs), (3)~Constrained Projection ($N^2 \to |E|$ reduction via $P_c$), and (4)~Vulnerability Analysis (randomized SVD, column norms of $S_c$, per-node radii). The matrix-free formulation operates via JVP/VJP queries without materializing $S$ or $S_c$, enabling full-graph analysis (tested up to $N{=}7{,}650$)}{figure.caption.2}{}}
 \newlabel{fig:pipeline@cref}{{[figure][1][]1}{[1][6][]7}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}Stage 3: Constrained Projection}{7}{subsection.4.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-E}}Stage 4: Vulnerability Analysis}{7}{subsection.4.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-F}}Computational Cost}{7}{subsection.4.6}\protected@file@percent }
 \citation{paszke2019pytorch}
 \citation{gu2020implicit}
 \citation{miyato2018spectral}
@@ -109,6 +108,7 @@
 \citation{thurner2018pandapower}
 \citation{zugner2019adversarial}
 \citation{kipf2017semi}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-F}}Computational Cost}{8}{subsection.4.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {V}Experiments}{8}{section.5}\protected@file@percent }
 \newlabel{sec:experiments}{{V}{8}{Experiments}{section.5}{}}
 \newlabel{sec:experiments@cref}{{[section][5][]V}{[1][8][]8}{}{}{}}
@@ -151,13 +151,10 @@
 \citation{trefethen2005spectra}
 \@writefile{lot}{\contentsline {table}{\numberline {VIII}{\ignorespaces Scalability: dense vs.\ matrix-free pipeline (RTX 4090, 24\,GB, 10 seeds). OOM = out of memory. Mem = peak GPU memory. All timings: mean$\pm $std over 10 seeds. $N \leq 2{,}708$: Cora subgraphs (full pipeline incl.\ per-edge vulnerability). $N{=}7{,}650$: Amazon Photo full graph (rSVD pipeline; per-edge column computation is $O(|E|)$ and impractical at $|E|{=}119$K).}}{11}{table.caption.9}\protected@file@percent }
 \newlabel{tab:scalability}{{VIII}{11}{Scalability: dense vs.\ matrix-free pipeline (RTX 4090, 24\,GB, 10 seeds). OOM = out of memory. Mem = peak GPU memory. All timings: mean$\pm $std over 10 seeds. $N \leq 2{,}708$: Cora subgraphs (full pipeline incl.\ per-edge vulnerability). $N{=}7{,}650$: Amazon Photo full graph (rSVD pipeline; per-edge column computation is $O(|E|)$ and impractical at $|E|{=}119$K)}{table.caption.9}{}}
-\newlabel{tab:scalability@cref}{{[table][8][]VIII}{[1][10][]11}{}{}{}}
+\newlabel{tab:scalability@cref}{{[table][8][]VIII}{[1][11][]11}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-E}}Subgraph Size Ablation}{11}{subsection.5.5}\protected@file@percent }
 \newlabel{sec:subgraph_ablation}{{\mbox  {V-E}}{11}{Subgraph Size Ablation}{subsection.5.5}{}}
-\newlabel{sec:subgraph_ablation@cref}{{[subsection][5][5]\mbox  {V-E}}{[1][10][]11}{}{}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {IX}{\ignorespaces $S_c$ framework applied to 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: \textsc  {Aegis}\xspace  /random damage. $\tau $: Kendall rank correlation of continuous $S_c$ vulnerability scores vs.\ discrete single-edge-removal ground truth (brute-force). Test Acc: full-graph accuracy. GAT$^\dagger $: edge-weighted variant for continuous differentiability (see text).}}{11}{table.caption.10}\protected@file@percent }
-\newlabel{tab:explicit}{{IX}{11}{$S_c$ framework applied to 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: \AEGIS /random damage. $\tau $: Kendall rank correlation of continuous $S_c$ vulnerability scores vs.\ discrete single-edge-removal ground truth (brute-force). Test Acc: full-graph accuracy. GAT$^\dagger $: edge-weighted variant for continuous differentiability (see text)}{table.caption.10}{}}
-\newlabel{tab:explicit@cref}{{[table][9][]IX}{[1][11][]11}{}{}{}}
+\newlabel{sec:subgraph_ablation@cref}{{[subsection][5][5]\mbox  {V-E}}{[1][11][]11}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-F}}Sensitivity and Convergence}{11}{subsection.5.6}\protected@file@percent }
 \newlabel{sec:hyperparams}{{\mbox  {V-F}}{11}{Sensitivity and Convergence}{subsection.5.6}{}}
 \newlabel{sec:hyperparams@cref}{{[subsection][6][5]\mbox  {V-F}}{[1][11][]11}{}{}{}}
@@ -171,23 +168,26 @@
 \newlabel{sec:explicit_extension@cref}{{[subsection][8][5]\mbox  {V-H}}{[1][11][]11}{}{}{}}
 \citation{brody2022how}
 \citation{pei2020geomgcn}
+\@writefile{lot}{\contentsline {table}{\numberline {IX}{\ignorespaces $S_c$ framework applied to 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: \textsc  {Aegis}\xspace  /random damage. $\tau $: Kendall rank correlation of continuous $S_c$ vulnerability scores vs.\ discrete single-edge-removal ground truth (brute-force). Test Acc: full-graph accuracy. GAT$^\dagger $: edge-weighted variant for continuous differentiability (see text).}}{12}{table.caption.10}\protected@file@percent }
+\newlabel{tab:explicit}{{IX}{12}{$S_c$ framework applied to 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: \AEGIS /random damage. $\tau $: Kendall rank correlation of continuous $S_c$ vulnerability scores vs.\ discrete single-edge-removal ground truth (brute-force). Test Acc: full-graph accuracy. GAT$^\dagger $: edge-weighted variant for continuous differentiability (see text)}{table.caption.10}{}}
+\newlabel{tab:explicit@cref}{{[table][9][]IX}{[1][11][]12}{}{}{}}
 \citation{pope2019explainability}
 \citation{ying2019gnnexplainer}
 \citation{donon2019graph}
 \citation{bolz2019power}
 \citation{nakiganda2023graph}
 \citation{wood2014power}
-\citation{wood2014power}
 \@writefile{lot}{\contentsline {table}{\numberline {X}{\ignorespaces Continuous-to-discrete transfer $\tau $ (Kendall) across 5 datasets and 7 architectures (10 seeds each, 330 runs). Bold: best per dataset. ---: GPU OOM. P@10 for top results: Pubmed GCN-4/APPNP $= 1.0$; Citeseer IGNN/APPNP $\geq 0.93$.}}{13}{table.caption.11}\protected@file@percent }
 \newlabel{tab:tau_cross}{{X}{13}{Continuous-to-discrete transfer $\tau $ (Kendall) across 5 datasets and 7 architectures (10 seeds each, 330 runs). Bold: best per dataset. ---: GPU OOM. P@10 for top results: Pubmed GCN-4/APPNP $= 1.0$; Citeseer IGNN/APPNP $\geq 0.93$}{table.caption.11}{}}
 \newlabel{tab:tau_cross@cref}{{[table][10][]X}{[1][12][]13}{}{}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Continuous-to-discrete transfer $\tau $ (Kendall) across 7 architectures and 5 datasets (\cref  {tab:tau_cross}). Deeper models (GCN-4 vs.\ GCN-2) and Pubmed consistently show the strongest transfer. Gray cells: GPU OOM.}}{13}{figure.caption.12}\protected@file@percent }
 \newlabel{fig:tau_heatmap}{{2}{13}{Continuous-to-discrete transfer $\tau $ (Kendall) across 7 architectures and 5 datasets (\cref {tab:tau_cross}). Deeper models (GCN-4 vs.\ GCN-2) and Pubmed consistently show the strongest transfer. Gray cells: GPU OOM}{figure.caption.12}{}}
-\newlabel{fig:tau_heatmap@cref}{{[figure][2][]2}{[1][12][]13}{}{}{}}
+\newlabel{fig:tau_heatmap@cref}{{[figure][2][]2}{[1][13][]13}{}{}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {VI}Case Study: Power Flow Contingency}{13}{section.6}\protected@file@percent }
 \newlabel{sec:power_flow}{{VI}{13}{Case Study: Power Flow Contingency}{section.6}{}}
 \newlabel{sec:power_flow@cref}{{[section][6][]VI}{[1][13][]13}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-A}}Background: N-1 Contingency}{13}{subsection.6.1}\protected@file@percent }
+\citation{wood2014power}
 \citation{ieee2024testcases}
 \citation{thurner2018pandapower}
 \citation{wood2014power}
@@ -200,6 +200,14 @@
 \citation{xu2019topology}
 \citation{wu2019adversarial}
 \citation{gosch2023adversarial}
+\@writefile{lot}{\contentsline {table}{\numberline {XI}{\ignorespaces \textsc  {Aegis}\xspace  on IEEE power flow benchmarks (10 seeds). Model quality (per-unit RMSE, mean over 10 seeds; std $<0.003$ for all entries): $|V|$ = voltage magnitude, $\theta $ = angle. $\tau $: Kendall rank correlation vs.\ brute-force N-1 contingency. P@10: top-10 precision.}}{14}{table.caption.13}\protected@file@percent }
+\newlabel{tab:ieee}{{XI}{14}{\AEGIS on IEEE power flow benchmarks (10 seeds). Model quality (per-unit RMSE, mean over 10 seeds; std $<0.003$ for all entries): $|V|$ = voltage magnitude, $\theta $ = angle. $\tau $: Kendall rank correlation vs.\ brute-force N-1 contingency. P@10: top-10 precision}{table.caption.13}{}}
+\newlabel{tab:ieee@cref}{{[table][11][]XI}{[1][14][]14}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-B}}Experimental Setup}{14}{subsection.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-C}}Results}{14}{subsection.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VII}Related Work}{14}{section.7}\protected@file@percent }
+\newlabel{sec:related}{{VII}{14}{Related Work}{section.7}{}}
+\newlabel{sec:related@cref}{{[section][7][]VII}{[1][14][]14}{}{}{}}
 \citation{bojchevski2019certifiable}
 \citation{zugner2019certifiable}
 \citation{bojchevski2020efficient}
@@ -210,14 +218,6 @@
 \citation{zhu2019robust}
 \citation{jin2020graph}
 \citation{zhang2020gnnguard}
-\@writefile{lot}{\contentsline {table}{\numberline {XI}{\ignorespaces \textsc  {Aegis}\xspace  on IEEE power flow benchmarks (10 seeds). Model quality (per-unit RMSE, mean over 10 seeds; std $<0.003$ for all entries): $|V|$ = voltage magnitude, $\theta $ = angle. $\tau $: Kendall rank correlation vs.\ brute-force N-1 contingency. P@10: top-10 precision.}}{14}{table.caption.13}\protected@file@percent }
-\newlabel{tab:ieee}{{XI}{14}{\AEGIS on IEEE power flow benchmarks (10 seeds). Model quality (per-unit RMSE, mean over 10 seeds; std $<0.003$ for all entries): $|V|$ = voltage magnitude, $\theta $ = angle. $\tau $: Kendall rank correlation vs.\ brute-force N-1 contingency. P@10: top-10 precision}{table.caption.13}{}}
-\newlabel{tab:ieee@cref}{{[table][11][]XI}{[1][14][]14}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-B}}Experimental Setup}{14}{subsection.6.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-C}}Results}{14}{subsection.6.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {VII}Related Work}{14}{section.7}\protected@file@percent }
-\newlabel{sec:related}{{VII}{14}{Related Work}{section.7}{}}
-\newlabel{sec:related@cref}{{[section][7][]VII}{[1][14][]14}{}{}{}}
 \citation{bai2019deep}
 \citation{gu2020implicit}
 \citation{miyato2018spectral}
@@ -247,13 +247,13 @@
 \bibdata{aegis}
 \bibcite{zugner2018adversarial}{1}
 \bibcite{dai2018adversarial}{2}
-\bibcite{nakiganda2023graph}{3}
-\bibcite{zugner2019adversarial}{4}
-\bibcite{bojchevski2020efficient}{5}
 \@writefile{toc}{\contentsline {section}{\numberline {VIII}Conclusion}{15}{section.8}\protected@file@percent }
 \newlabel{sec:conclusion}{{VIII}{15}{Conclusion}{section.8}{}}
 \newlabel{sec:conclusion@cref}{{[section][8][]VIII}{[1][15][]15}{}{}{}}
 \@writefile{toc}{\contentsline {section}{References}{15}{section*.14}\protected@file@percent }
+\bibcite{nakiganda2023graph}{3}
+\bibcite{zugner2019adversarial}{4}
+\bibcite{bojchevski2020efficient}{5}
 \bibcite{scholten2022randomized}{6}
 \bibcite{zugner2019certifiable}{7}
 \bibcite{bojchevski2019certifiable}{8}
