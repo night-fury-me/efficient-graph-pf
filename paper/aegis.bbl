@@ -209,6 +209,11 @@ S.~Brody, U.~Alon, and E.~Yahav, ``How attentive are graph attention
   networks?'' in \emph{International Conference on Learning Representations},
   2022.
 
+\bibitem{pei2020geomgcn}
+H.~Pei, B.~Wei, B.~Chang, Y.~Lei, and B.~Yang, ``{Geom-GCN}: Geometric graph
+  convolutional networks,'' in \emph{International Conference on Learning
+  Representations}, 2020.
+
 \bibitem{pope2019explainability}
 P.~E. Pope, S.~Kolouri, M.~Rostami, C.~E. Martin, and H.~Hoffmann,
   ``Explainability methods for graph convolutional neural networks,'' in
