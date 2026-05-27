@@ -11,7 +11,7 @@ Let $F_\theta(Z, A) = \phi(AZW^\top + X_{\mathrm{proj}})$ be an IGNN-class opera
 \begin{enumerate}
 \item[(A1)] $\phi$ is ReLU (or any 1-Lipschitz activation with $\sup|\phi'| = 1$; ReLU is non-differentiable at zero, but the set of measure zero where $\phi' = 0$ does not affect the Jacobian computation in practice~\cite{bolte2021conservative});
 \item[(A2)] $W$ is spectral-norm constrained: $\norm{W}_2 \leq c$;
-\item[(A3)] The state Jacobian satisfies $\norm{J_z}_2 \leq \kappa < 1$ at the fixed point $\zstar$ (contraction in operator norm).
+\item[(A3)] The state Jacobian satisfies $\norm{J_z}_2 \leq \kappa < 1$ at the fixed point $\zstar$ (contraction in operator norm). This is verified empirically after training ($\kappa = 0.14$--$0.59$ across all datasets; \cref{sec:convergence}). If A3 is violated ($\kappa \geq 1$), \AEGIS still computes $S_c$ rankings and SVD-optimal attacks, but the formal guarantees of parts (a)--(c) below are void; the pipeline flags this case.
 \end{enumerate}
 Define the critical budget
 \begin{equation}
@@ -36,9 +36,9 @@ The intuition behind this three-regime picture is physical: a contractive system
 \begin{proof}
 \textbf{Part (a).} The Jacobian of $F$ with respect to $\mathrm{vec}(Z)$ takes the form $J_z = \mathrm{diag}(\phi') \cdot (\Ahat \otimes W)$ (column-major vectorization throughout), where $\phi' \in \{0, 1\}^{Nd}$ for ReLU (A1). The operator norm satisfies $\kappa = \norm{J_z}_2 \leq \norm{\Ahat}_2 \cdot \norm{W}_2 \cdot \sup|\phi'| = \norm{\Ahat}_2 \cdot \norm{W}_2$. Applying the IFT to $G(z,A) = z - F(z,A) = 0$ at $(\zstar, A)$:
 \begin{equation}
-\Delta \zstar = (I - J_z)^{-1} J_A \cdot \mathrm{vec}(\delta A) + O(\norm{\delta A}^2).
+\Delta \zstar = (I - J_z)^{-1} J_A \cdot \mathrm{vec}(\delta A) + O(\norm{\delta A}^2),
 \end{equation}
-Taking operator norms and using the Neumann series bound $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\kappa)$ (convergent because $\kappa < 1$) yields~\eqref{eq:shift_bound}.
+where $J_A = \partial F / \partial \mathrm{vec}(A) \in \R^{Nd \times N^2}$ is the Jacobian with respect to the full (not upper-triangular) vectorized adjacency; the constrained projection to $|E|$ edge dimensions is applied subsequently via $S_c$ (below). Taking operator norms and using the Neumann series bound $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\kappa)$ (convergent because $\kappa < 1$) yields~\eqref{eq:shift_bound}.
 
 For contractivity preservation: by sub-multiplicativity and the triangle inequality, the perturbed Jacobian satisfies $\norm{J_z'}_2 \leq \norm{A + \delta A}_2 \cdot \norm{W}_2 \leq (\norm{A}_2 + \norm{\delta A}_2) \cdot \norm{W}_2$; since $\norm{\delta A}_2 \leq \norm{\delta A}_F = \varepsilon$, the condition $\varepsilon < (1-\kappa)/\norm{W}_2$ ensures $\norm{J_z'}_2 < 1$. Note that $\ecrit$ is a Frobenius-norm sufficient condition: perturbation budgets are measured in $\norm{\cdot}_F$, while $\kappa$ is the operator norm $\norm{J_z}_2$. For a rank-$r$ perturbation, $\norm{\delta A}_F \leq \sqrt{r} \cdot \norm{\delta A}_2$, so $\ecrit$ may be conservative by a factor up to $\sqrt{\mathrm{rank}(\delta A)}$; the constrained projection $S_c$ mitigates this by restricting to realistic perturbation directions.
 
