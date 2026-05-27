@@ -25,7 +25,7 @@ where $W \in \R^{d \times d}$ is the shared weight matrix, $X_{\mathrm{proj}} \i
 \frac{\partial \zstar}{\partial p} = (I - J_z)^{-1} \frac{\partial F}{\partial p}\bigg|_{\zstar},
 \label{eq:ift}
 \end{equation}
-where the resolvent $(I - J_z)^{-1}$ exists and satisfies $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\kappa)$ by the Neumann series (convergent because $\kappa < 1$). This bound uses the operator norm $\kappa = \norm{J_z}_2$; the weaker spectral-radius bound $1/(1-\rho)$ holds only for normal $J_z$. The pseudospectral index $\eta = \norm{(I-J_z)^{-1}}_2 \cdot (1-\rho) \geq 1$~\cite{trefethen2005spectra} quantifies this gap, with $\eta = 1$ for normal matrices. The IFT has been used for hyperparameter optimization~\cite{lorraine2020optimizing} and implicit differentiation~\cite{gould2021deep}, but not for adversarial structural analysis.
+where the resolvent $(I - J_z)^{-1}$ exists and satisfies $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\kappa)$ by the Neumann series (convergent because $\kappa < 1$). This bound uses the operator norm $\kappa = \norm{J_z}_2$; the weaker spectral-radius bound $1/(1-\rho)$ holds only for normal $J_z$. The pseudospectral index $\eta = \norm{(I-J_z)^{-1}}_2 \cdot (1-\rho) \geq 1$~\cite{trefethen2005spectra} quantifies this gap, with $\eta = 1$ for normal matrices. (Our definition follows the convention $\eta = \norm{(I-J_z)^{-1}}_2 \cdot (1-\rho)$; the standard Trefethen--Embree pseudospectral theory uses $\varepsilon$-pseudospectra, from which this scalar index is derived.) The IFT has been used for hyperparameter optimization~\cite{lorraine2020optimizing} and implicit differentiation~\cite{gould2021deep}, but not for adversarial structural analysis.
 
 \begin{table}[t]
 \centering

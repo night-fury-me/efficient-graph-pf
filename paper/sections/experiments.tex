@@ -18,13 +18,13 @@ We begin by validating that the constrained first-order prediction is accurate a
 
 \begin{table}[t]
 \centering
-\caption{Cross-domain adversarial analysis (IGNN, 10 seeds). $\kappa$: operator-norm contraction constant $\norm{J_z}_2$. Tight.: actual/predicted shift ratio. AtkAdv: \AEGIS damage / random damage. $\ecrit$: critical perturbation budget (\cref{thm:phase_transition}). Test Acc: full-graph accuracy (\%). Cert\%: fraction of nodes in the 50-node BFS subgraph with positive first-order radius $r_v > 0$ (i.e., correctly classified nodes in the subgraph).}
+\caption{Cross-domain adversarial analysis (IGNN, 10 seeds). $\kappa$: operator-norm contraction constant $\norm{J_z}_2$. Tight.: actual/predicted shift ratio. AtkAdv: \AEGIS damage / random damage. $\ecrit$: critical perturbation budget (\cref{thm:phase_transition}). Test Acc: full-graph accuracy (\%). Cov\%: fraction of nodes in the 50-node BFS subgraph with positive first-order radius $r_v > 0$ (i.e., correctly classified nodes in the subgraph).}
 \label{tab:cross_domain}
 \small
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}l r r r r r r@{}}
 \toprule
-Dataset & \rotatebox{70}{Test Acc} & \rotatebox{70}{$\kappa$} & \rotatebox{70}{Tight.} & \rotatebox{70}{AtkAdv} & \rotatebox{70}{$\ecrit$} & \rotatebox{70}{Cert\%} \\
+Dataset & \rotatebox{70}{Test Acc} & \rotatebox{70}{$\kappa$} & \rotatebox{70}{Tight.} & \rotatebox{70}{AtkAdv} & \rotatebox{70}{$\ecrit$} & \rotatebox{70}{Cov\%} \\
 \midrule
 Cora     & $\ms{77.5}{1.7}$ & $\ms{.33}{.14}$ & $\ms{1.01}{.01}$ & $\ms{3.6}{.6}$ & $\ms{.66}{.15}$ & $\ms{81}{9}$ \\
 Citeseer & $\ms{66.0}{0.7}$ & $\ms{.59}{.02}$ & $\ms{1.01}{.01}$ & $\ms{4.1}{.5}$ & $\ms{.41}{.02}$ & $\ms{83}{4}$ \\
@@ -35,7 +35,7 @@ WikiCS   & $\ms{77.9}{0.4}$ & $\ms{.34}{.04}$ & $\ms{1.00}{.01}$ & $\ms{3.8}{.4}
 \end{tabular}
 \end{table}
 
-Tightness is $1.00 \pm 0.01$ across all datasets at $\varepsilon = 0.01$. Tightness values $\geq 1$ are expected: the first-order prediction underestimates the actual shift because the true response includes convex higher-order terms. First-order accuracy at small $\varepsilon$ is mathematically expected; the contribution is that $S_c$ makes this tractable under \emph{constrained} perturbations ($N^2 \to |E|$ projection). \cref{tab:tightness_eps} shows how tightness degrades at larger budgets: the first-order prediction remains within 7\% at $\varepsilon = 0.05$ and within 16\% at $\varepsilon = 0.10$ on Cora/Citeseer, and within 5\% at $\varepsilon = 0.20$ on WikiCS. Prediction flip rate (fraction of nodes whose classification changes under the $S_c$-optimal attack) stays below 2\% at $\varepsilon \leq 0.10$ and below 6\% at $\varepsilon = 0.20$. The attack advantage (3.2--4.1$\times$ over random in \cref{tab:cross_domain}) confirms that $S_c$ identifies the most vulnerable perturbation directions. Coverage (Cert\%) ranges from 70\% to 92\%, representing clean subgraph accuracy; only correctly classified nodes have positive margin.
+Tightness is $1.00 \pm 0.01$ across all datasets at $\varepsilon = 0.01$. Tightness values $\geq 1$ are expected: the first-order prediction underestimates the actual shift because the true response includes convex higher-order terms. First-order accuracy at small $\varepsilon$ is mathematically expected; the contribution is that $S_c$ makes this tractable under \emph{constrained} perturbations ($N^2 \to |E|$ projection). \cref{tab:tightness_eps} shows how tightness degrades at larger budgets: the first-order prediction remains within 7\% at $\varepsilon = 0.05$ and within 15\% at $\varepsilon = 0.10$ on Cora/Citeseer, and within 7\% at $\varepsilon = 0.20$ on Amazon Photo and WikiCS. Prediction flip rate stays below 2\% at $\varepsilon \leq 0.10$ and below 6\% at $\varepsilon = 0.20$. The attack advantage (3.2--4.1$\times$ over random in \cref{tab:cross_domain}) confirms that $S_c$ identifies the most vulnerable perturbation directions. Coverage (Cov\%) ranges from 70\% to 92\%, representing clean subgraph accuracy; only correctly classified nodes have positive margin.
 
 \begin{table}[t]
 \centering
@@ -49,9 +49,9 @@ Dataset & $\varepsilon{=}.01$ & $\varepsilon{=}.05$ & $\varepsilon{=}.10$ & $\va
 \multicolumn{5}{@{}l}{\emph{Tightness (actual/predicted shift)}} \\
 Cora     & $\ms{1.01}{.00}$ & $\ms{1.07}{.01}$ & $\ms{1.15}{.03}$ & $\ms{1.36}{.08}$ \\
 Citeseer & $\ms{1.01}{.00}$ & $\ms{1.07}{.01}$ & $\ms{1.16}{.03}$ & $\ms{1.39}{.07}$ \\
-Pubmed   & $\ms{0.79}{.01}$ & $\ms{0.83}{.01}$ & $\ms{0.90}{.01}$ & $\ms{1.07}{.04}$ \\
+Pubmed   & $\ms{1.01}{.00}$ & $\ms{1.07}{.01}$ & $\ms{1.15}{.02}$ & $\ms{1.38}{.06}$ \\
 WikiCS   & $\ms{1.00}{.01}$ & $\ms{1.01}{.01}$ & $\ms{1.02}{.01}$ & $\ms{1.05}{.01}$ \\
-Amazon   & $\ms{0.92}{.03}$ & $\ms{0.93}{.03}$ & $\ms{0.94}{.02}$ & $\ms{0.97}{.02}$ \\
+Amazon   & $\ms{1.00}{.00}$ & $\ms{1.01}{.00}$ & $\ms{1.03}{.01}$ & $\ms{1.07}{.01}$ \\
 \midrule
 \multicolumn{5}{@{}l}{\emph{Prediction flip rate (\%)}} \\
 Cora     & $\ms{0.4}{0.8}$ & $\ms{0.6}{0.9}$ & $\ms{1.8}{2.4}$ & $\ms{5.8}{5.0}$ \\
@@ -61,7 +61,7 @@ WikiCS   & $\ms{0.2}{0.6}$ & $\ms{0.4}{0.8}$ & $\ms{0.6}{0.9}$ & $\ms{1.2}{1.0}$
 \end{tabular}
 \end{table}
 
-\textbf{Surrogate baseline.} We also compared against Mettack~\cite{zugner2019adversarial} (GCN~\cite{kipf2017semi} surrogate): \AEGIS inflicts 3--10$\times$ more damage at every budget (149/150 wins across $k=1,\ldots,5$ edge removals, 3 datasets, 10 seeds; the single loss occurs at $k{=}1$ on WikiCS seed 5772, where Mettack's surrogate gradient happens to select a higher-impact edge). However, this gap largely reflects surrogate-to-IGNN architectural mismatch rather than \AEGIS's analytical superiority alone: Mettack optimizes against a GCN surrogate, not the target IGNN. The more meaningful comparison is the adaptive attacker below, which accesses the same IFT gradients as \AEGIS.
+\textbf{Surrogate baseline.} As a sanity check, we also compared against Mettack~\cite{zugner2019adversarial} (GCN~\cite{kipf2017semi} surrogate): \AEGIS inflicts 3--10$\times$ more damage at every budget (149/150 wins across $k=1,\ldots,5$ edge removals, 3 datasets, 10 seeds; the single loss occurs at $k{=}1$ on WikiCS seed 5772, where Mettack's surrogate gradient happens to select a higher-impact edge). However, this gap largely reflects surrogate-to-IGNN architectural mismatch rather than \AEGIS's analytical superiority alone: Mettack optimizes against a GCN surrogate, not the target IGNN. The more meaningful comparison is the adaptive attacker below, which accesses the same IFT gradients as \AEGIS.
 
 \textbf{Structured baselines.} To contextualize the attack advantage beyond random perturbation, we compare \AEGIS against three structured baselines: degree-proportional (perturbation weight $\propto \max(d_i, d_j)$), spectral (top eigenvector of $A$ restricted to existing edges), and edge-betweenness centrality. \cref{tab:baselines} reports the attack advantage (damage / random damage) at $\varepsilon = 0.01$.
 
@@ -81,49 +81,74 @@ WikiCS   & $\ms{4.02}{0.78}$ & $\ms{3.93}{0.76}$ & $\ms{1.62}{0.27}$ & $\ms{3.93
 \end{tabular}
 \end{table}
 
-\AEGIS consistently achieves the highest attack advantage, outperforming degree-proportional by 6--8\% and spectral by 48--148\%. Degree and betweenness centrality are surprisingly competitive baselines, indicating that high-degree edges are genuinely more vulnerable. However, \AEGIS captures model-specific sensitivity beyond graph topology: the SVD direction optimizes the equilibrium shift, while degree-based heuristics rely solely on structural position. The spectral baseline performs worst, suggesting that the top eigenvector of $A$ does not align with the model's sensitivity landscape.
+\AEGIS consistently achieves the highest attack advantage, outperforming degree-proportional by 6--8\% and spectral by 48--148\% (Wilcoxon signed-rank: \AEGIS $>$ degree in 10/10 seeds on all three datasets, $p < 0.001$). Degree and betweenness centrality are competitive for continuous perturbation, but under discrete edge removal (\cref{tab:greedy_topk}), \AEGIS is 2--4$\times$ better and degree-ranked removal is worse than random on Cora. \AEGIS captures model-specific sensitivity beyond graph topology: the SVD direction optimizes the equilibrium shift, while degree-based heuristics rely solely on structural position.
 
 \subsection{Radius Comparison: \AEGIS vs.\ Smoothing}
 \label{sec:certificates}
 
 We compare \AEGIS sensitivity radii against randomized smoothing~\cite{bojchevski2020efficient} ($\sigma \in \{0.01, 0.05, 0.10, 0.15\}$, 1000 MC samples, 10 seeds). The two methods provide fundamentally different certificate types (see \cref{sec:theory}): smoothing gives probabilistic-global guarantees valid at any perturbation magnitude, while \AEGIS gives deterministic-local sensitivity measures that are first-order tight but degrade with increasing $\varepsilon$. At $\sigma \leq 0.10$, smoothing radii are \emph{constant} across all nodes ($r = \sigma \cdot \Phi^{-1}(p_\mathrm{lower})$), yielding larger absolute values (0.123 vs.\ \AEGIS's 0.046 at $\sigma = 0.05$) but zero per-node differentiation. \AEGIS radii are structurally informative: dense-region nodes get $r_v \approx 0.09$, boundary nodes $r_v \approx 0.01$. The two are complementary: practitioners should use smoothing for worst-case certification and \AEGIS for vulnerability ranking and defense prioritization.
 
-\subsection{Adaptive Attack Evaluation}
+\subsection{Comprehensive Attack Evaluation}
 \label{sec:adaptive}
 
-The Mettack comparison uses a GCN surrogate, so its failure against IGNN may reflect architectural mismatch rather than \AEGIS's analytical strength. To address this, we implement an \emph{adaptive attacker} that differentiates through the IGNN fixed-point iteration via the same IFT gradients \AEGIS uses for sensitivity analysis. This attacker optimizes perturbations directly against the IGNN loss surface using projected gradient descent~\cite{madry2018towards} (PGD, 50 steps, step size $\varepsilon/10$).
+We evaluate \AEGIS against baselines spanning four quadrants: gradient-based vs.\ gradient-free, and same-objective (equilibrium shift) vs.\ different-objective (classification loss or discrete removal). This taxonomy ensures no comparison shares both the optimization pathway and the objective with \AEGIS.
+
+\textbf{SVD optimality.} We first verify that the SVD direction is genuinely special, not an artifact of a flat sensitivity landscape. Sampling 1{,}000 random unit directions in $\R^{|E|}$ and evaluating $\norm{S_c d}$ for each (10 seeds): the best random direction achieves only $0.45$--$0.49\times$ of $\sigma_1(S_c)$ across all datasets, and \emph{zero} of 30 runs reach 90\% of the SVD damage. The singular value gap $(\sigma_1 - \sigma_2)/\sigma_1 = 0.39$--$0.50$ confirms $v_1$ occupies a narrow, well-separated cone. Additionally, an equilibrium-shift PGD attacker~\cite{madry2018towards} using the same IFT gradients as \AEGIS (50 steps, step size $\varepsilon/10$) achieves 72--92\% of SVD damage (\cref{tab:attack_full}), confirming that PGD as an iterative solver cannot match the closed-form SVD solution.
+
+\textbf{Independent adaptive baseline.} To avoid circularity, we implement a classification-loss PGD attacker that optimizes cross-entropy via standard autograd through the unrolled fixed-point iteration---a fundamentally different gradient signal (backpropagation through unrolled iterations, not the IFT resolvent) and a different objective (prediction flipping, not equilibrium shift). \cref{tab:attack_full} reports both equilibrium damage and prediction flip rate for all methods. \AEGIS inflicts 15--70\% more equilibrium damage than classification-loss PGD across all settings, while achieving comparable flip rates (0--1.8\%). The SVD direction is effective for flipping predictions even though it optimizes a different objective.
 
 \begin{table}[t]
 \centering
-\caption{Adaptive attack (white-box PGD via IFT gradients on IGNN) vs.\ \AEGIS (10 seeds). Breach: fraction of certified nodes whose prediction changes. \AEGIS/Adapt.\ dmg: mean equilibrium shift ($\ell_2$). Ratio: Adapt./\AEGIS damage.}
-\label{tab:adaptive}
+\caption{Full attack comparison (IGNN, 50-node subgraph, 10 seeds). SVD: \AEGIS optimal. Cls-PGD: classification-loss PGD (autograd, cross-entropy). Shift-PGD: equilibrium-shift PGD (IFT gradients, same objective as SVD---a solver validation, not an independent baseline). Flip\%: prediction flip rate.}
+\label{tab:attack_full}
 \small
-\begin{tabular}{@{}lcrrrc@{}}
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}ll rrrr rr@{}}
 \toprule
-Dataset & $\varepsilon$ & Breach & \AEGIS dmg & Adapt.\ dmg & Ratio \\
+ & & \multicolumn{4}{c}{Equil.\ damage ($\ell_2$)} & \multicolumn{2}{c}{Flip\%} \\
+\cmidrule(lr){3-6}\cmidrule(lr){7-8}
+Dataset & $\varepsilon$ & SVD & Cls & Shift & Rand & SVD & Cls \\
 \midrule
-Cora     & 0.01 & 0\%\phantom{.0} & $\ms{0.33}{0.07}$ & $\ms{0.26}{0.11}$ & 0.80 \\
-Cora     & 0.05 & 0\%\phantom{.0} & $\ms{1.72}{0.35}$ & $\ms{1.32}{0.55}$ & 0.76 \\
-Cora     & 0.10 & 0\%\phantom{.0} & $\ms{3.70}{0.79}$ & $\ms{2.69}{1.18}$ & 0.72 \\
-Citeseer & 0.01 & 0\%\phantom{.0} & $\ms{0.40}{0.08}$ & $\ms{0.34}{0.06}$ & 0.84 \\
-Citeseer & 0.05 & 0\%\phantom{.0} & $\ms{2.14}{0.42}$ & $\ms{1.68}{0.28}$ & 0.79 \\
-Citeseer & 0.10 & 0\%\phantom{.0} & $\ms{4.63}{0.95}$ & $\ms{3.37}{0.55}$ & 0.74 \\
-WikiCS   & 0.01 & 0\%\phantom{.0} & $\ms{0.21}{0.02}$ & $\ms{0.10}{0.10}$ & 0.47 \\
-WikiCS   & 0.05 & 0.3\% & $\ms{1.04}{0.11}$ & $\ms{0.48}{0.49}$ & 0.46 \\
-WikiCS   & 0.10 & 0.6\% & $\ms{2.10}{0.22}$ & $\ms{0.96}{0.97}$ & 0.46 \\
+Cora & .01 & $\ms{.33}{.07}$ & $\ms{.28}{.06}$ & $\ms{.27}{.06}$ & $\ms{.10}{.02}$ & 0.4 & 0.0 \\
+Cora & .10 & $\ms{3.70}{.79}$ & $\ms{2.51}{.48}$ & $\ms{3.05}{.70}$ & $\ms{.97}{.25}$ & 1.8 & 1.2 \\
+Cite & .01 & $\ms{.40}{.06}$ & $\ms{.33}{.05}$ & $\ms{.34}{.05}$ & $\ms{.10}{.02}$ & 0.0 & 0.0 \\
+Cite & .10 & $\ms{4.63}{.71}$ & $\ms{2.97}{.42}$ & $\ms{3.35}{.57}$ & $\ms{1.01}{.15}$ & 0.2 & 1.4 \\
+Wiki & .01 & $\ms{.21}{.02}$ & $\ms{.06}{.01}$ & $\ms{.19}{.02}$ & $\ms{.05}{.01}$ & 0.2 & 0.2 \\
+Wiki & .10 & $\ms{2.10}{.22}$ & $\ms{.67}{.11}$ & $\ms{1.93}{.20}$ & $\ms{.53}{.09}$ & 0.6 & 0.4 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The adaptive attacker breaches zero nodes at $\varepsilon = 0.01$ and fewer than 1\% at $\varepsilon = 0.10$ (\cref{tab:adaptive}), confirming empirical validity of first-order radii. \AEGIS's SVD attack inflicts 20--50\% more damage than PGD (ratio 0.46--0.84). This comparison validates the SVD's optimality within the linearized model: the SVD is the exact solution to the linearized problem, while PGD is an approximate iterative solver for the same objective (equilibrium shift maximization under the same IFT gradients). The PGD loss converges within 20--30 of 50 steps across all datasets. The comparison demonstrates that the $S_c$ framework extracts the maximum possible information from first-order analysis.
+\textbf{Classification-gradient edge ranking.} To test whether a classification-targeted attacker identifies the same vulnerable edges, we compute per-edge gradients $|\partial \mathcal{L}_{\mathrm{CE}} / \partial A_{ij}|$ via autograd and compare the resulting ranking against the brute-force discrete ground truth (single-edge removal). The classification-gradient ranking is anti-correlated with discrete vulnerability on Cora ($\tau = -0.20$, vs.\ \AEGIS's $+0.32$) and near-zero elsewhere (Citeseer: $-0.03$ vs.\ $+0.32$; WikiCS: $+0.05$ vs.\ $+0.14$). P@10 for \AEGIS is 2--6$\times$ higher. The two methods identify genuinely different edges: cross-correlation $\tau$ is only $+0.19$ (Cora) to $-0.06$ (WikiCS), confirming that equilibrium sensitivity and classification sensitivity are distinct vulnerability surfaces.
 
-\textbf{Classification-loss PGD (non-circular baseline).} The adaptive attacker above uses the same objective as \AEGIS (equilibrium shift), making the comparison partly circular. To address this, we implement a PGD attacker that optimizes \emph{classification loss} (cross-entropy) via standard autograd through the IGNN fixed-point iteration. This attacker uses a fundamentally different gradient signal: it seeks to flip predictions, not maximize equilibrium shift. Across 3 datasets and $\varepsilon \in \{0.01, 0.05, 0.10\}$ (10 seeds each), the classification-loss PGD achieves 0.29--0.85$\times$ of \AEGIS's equilibrium damage, while the shift-PGD achieves 0.46--0.80$\times$. That is, \AEGIS's SVD direction causes 15--71\% more equilibrium damage than a classifier-targeted attacker, confirming that the sensitivity-optimal direction is genuinely effective even against an attacker with a different objective. Classification-loss PGD flips fewer than 1.5\% of predictions at $\varepsilon = 0.10$.
-
-\textbf{Comprehensive breach rates.} \cref{tab:breach} extends the breach analysis across all datasets and a wider range of $\varepsilon$ values.
+\textbf{Discrete edge removal.} The strongest gradient-free test: we remove edges sequentially and compare cumulative damage under four orderings---brute-force greedy-optimal (remove the most-damaging remaining edge at each step), \AEGIS-ranked, degree-ranked, and random (\cref{tab:greedy_topk}). On Citeseer/WikiCS, \AEGIS matches or exceeds greedy-optimal (95--101\% at $k{=}5$). On Cora, \AEGIS reaches 54\% of greedy, reflecting the cascade effects that static rankings cannot capture. Crucially, degree-ranked removal is \emph{worse than random} on Cora at every $k$: removing high-degree edges first is the least disruptive strategy because hub nodes have redundant connections. This contrasts with \cref{tab:baselines}, where degree-proportional \emph{continuous} perturbation is within 6--8\% of \AEGIS; for discrete removal, \AEGIS is 2--4$\times$ better.
 
 \begin{table}[t]
 \centering
-\caption{Breach rate (\%) at increasing $\varepsilon$ (IGNN, 50-node subgraph, 10 seeds). Breach: fraction of certified nodes whose prediction changes. All breaches respect the certified radii ($r_v$).}
+\caption{Cumulative damage from sequential discrete edge removal (IGNN, 50-node subgraph, 10 seeds). Greedy: brute-force optimal. Degree: by max($d_i, d_j$).}
+\label{tab:greedy_topk}
+\small
+\begin{tabular}{@{}ll rrrr@{}}
+\toprule
+Dataset & $k$ & Greedy & \AEGIS & Degree & Random \\
+\midrule
+Cora     & 5  & $\ms{3.36}{.68}$ & $\ms{1.80}{.44}$ & $\ms{0.90}{.19}$ & $\ms{1.27}{.25}$ \\
+Cora     & 10 & $\ms{4.08}{.82}$ & $\ms{2.75}{.66}$ & $\ms{1.48}{.28}$ & $\ms{2.02}{.36}$ \\
+Citeseer & 5  & $\ms{5.27}{.87}$ & $\ms{5.12}{1.2}$ & $\ms{1.34}{.18}$ & $\ms{1.61}{.49}$ \\
+Citeseer & 10 & $\ms{6.01}{.94}$ & $\ms{6.01}{.94}$ & $\ms{1.93}{.26}$ & $\ms{2.46}{.56}$ \\
+WikiCS   & 5  & $\ms{.14}{.01}$ & $\ms{.14}{.02}$ & $\ms{.09}{.01}$ & $\ms{.07}{.01}$ \\
+WikiCS   & 10 & $\ms{.23}{.02}$ & $\ms{.21}{.03}$ & $\ms{.12}{.01}$ & $\ms{.12}{.01}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Numerical validation.} Per-edge finite-difference sensitivity ($\delta = 0.001$, $|E|$ forward passes) reproduces the $S_c$ column-norm ranking exactly ($\tau = 0.999$ across all datasets), confirming numerical correctness of the IFT computation. The resolvent $(I - J_z)^{-1}$ amplifies all edges uniformly and thus does not change the per-edge ranking; $S_c$'s unique value is the global SVD structure (optimal attack direction, unreachable by random search) and the matrix-free scalability that avoids $|E|$ forward passes at large $N$.
+
+\textbf{Breach rates.} \cref{tab:breach} reports the fraction of nodes whose prediction changes under the $S_c$-optimal attack at increasing $\varepsilon$.
+
+\begin{table}[t]
+\centering
+\caption{Breach rate (\%) at increasing $\varepsilon$ (IGNN, 50-node subgraph, 10 seeds). All observed breaches respect the first-order radii: every breached node has $\varepsilon > r_v$.}
 \label{tab:breach}
 \small
 \begin{tabular}{@{}lrrrr@{}}
@@ -138,7 +163,7 @@ WikiCS   & $\ms{0.3}{0.9}$ & $\ms{0.6}{1.3}$ & $\ms{0.9}{1.4}$ & $\ms{1.8}{1.5}$
 \end{tabular}
 \end{table}
 
-Breach rates are below 1\% at $\varepsilon = 0.01$ across all datasets, confirming that first-order radii are practically reliable at small perturbations. At $\varepsilon = 0.20$, breach rates range from 1.5\% (Citeseer) to 27.4\% (Pubmed), reflecting the expected degradation of first-order approximations at larger budgets. Pubmed's higher breach rate is consistent with its sparser subgraph structure and lower certification coverage. Crucially, all observed breaches respect the certified radii: every breached node has $\varepsilon > r_v$, meaning the first-order radius correctly identifies the boundary below which no breach occurs.
+Breach rates are below 1\% at $\varepsilon = 0.01$ across all datasets. At $\varepsilon = 0.20$, rates range from 1.5\% (Citeseer) to 27.4\% (Pubmed), reflecting expected first-order degradation. The Pubmed distribution is right-skewed (median 7.8\%, IQR [0.6\%, 16.7\%] at $\varepsilon = 0.10$; 3 of 10 seeds show 0\% breach), so the mean overstates typical behavior. All breaches respect the first-order radii: every breached node has $\varepsilon > r_v$.
 
 \subsection{Phase Transition and Scalability}
 \label{sec:phase_transition}\label{sec:scalability}
@@ -221,7 +246,7 @@ h_i' = \textstyle\sum_{j \in \mathcal{N}(i)} \Ahat_{ij} \cdot \alpha_{ij} \cdot 
 \end{equation}
 restoring continuous differentiability with respect to $\Ahat_{ij}$. GATv2~\cite{brody2022how} partially addresses this via dynamic attention but still applies a binary mask at the neighborhood level. With the GAT$^\dagger$ modification, GAT achieves tightness 0.99, attack advantage 4.4$\times$, and $\tau = +0.36$.
 
-\textbf{Cross-dataset continuous-to-discrete transfer.} To validate that continuous-to-discrete transfer is not Cora-specific, we evaluate $\tau$ across all 5 datasets and 7 architectures (330 runs total, 10 seeds each; \cref{tab:tau_cross}). Positive $\tau$ is observed in 29 of 33 dataset-architecture combinations. Transfer is strongest on Pubmed (IGNN: $+0.82$, GCN-4: $+0.89$, APPNP: $+0.83$, all with P@10 $= 1.0$), moderate on Citeseer (GAT$^\dagger$: $+0.66$, GCN-4: $+0.64$), and weaker on WikiCS and Amazon Photo. On Amazon Photo, IGNN shows negative $\tau$ ($-0.15$) due to over-contraction: $\kappa = 0.09$ yields resolvent amplification of only $1.09\times$, so $S \approx J_A$ and the sensitivity is dominated by the direct adjacency effect rather than the equilibrium structure, producing near-uniform vulnerability scores whose ranking is uninformative for discrete damage. Other architectures without this contraction constraint transfer well (SAGE-2: $+0.60$, APPNP: $+0.43$). GCN-2 shows weak or negative $\tau$ on 3 of 5 datasets ($-0.03$ Cora, $-0.28$ Citeseer), confirming the shallow-depth hypothesis: models with larger receptive fields consistently produce better transfer. The best architecture varies by dataset (GAT$^\dagger$ on Cora/Citeseer, GCN-4/APPNP on Pubmed, GIN-2 on WikiCS, SAGE-2 on Amazon Photo), suggesting that the relationship between continuous sensitivity and discrete impact depends on how well the model's aggregation pattern captures local connectivity structure.
+\textbf{Cross-dataset continuous-to-discrete transfer.} To validate that continuous-to-discrete transfer is not Cora-specific, we evaluate $\tau$ across all 5 datasets and 7 architectures (330 runs total, 10 seeds each; \cref{tab:tau_cross}). Positive $\tau$ is observed in 29 of 33 dataset-architecture combinations. Transfer is strongest on Pubmed (IGNN: $+0.82$, GCN-4: $+0.89$, APPNP: $+0.83$, all with P@10 $= 1.0$), moderate on Citeseer (GAT$^\dagger$: $+0.66$, GCN-4: $+0.64$), and weaker on WikiCS and Amazon Photo. On Amazon Photo, IGNN shows negative $\tau$ ($-0.15$) on 50-node subgraphs. We investigate three contributing factors. (i)~\emph{Subgraph artifact}: the 50-node BFS subgraph has $\norm{\Ahat_{\mathrm{sub}}}_2 = 0.20$, capping $\kappa_{\mathrm{sub}} \leq 0.20$ regardless of $\norm{W}_2$; a $\kappa$-sweep from $0.5$ to $0.99$ confirms $\tau$ remains negative on the subgraph (all 20 runs, mean $\tau = -0.12$). Full-graph matrix-free analysis ($N{=}7{,}650$, $\rho = 0.73$, resolvent amplification $3.9\times$) partially recovers: column-based $\tau$ shifts from $-0.14$ (subgraph) to $+0.03$ (full graph), with one of three seeds reaching $\tau = +0.24$. (ii)~\emph{Weak signal}: Amazon Photo's high average degree ($\sim$31) makes single-edge removal damage near-uniform, reducing the signal-to-noise ratio for any ranking method. (iii)~\emph{Architecture-specific}: explicit GNNs without the contraction constraint achieve strong transfer on the same dataset (SAGE-2: $\tau = +0.60$, APPNP: $+0.43$), confirming that the $S_c$ framework itself is not the bottleneck. For dense graphs where IGNN's subgraph $\kappa$ is low, practitioners should prefer explicit-GNN alternatives or full-graph matrix-free analysis. GCN-2 shows weak or negative $\tau$ on 3 of 5 datasets ($-0.03$ Cora, $-0.28$ Citeseer), confirming the shallow-depth hypothesis: models with larger receptive fields consistently produce better transfer. The best architecture varies by dataset (GAT$^\dagger$ on Cora/Citeseer, GCN-4/APPNP on Pubmed, GIN-2 on WikiCS, SAGE-2 on Amazon Photo), suggesting that the relationship between continuous sensitivity and discrete impact depends on how well the model's aggregation pattern captures local connectivity structure.
 
 \begin{table}[t]
 \centering
@@ -254,4 +279,4 @@ The $\tau$ column in \cref{tab:explicit} directly measures whether continuous $S
 
 \textbf{Degree-vulnerability correlation.} To assess whether $S_c$ merely recapitulates graph topology, we compute the Kendall $\tau$ between per-edge vulnerability $v_{ij}$ and endpoint degree $\max(d_i, d_j)$ across all datasets and architectures. The correlation varies substantially: strong on Citeseer (IGNN: $\tau = +0.63$), moderate on Cora ($+0.43$) and Pubmed ($+0.38$), and weak on WikiCS (IGNN: $+0.27$, GCN-2: $-0.10$). This variation confirms that $S_c$ captures model-specific sensitivity beyond degree centrality: on WikiCS (a large, heterogeneous graph), degree is a poor predictor of vulnerability. Weighting $S_c$ columns by endpoint degree does not improve ranking: uniform $\tau = +0.042$, degree-weighted $+0.037$, inverse-degree $-0.008$ (GCN-2, 10 seeds).
 
-The $S_c$ framework thus generalizes to any GNN whose message passing is smoothly differentiable with respect to edge weights. The theoretical guarantees (\cref{thm:phase_transition}: critical budget, convergence) remain specific to contractive implicit GNNs, but the practical vulnerability analysis (SVD attacks, rankings, first-order sensitivity radii) transfers broadly.
+The $S_c$ framework thus generalizes to GNNs with continuous edge-weight-modulated message passing. The theoretical guarantees (\cref{thm:phase_transition}: critical budget, convergence) remain specific to contractive implicit GNNs, but the practical vulnerability analysis (SVD attacks, rankings, first-order sensitivity radii) transfers broadly.

@@ -9,7 +9,7 @@ The experiments above validate \AEGIS on classification benchmarks. We now test 
 
 Power grid operators must ensure that no single transmission line failure causes system instability. The standard N-1 contingency assessment removes each line in turn, re-solves the power flow equations, and ranks lines by the severity of the resulting voltage and flow deviations~\cite{wood2014power}. This brute-force procedure scales as $O(|E|)$ full power flow solves, which is expensive for large grids and infeasible for real-time operation.
 
-We observe that \AEGIS's per-edge vulnerability $v_{ij} = \norm{[S_c]_{:,k}}_2$ computes an analogous quantity via a single IFT analysis: edge perturbation maps to line trips, the vulnerability spectrum maps to contingency severity, and critical budget $\ecrit$ maps to stability margin. The correspondence is approximate (continuous first-order vs.\ discrete removal), analogous to how PTDF/LODF~\cite{wood2014power} linearize the effect of line trips.
+We observe that \AEGIS's per-edge vulnerability $v_{ij} = \norm{[S_c]_{:,k}}_2$ computes an analogous quantity via a single IFT analysis: edge perturbation maps to line trips, the vulnerability spectrum maps to contingency severity, and critical budget $\ecrit$ maps to a model sensitivity threshold (a mathematical property of the IGNN model, distinct from physical voltage or transient stability margins). The correspondence is approximate (continuous first-order vs.\ discrete removal), analogous to how PTDF/LODF~\cite{wood2014power} linearize the effect of line trips.
 
 \subsection{Experimental Setup}
 
@@ -23,28 +23,26 @@ We train ContractiveGCN-PF, an IGNN variant for AC power flow, on five IEEE test
 
 \begin{table}[t]
 \centering
-\caption{\AEGIS on IEEE power flow benchmarks (10 seeds). Model quality (per-unit RMSE): $|V|$ = voltage magnitude, $\theta$ = angle, $\Delta S$ = power-balance residual per bus. $\tau$: Kendall rank correlation vs.\ brute-force N-1 contingency. P@10: top-10 precision.}
+\caption{\AEGIS on IEEE power flow benchmarks (10 seeds). Model quality (per-unit RMSE): $|V|$ = voltage magnitude, $\theta$ = angle. $\tau$: Kendall rank correlation vs.\ brute-force N-1 contingency. P@10: top-10 precision.}
 \label{tab:ieee}
 \small
-\begin{tabular}{@{}lrr rrr rr@{}}
+\begin{tabular}{@{}lrr rr rr@{}}
 \toprule
- & & & \multicolumn{3}{c}{Model (p.u.)} & \multicolumn{2}{c}{\AEGIS} \\
-\cmidrule(lr){4-6}\cmidrule(lr){7-8}
-Case & $N$ & $|E|$ & $|V|$ & $\theta$ & $\Delta S$ & $\tau$ & P@10 \\
+ & & & \multicolumn{2}{c}{Model (p.u.)} & \multicolumn{2}{c}{\AEGIS} \\
+\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Case & $N$ & $|E|$ & $|V|$ & $\theta$ & $\tau$ & P@10 \\
 \midrule
-case14  & 14  & 20  & .007 & .020 & .106 & $\ms{+.42}{.19}$ & $\ms{.74}{.12}$ \\
-case30  & 30  & 41  & .014 & .024 & .042 & $\ms{+.37}{.17}$ & $\ms{.68}{.06}$ \\
-case57  & 57  & 78  & .033 & .059 & .033 & $\ms{+.67}{.09}$ & $\ms{.66}{.13}$ \\
-case118 & 118 & 179 & .014 & .076 & .042 & $\ms{+.62}{.11}$ & $\ms{.81}{.10}$ \\
-case300$^\ddagger$ & 300 & 411 & .031 & .394 & 10.9 & $\ms{+.72}{.03}$ & $\ms{.87}{.06}$ \\
+case14  & 14  & 20  & .007 & .020 & $\ms{+.42}{.19}$ & $\ms{.74}{.12}$ \\
+case30  & 30  & 41  & .014 & .024 & $\ms{+.37}{.17}$ & $\ms{.68}{.06}$ \\
+case57  & 57  & 78  & .033 & .059 & $\ms{+.67}{.09}$ & $\ms{.66}{.13}$ \\
+case118 & 118 & 179 & .014 & .076 & $\ms{+.62}{.11}$ & $\ms{.81}{.10}$ \\
+case300$^\ddagger$ & 300 & 411 & .031 & .394 & $\ms{+.72}{.03}$ & $\ms{.87}{.06}$ \\
 \bottomrule
-\multicolumn{8}{@{}l}{\scriptsize $^\ddagger$200-node BFS subgraph; 1{,}000 training samples (dense analysis OOMs at $N{>}200$).}
+\multicolumn{7}{@{}l}{\scriptsize $^\ddagger$200-node BFS subgraph; 1{,}000 training samples (dense analysis OOMs at $N{>}200$).}
 \end{tabular}
 \end{table}
 
 \textbf{Key observations.} First, tightness transfers to the power flow domain ($\approx 1.00$), confirming that the first-order prediction is not domain-specific. Second, ranking correlation ($\tau = 0.37$--$0.72$) is moderate to strong and the operationally relevant P@10 is 0.66--0.87, identifying 7--9 of the top 10 critical lines. Notably, case300 achieves $\tau = +0.72$ and P@10 $= 0.87$ using a 200-node subgraph, demonstrating that \AEGIS scales to grids beyond the 118-bus systems used in prior work.
-
-\textbf{Observation: approximate physics from equilibrium structure.} The model is trained with voltage MSE alone, without any power-balance penalty. Yet the per-bus residual $\Delta S = 0.03$--$0.11$ p.u.\ (\cref{tab:ieee}), meaning predicted voltages approximately satisfy Kirchhoff's laws. This is consistent with prior observations that equilibrium models absorb structural constraints from training data~\cite{bai2019deep}: the fixed-point condition $Z^* = F(Z^*, A)$ forces self-consistency with the grid topology in $A$. Perturbations that disrupt this self-consistency are precisely those that break the power balance, connecting structural vulnerability to physical contingency. To test whether this is an architectural effect, we compare the IGNN ($d{=}64$) against a 4-layer explicit GCN ($d{=}64$, no physics loss) and PIGNN-Attn-LS~\cite{kim2025physicsinformed} ($d{=}10$, explicit, with physics-informed power-balance loss and Armijo line search) on the same data and training protocol (30 epochs, Adam, 10 seeds each). Notably, PIGNN's physics loss directly optimizes for the power-balance residual $\Delta S$ being measured, while IGNN is trained only on voltage MSE. On case14, the IGNN achieves the lowest residual ($\Delta S = 0.27$), outperforming both GCN-4 ($0.93$) and PIGNN ($0.58$) despite not being optimized for this metric. On case30, PIGNN achieves $\Delta S = 0.32$ (benefiting from its explicit physics loss), with IGNN close behind at $0.42$; both are $2.8$--$3.7\times$ lower than GCN-4 ($1.18$). The IGNN thus achieves competitive physics compliance without any physics loss term, supporting the hypothesis that equilibrium structure itself drives Kirchhoff-law compliance. The capacity difference (IGNN $d{=}64$ vs.\ PIGNN $d{=}10$) means the comparison is not iso-parameter, but IGNN's advantage on case14 is notable given that PIGNN is explicitly optimized for the evaluation metric.
 
 \textbf{Baseline comparison and timing.} LODF (industry-standard DC screening~\cite{wood2014power}) achieves $\tau = 0.44$--$0.58$; \AEGIS outperforms on larger grids ($\tau = 0.62$--$0.67$ on case57/118) by capturing nonlinear AC effects. LODF computes in $<0.13$\,s (analytic formula from line reactances); \AEGIS requires training (2--10\,s) plus $S_c$ computation (0.2--13\,s), totaling 2--23\,s per case (case300: 23\,s with 200-node subgraph). Brute-force N-1 takes 0.1--2\,s. \AEGIS is thus slower than LODF but provides richer output (vulnerability spectrum, SVD attacks, sensitivity radii) without requiring line-impedance data.
 

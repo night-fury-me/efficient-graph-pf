@@ -235,12 +235,6 @@ A.~J. Wood, B.~F. Wollenberg, and G.~B. Shebl{\'e}, \emph{Power Generation,
   Operation, and Control}, 3rd~ed.\hskip 1em plus 0.5em minus 0.4em\relax John
   Wiley \& Sons, 2014.
 
-\bibitem{kim2025physicsinformed}
-C.~Kim, T.~Conrad, R.~Karim, J.~Oelhaf, D.~Riebesel, T.~Arias-Vergara, A.~K.
-  Maier, J.~J{\"a}ger, and S.~Bayer, ``Physics-informed {GNN} for medium-high
-  voltage {AC} power flow with edge-aware attention and line search correction
-  operator,'' \emph{arXiv preprint arXiv:2509.22458}, 2025.
-
 \bibitem{bojchevski2019adversarial}
 A.~Bojchevski and S.~G{\"u}nnemann, ``Adversarial attacks on node embeddings
   via graph poisoning,'' in \emph{International Conference on Machine
@@ -258,6 +252,11 @@ H.~Wu, C.~Wang, Y.~Tyshetskiy, A.~Docherty, K.~Lu, and L.~Zhu, ``Adversarial
   \emph{International Joint Conference on Artificial Intelligence}, 2019, pp.
   4816--4823.
 
+\bibitem{gosch2023adversarial}
+L.~Gosch, S.~Geisler, D.~Sturm, and S.~G{\"u}nnemann, ``Adversarial training
+  for graph neural networks: Pitfalls, solutions, and new directions,'' in
+  \emph{Advances in Neural Information Processing Systems}, vol.~36, 2023.
+
 \bibitem{li2025agnncert}
 Y.~Li \emph{et~al.}, ``{AGNN}cert: Deterministic certification for graph neural
   networks against adversarial perturbations,'' in \emph{International
@@ -269,6 +268,11 @@ S.~Geisler, T.~Schmidt, H.~Sirin, D.~Z{\"u}gner, A.~Bojchevski, and
   \emph{Advances in Neural Information Processing Systems}, vol.~34, 2021, pp.
   7637--7649.
 
+\bibitem{schuchardt2023localized}
+J.~Schuchardt, Y.~Scholten, A.~Bojchevski, and S.~G{\"u}nnemann, ``Localized
+  randomized smoothing for {GNN}s,'' in \emph{International Conference on
+  Machine Learning}, 2023.
+
 \bibitem{liu2021eignn}
 J.~Liu, K.~Kawaguchi, B.~Hooi, Y.~Wang, and X.~Xiao, ``{EIGNN}: Efficient
   infinite-depth graph neural networks,'' in \emph{Advances in Neural
@@ -279,10 +283,21 @@ E.~Winston and J.~Z. Kolter, ``Monotone operator equilibrium networks,'' in
   \emph{Advances in Neural Information Processing Systems}, vol.~33, 2020, pp.
   10\,718--10\,728.
 
+\bibitem{gama2020stability}
+F.~Gama, J.~Bruna, and A.~Ribeiro, ``Stability properties of graph neural
+  networks,'' \emph{IEEE Transactions on Signal Processing}, vol.~68, pp.
+  5680--5695, 2020.
+
 \bibitem{luo2020parameterized}
 D.~Luo, W.~Cheng, D.~Xu, W.~Yu, B.~Zong, H.~Chen, and X.~Zhang, ``Parameterized
   explainer for graph neural network,'' in \emph{Advances in Neural Information
   Processing Systems}, vol.~33, 2020, pp. 19\,620--19\,631.
+
+\bibitem{kim2025physicsinformed}
+C.~Kim, T.~Conrad, R.~Karim, J.~Oelhaf, D.~Riebesel, T.~Arias-Vergara, A.~K.
+  Maier, J.~J{\"a}ger, and S.~Bayer, ``Physics-informed {GNN} for medium-high
+  voltage {AC} power flow with edge-aware attention and line search correction
+  operator,'' \emph{arXiv preprint arXiv:2509.22458}, 2025.
 
 \bibitem{chen2020simple}
 M.~Chen, Z.~Wei, Z.~Huang, B.~Ding, and Y.~Li, ``Simple and deep graph

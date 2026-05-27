@@ -87,13 +87,13 @@ def run_tightness(ds_name, data, seed, device):
         del model, S, S_c; gc.collect()
         return None
 
+    U_c, sigma_c, Vh_c = torch.linalg.svd(S_c, full_matrices=False)
+
     results = []
     for eps in EPS_VALUES:
-        attack = optimal_structural_attack(S, A_sub, epsilon=eps)
-        predicted_shift = eps * attack["sigma_1"]
+        predicted_shift = eps * float(sigma_c[0])
 
         dA = torch.zeros_like(A_sub)
-        U_c, sigma_c, Vh_c = torch.linalg.svd(S_c, full_matrices=False)
         weights = eps * Vh_c[0]
         for k, (i, j) in enumerate(edge_list):
             dA[i, j] = float(weights[k])
