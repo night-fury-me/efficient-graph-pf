@@ -253,25 +253,24 @@ restoring continuous differentiability with respect to $\Ahat_{ij}$. GATv2~\cite
 
 \begin{table}[t]
 \centering
-\caption{Continuous-to-discrete transfer $\tau$ across 5 datasets and 7 architectures (10 seeds each, 330 runs total). Bold: best per dataset. ---: GPU OOM (GAT attention on $N > 10{,}000$).}
+\caption{Continuous-to-discrete transfer $\tau$ (Kendall) across 5 datasets and 7 architectures (10 seeds each, 330 runs). Bold: best per dataset. ---: GPU OOM. P@10 for top results: Pubmed GCN-4/APPNP $= 1.0$; Citeseer IGNN/APPNP $\geq 0.93$.}
 \label{tab:tau_cross}
 \small
-\setlength{\tabcolsep}{2.5pt}
-\begin{tabular}{@{}lrrrrrrrrr@{}}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}lrrrrr@{}}
 \toprule
- & \multicolumn{2}{c}{Cora} & \multicolumn{2}{c}{Citeseer} & \multicolumn{2}{c}{Pubmed} & \multicolumn{2}{c}{WikiCS} & {Am.Ph.} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-10}
-Model & $\tau$ & \tiny{P@10} & $\tau$ & \tiny{P@10} & $\tau$ & \tiny{P@10} & $\tau$ & \tiny{P@10} & $\tau$ \\
+Model & Cora & Citeseer & Pubmed & WikiCS & Am.Ph. \\
 \midrule
-IGNN          & $\ms{+.32}{.04}$ & .19 & $\ms{+.31}{.04}$ & .93 & $\ms{+.82}{.02}$ & 1.0 & $\ms{+.14}{.04}$ & .50 & $\ms{-.15}{.03}$ \\
-GCN-2         & $\ms{-.03}{.03}$ & .09 & $\ms{-.28}{.07}$ & .06 & $\ms{+.21}{.01}$ & .26 & $\ms{+.05}{.03}$ & .33 & $\ms{+.25}{.03}$ \\
-GCN-4         & $\ms{+.49}{.02}$ & .32 & $\ms{+.64}{.02}$ & .87 & $\ms{\mathbf{+.89}}{.01}$ & 1.0 & $\ms{+.45}{.10}$ & .56 & $\ms{-.04}{.06}$ \\
-GIN-2         & $\ms{+.33}{.04}$ & .26 & $\ms{+.57}{.03}$ & .81 & $\ms{+.54}{.33}$ & .60 & $\ms{\mathbf{+.63}}{.08}$ & .70 & $\ms{+.14}{.07}$ \\
-GAT$^\dagger$ & $\ms{\mathbf{+.54}}{.06}$ & .54 & $\ms{\mathbf{+.66}}{.03}$ & .63 & --- & --- & --- & --- & $\ms{+.21}{.06}$ \\
-SAGE-2        & $\ms{+.22}{.11}$ & .15 & $\ms{+.38}{.18}$ & .45 & $\ms{+.36}{.10}$ & .58 & $\ms{+.22}{.04}$ & .55 & $\ms{\mathbf{+.60}}{.04}$ \\
-APPNP         & $\ms{+.35}{.02}$ & .36 & $\ms{+.36}{.06}$ & .96 & $\ms{+.83}{.01}$ & 1.0 & $\ms{+.22}{.03}$ & .56 & $\ms{+.43}{.04}$ \\
+IGNN          & $\ms{+.32}{.04}$ & $\ms{+.31}{.04}$ & $\ms{+.82}{.02}$ & $\ms{+.14}{.04}$ & $\ms{-.15}{.03}$ \\
+GCN-2         & $\ms{-.03}{.03}$ & $\ms{-.28}{.07}$ & $\ms{+.21}{.01}$ & $\ms{+.05}{.03}$ & $\ms{+.25}{.03}$ \\
+GCN-4         & $\ms{+.49}{.02}$ & $\ms{+.64}{.02}$ & $\ms{\mathbf{+.89}}{.01}$ & $\ms{+.45}{.10}$ & $\ms{-.04}{.06}$ \\
+GIN-2         & $\ms{+.33}{.04}$ & $\ms{+.57}{.03}$ & $\ms{+.54}{.33}$ & $\ms{\mathbf{+.63}}{.08}$ & $\ms{+.14}{.07}$ \\
+GAT$^\dagger$ & $\ms{\mathbf{+.54}}{.06}$ & $\ms{\mathbf{+.66}}{.03}$ & --- & --- & $\ms{+.21}{.06}$ \\
+SAGE-2        & $\ms{+.22}{.11}$ & $\ms{+.38}{.18}$ & $\ms{+.36}{.10}$ & $\ms{+.22}{.04}$ & $\ms{\mathbf{+.60}}{.04}$ \\
+APPNP         & $\ms{+.35}{.02}$ & $\ms{+.36}{.06}$ & $\ms{+.83}{.01}$ & $\ms{+.22}{.03}$ & $\ms{+.43}{.04}$ \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \cref{fig:tau_heatmap} visualizes the cross-architecture transfer landscape from \cref{tab:tau_cross}. The depth pattern is immediately visible: deeper models (GCN-4, APPNP) and attention-based models (GAT$^\dagger$) consistently achieve stronger transfer than shallow ones (GCN-2). Amazon Photo is the hardest dataset for IGNN (negative $\tau$) but the easiest for SAGE-2 ($+0.60$), confirming that architecture--dataset interactions dominate.
