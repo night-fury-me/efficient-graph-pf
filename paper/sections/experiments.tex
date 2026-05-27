@@ -277,79 +277,8 @@ APPNP         & $\ms{+.35}{.02}$ & $\ms{+.36}{.06}$ & $\ms{+.83}{.01}$ & $\ms{+.
 
 \begin{figure}[t]
 \centering
-\resizebox{\columnwidth}{!}{%
-\begin{tikzpicture}[
-  cell/.style={minimum width=1.3cm, minimum height=0.55cm, inner sep=0pt, font=\tiny\bfseries},
-]
-\def\cw{1.3} \def\ch{0.55}
-% Color helper: positive tau -> green, negative -> red, OOM -> gray
-% Row 1: IGNN (y=6)
-\fill[green!28!white] (0*\cw,6*\ch) rectangle +(\cw,\ch); \node[cell] at (0.5*\cw,6.5*\ch) {.32};
-\fill[green!27!white] (1*\cw,6*\ch) rectangle +(\cw,\ch); \node[cell] at (1.5*\cw,6.5*\ch) {.31};
-\fill[green!73!white] (2*\cw,6*\ch) rectangle +(\cw,\ch); \node[cell] at (2.5*\cw,6.5*\ch) {.82};
-\fill[green!12!white] (3*\cw,6*\ch) rectangle +(\cw,\ch); \node[cell] at (3.5*\cw,6.5*\ch) {.14};
-\fill[red!33!white]   (4*\cw,6*\ch) rectangle +(\cw,\ch); \node[cell] at (4.5*\cw,6.5*\ch) {\textminus.15};
-% Row 2: GCN-2 (y=5)
-\fill[red!7!white]    (0*\cw,5*\ch) rectangle +(\cw,\ch); \node[cell] at (0.5*\cw,5.5*\ch) {\textminus.03};
-\fill[red!62!white]   (1*\cw,5*\ch) rectangle +(\cw,\ch); \node[cell] at (1.5*\cw,5.5*\ch) {\color{white}\textminus.28};
-\fill[green!19!white] (2*\cw,5*\ch) rectangle +(\cw,\ch); \node[cell] at (2.5*\cw,5.5*\ch) {.21};
-\fill[green!4!white]  (3*\cw,5*\ch) rectangle +(\cw,\ch); \node[cell] at (3.5*\cw,5.5*\ch) {.05};
-\fill[green!22!white] (4*\cw,5*\ch) rectangle +(\cw,\ch); \node[cell] at (4.5*\cw,5.5*\ch) {.25};
-% Row 3: GCN-4 (y=4)
-\fill[green!44!white] (0*\cw,4*\ch) rectangle +(\cw,\ch); \node[cell] at (0.5*\cw,4.5*\ch) {.49};
-\fill[green!57!white] (1*\cw,4*\ch) rectangle +(\cw,\ch); \node[cell] at (1.5*\cw,4.5*\ch) {.64};
-\fill[green!79!white] (2*\cw,4*\ch) rectangle +(\cw,\ch); \node[cell] at (2.5*\cw,4.5*\ch) {.89};
-\fill[green!40!white] (3*\cw,4*\ch) rectangle +(\cw,\ch); \node[cell] at (3.5*\cw,4.5*\ch) {.45};
-\fill[red!9!white]    (4*\cw,4*\ch) rectangle +(\cw,\ch); \node[cell] at (4.5*\cw,4.5*\ch) {\textminus.04};
-% Row 4: GIN-2 (y=3)
-\fill[green!29!white] (0*\cw,3*\ch) rectangle +(\cw,\ch); \node[cell] at (0.5*\cw,3.5*\ch) {.33};
-\fill[green!51!white] (1*\cw,3*\ch) rectangle +(\cw,\ch); \node[cell] at (1.5*\cw,3.5*\ch) {.57};
-\fill[green!48!white] (2*\cw,3*\ch) rectangle +(\cw,\ch); \node[cell] at (2.5*\cw,3.5*\ch) {.54};
-\fill[green!56!white] (3*\cw,3*\ch) rectangle +(\cw,\ch); \node[cell] at (3.5*\cw,3.5*\ch) {.63};
-\fill[green!12!white] (4*\cw,3*\ch) rectangle +(\cw,\ch); \node[cell] at (4.5*\cw,3.5*\ch) {.14};
-% Row 5: GAT† (y=2)
-\fill[green!48!white] (0*\cw,2*\ch) rectangle +(\cw,\ch); \node[cell] at (0.5*\cw,2.5*\ch) {.54};
-\fill[green!59!white] (1*\cw,2*\ch) rectangle +(\cw,\ch); \node[cell] at (1.5*\cw,2.5*\ch) {.66};
-\fill[gray!20]        (2*\cw,2*\ch) rectangle +(\cw,\ch); \node[cell,gray] at (2.5*\cw,2.5*\ch) {---};
-\fill[gray!20]        (3*\cw,2*\ch) rectangle +(\cw,\ch); \node[cell,gray] at (3.5*\cw,2.5*\ch) {---};
-\fill[green!19!white] (4*\cw,2*\ch) rectangle +(\cw,\ch); \node[cell] at (4.5*\cw,2.5*\ch) {.21};
-% Row 6: SAGE-2 (y=1)
-\fill[green!20!white] (0*\cw,1*\ch) rectangle +(\cw,\ch); \node[cell] at (0.5*\cw,1.5*\ch) {.22};
-\fill[green!34!white] (1*\cw,1*\ch) rectangle +(\cw,\ch); \node[cell] at (1.5*\cw,1.5*\ch) {.38};
-\fill[green!32!white] (2*\cw,1*\ch) rectangle +(\cw,\ch); \node[cell] at (2.5*\cw,1.5*\ch) {.36};
-\fill[green!20!white] (3*\cw,1*\ch) rectangle +(\cw,\ch); \node[cell] at (3.5*\cw,1.5*\ch) {.22};
-\fill[green!53!white] (4*\cw,1*\ch) rectangle +(\cw,\ch); \node[cell] at (4.5*\cw,1.5*\ch) {.60};
-% Row 7: APPNP (y=0)
-\fill[green!31!white] (0*\cw,0*\ch) rectangle +(\cw,\ch); \node[cell] at (0.5*\cw,0.5*\ch) {.35};
-\fill[green!32!white] (1*\cw,0*\ch) rectangle +(\cw,\ch); \node[cell] at (1.5*\cw,0.5*\ch) {.36};
-\fill[green!74!white] (2*\cw,0*\ch) rectangle +(\cw,\ch); \node[cell] at (2.5*\cw,0.5*\ch) {.83};
-\fill[green!20!white] (3*\cw,0*\ch) rectangle +(\cw,\ch); \node[cell] at (3.5*\cw,0.5*\ch) {.22};
-\fill[green!38!white] (4*\cw,0*\ch) rectangle +(\cw,\ch); \node[cell] at (4.5*\cw,0.5*\ch) {.43};
-% Grid lines
-\draw[gray!60] (0,0) grid[xstep=\cw,ystep=\ch] (5*\cw,7*\ch);
-% Y-axis labels (models)
-\node[anchor=east,font=\tiny] at (-0.08,6.5*\ch) {IGNN};
-\node[anchor=east,font=\tiny] at (-0.08,5.5*\ch) {GCN-2};
-\node[anchor=east,font=\tiny] at (-0.08,4.5*\ch) {GCN-4};
-\node[anchor=east,font=\tiny] at (-0.08,3.5*\ch) {GIN-2};
-\node[anchor=east,font=\tiny] at (-0.08,2.5*\ch) {GAT$^\dagger$};
-\node[anchor=east,font=\tiny] at (-0.08,1.5*\ch) {SAGE-2};
-\node[anchor=east,font=\tiny] at (-0.08,0.5*\ch) {APPNP};
-% X-axis labels (datasets)
-\node[anchor=south,font=\tiny,rotate=35] at (0.5*\cw,7*\ch+0.05) {Cora};
-\node[anchor=south,font=\tiny,rotate=35] at (1.5*\cw,7*\ch+0.05) {Citeseer};
-\node[anchor=south,font=\tiny,rotate=35] at (2.5*\cw,7*\ch+0.05) {Pubmed};
-\node[anchor=south,font=\tiny,rotate=35] at (3.5*\cw,7*\ch+0.05) {WikiCS};
-\node[anchor=south,font=\tiny,rotate=35] at (4.5*\cw,7*\ch+0.05) {Am.Ph.};
-% Legend
-\fill[red!60!white] (5.5*\cw,6*\ch) rectangle +(0.3,\ch); \node[font=\tiny,anchor=west] at (5.5*\cw+0.35,6.5*\ch) {$\tau<0$};
-\fill[white] (5.5*\cw,5*\ch) rectangle +(0.3,\ch); \draw[gray!60] (5.5*\cw,5*\ch) rectangle +(0.3,\ch);
-\node[font=\tiny,anchor=west] at (5.5*\cw+0.35,5.5*\ch) {$\tau{=}0$};
-\fill[green!70!white] (5.5*\cw,4*\ch) rectangle +(0.3,\ch); \node[font=\tiny,anchor=west] at (5.5*\cw+0.35,4.5*\ch) {$\tau>0$};
-\fill[gray!20] (5.5*\cw,3*\ch) rectangle +(0.3,\ch); \node[font=\tiny,anchor=west] at (5.5*\cw+0.35,3.5*\ch) {OOM};
-\end{tikzpicture}%
-}
-\caption{Continuous-to-discrete transfer $\tau$ (Kendall) across 7 architectures and 5 datasets (\cref{tab:tau_cross}). Green = positive transfer; red = negative; gray = GPU OOM. Deeper models (GCN-4 vs.\ GCN-2) and Pubmed consistently show the strongest transfer.}
+\includegraphics[width=\columnwidth]{figures/tau_heatmap.pdf}
+\caption{Continuous-to-discrete transfer $\tau$ (Kendall) across 7 architectures and 5 datasets (\cref{tab:tau_cross}). Deeper models (GCN-4 vs.\ GCN-2) and Pubmed consistently show the strongest transfer. Gray cells: GPU OOM.}
 \label{fig:tau_heatmap}
 \end{figure}
 
