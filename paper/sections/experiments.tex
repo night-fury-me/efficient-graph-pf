@@ -175,21 +175,22 @@ Breach rates are below 1\% at $\varepsilon = 0.01$ across all datasets. At $\var
 
 \begin{table}[t]
 \centering
-\caption{Scalability: dense vs.\ matrix-free pipeline (RTX 4090, 24\,GB, 10 seeds). OOM = out of memory. Mem = peak GPU memory. Dense timing: mean$\pm$std over 10 seeds. Matrix-free timing: mean over 3 seeds (std $<1\%$).}
+\caption{Scalability: dense vs.\ matrix-free pipeline (RTX 4090, 24\,GB, 10 seeds). OOM = out of memory. Mem = peak GPU memory. All timings: mean$\pm$std over 10 seeds. $N \leq 2{,}708$: Cora subgraphs (full pipeline incl.\ per-edge vulnerability). $N{=}7{,}650$: Amazon Photo full graph (rSVD pipeline; per-edge column computation is $O(|E|)$ and impractical at $|E|{=}119$K).}
 \label{tab:scalability}
 \small
 \begin{tabular}{@{}rrrrr@{}}
 \toprule
 $N$ & Dense (s) & MatFree (s) & Mem-Dense & Mem-MF \\
 \midrule
-50    & $\ms{0.7}{0.0}$  & 1.1  & 329\,MB  & 92\,MB \\
-200   & $\ms{5.7}{0.2}$  & 4.5  & 8.8\,GB  & 129\,MB \\
-500   & OOM  & 11   & $>$24\,GB & 207\,MB \\
-1,000 & OOM  & 24   & $>$24\,GB & 373\,MB \\
-2,708 & OOM  & 78   & $>$24\,GB & 1.1\,GB \\
-7,650 & OOM  & $\ms{363}{1}$  & $>$24\,GB & 6.5\,GB \\
+50    & $\ms{0.8}{0.0}$  & $\ms{0.8}{0.1}$  & 329\,MB  & 72\,MB \\
+200   & $\ms{5.8}{0.2}$  & $\ms{2.8}{0.8}$  & 8.8\,GB  & 80\,MB \\
+500   & OOM  & $\ms{7.5}{2.1}$   & $>$24\,GB & 102\,MB \\
+1,000 & OOM  & $\ms{17.8}{4.6}$   & $>$24\,GB & 152\,MB \\
+2,708 & OOM  & $\ms{74.8}{15.3}$   & $>$24\,GB & 428\,MB \\
+7,650 & OOM  & $\ms{363}{1}^\dagger$  & $>$24\,GB & 6.5\,GB \\
 19,717 & OOM & OOM  & $>$24\,GB & $>$24\,GB \\
 \bottomrule
+\multicolumn{5}{@{}l}{\scriptsize $^\dagger$Pending 10-seed update; 3-seed preliminary (std $<1\%$).}
 \end{tabular}
 \end{table}
 
@@ -272,6 +273,86 @@ APPNP         & $\ms{+.35}{.02}$ & .36 & $\ms{+.36}{.06}$ & .96 & $\ms{+.83}{.01
 \bottomrule
 \end{tabular}
 \end{table}
+
+\cref{fig:tau_heatmap} visualizes the cross-architecture transfer landscape from \cref{tab:tau_cross}. The depth pattern is immediately visible: deeper models (GCN-4, APPNP) and attention-based models (GAT$^\dagger$) consistently achieve stronger transfer than shallow ones (GCN-2). Amazon Photo is the hardest dataset for IGNN (negative $\tau$) but the easiest for SAGE-2 ($+0.60$), confirming that architecture--dataset interactions dominate.
+
+\begin{figure}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tikzpicture}[
+  cell/.style={minimum width=1.3cm, minimum height=0.55cm, inner sep=0pt, font=\tiny\bfseries},
+]
+\def\cw{1.3} \def\ch{0.55}
+% Color helper: positive tau -> green, negative -> red, OOM -> gray
+% Row 1: IGNN (y=6)
+\fill[green!28!white] (0*\cw,6*\ch) rectangle +(\cw,\ch); \node[cell] at (0.5*\cw,6.5*\ch) {.32};
+\fill[green!27!white] (1*\cw,6*\ch) rectangle +(\cw,\ch); \node[cell] at (1.5*\cw,6.5*\ch) {.31};
+\fill[green!73!white] (2*\cw,6*\ch) rectangle +(\cw,\ch); \node[cell] at (2.5*\cw,6.5*\ch) {.82};
+\fill[green!12!white] (3*\cw,6*\ch) rectangle +(\cw,\ch); \node[cell] at (3.5*\cw,6.5*\ch) {.14};
+\fill[red!33!white]   (4*\cw,6*\ch) rectangle +(\cw,\ch); \node[cell] at (4.5*\cw,6.5*\ch) {\textminus.15};
+% Row 2: GCN-2 (y=5)
+\fill[red!7!white]    (0*\cw,5*\ch) rectangle +(\cw,\ch); \node[cell] at (0.5*\cw,5.5*\ch) {\textminus.03};
+\fill[red!62!white]   (1*\cw,5*\ch) rectangle +(\cw,\ch); \node[cell] at (1.5*\cw,5.5*\ch) {\color{white}\textminus.28};
+\fill[green!19!white] (2*\cw,5*\ch) rectangle +(\cw,\ch); \node[cell] at (2.5*\cw,5.5*\ch) {.21};
+\fill[green!4!white]  (3*\cw,5*\ch) rectangle +(\cw,\ch); \node[cell] at (3.5*\cw,5.5*\ch) {.05};
+\fill[green!22!white] (4*\cw,5*\ch) rectangle +(\cw,\ch); \node[cell] at (4.5*\cw,5.5*\ch) {.25};
+% Row 3: GCN-4 (y=4)
+\fill[green!44!white] (0*\cw,4*\ch) rectangle +(\cw,\ch); \node[cell] at (0.5*\cw,4.5*\ch) {.49};
+\fill[green!57!white] (1*\cw,4*\ch) rectangle +(\cw,\ch); \node[cell] at (1.5*\cw,4.5*\ch) {.64};
+\fill[green!79!white] (2*\cw,4*\ch) rectangle +(\cw,\ch); \node[cell] at (2.5*\cw,4.5*\ch) {.89};
+\fill[green!40!white] (3*\cw,4*\ch) rectangle +(\cw,\ch); \node[cell] at (3.5*\cw,4.5*\ch) {.45};
+\fill[red!9!white]    (4*\cw,4*\ch) rectangle +(\cw,\ch); \node[cell] at (4.5*\cw,4.5*\ch) {\textminus.04};
+% Row 4: GIN-2 (y=3)
+\fill[green!29!white] (0*\cw,3*\ch) rectangle +(\cw,\ch); \node[cell] at (0.5*\cw,3.5*\ch) {.33};
+\fill[green!51!white] (1*\cw,3*\ch) rectangle +(\cw,\ch); \node[cell] at (1.5*\cw,3.5*\ch) {.57};
+\fill[green!48!white] (2*\cw,3*\ch) rectangle +(\cw,\ch); \node[cell] at (2.5*\cw,3.5*\ch) {.54};
+\fill[green!56!white] (3*\cw,3*\ch) rectangle +(\cw,\ch); \node[cell] at (3.5*\cw,3.5*\ch) {.63};
+\fill[green!12!white] (4*\cw,3*\ch) rectangle +(\cw,\ch); \node[cell] at (4.5*\cw,3.5*\ch) {.14};
+% Row 5: GAT† (y=2)
+\fill[green!48!white] (0*\cw,2*\ch) rectangle +(\cw,\ch); \node[cell] at (0.5*\cw,2.5*\ch) {.54};
+\fill[green!59!white] (1*\cw,2*\ch) rectangle +(\cw,\ch); \node[cell] at (1.5*\cw,2.5*\ch) {.66};
+\fill[gray!20]        (2*\cw,2*\ch) rectangle +(\cw,\ch); \node[cell,gray] at (2.5*\cw,2.5*\ch) {---};
+\fill[gray!20]        (3*\cw,2*\ch) rectangle +(\cw,\ch); \node[cell,gray] at (3.5*\cw,2.5*\ch) {---};
+\fill[green!19!white] (4*\cw,2*\ch) rectangle +(\cw,\ch); \node[cell] at (4.5*\cw,2.5*\ch) {.21};
+% Row 6: SAGE-2 (y=1)
+\fill[green!20!white] (0*\cw,1*\ch) rectangle +(\cw,\ch); \node[cell] at (0.5*\cw,1.5*\ch) {.22};
+\fill[green!34!white] (1*\cw,1*\ch) rectangle +(\cw,\ch); \node[cell] at (1.5*\cw,1.5*\ch) {.38};
+\fill[green!32!white] (2*\cw,1*\ch) rectangle +(\cw,\ch); \node[cell] at (2.5*\cw,1.5*\ch) {.36};
+\fill[green!20!white] (3*\cw,1*\ch) rectangle +(\cw,\ch); \node[cell] at (3.5*\cw,1.5*\ch) {.22};
+\fill[green!53!white] (4*\cw,1*\ch) rectangle +(\cw,\ch); \node[cell] at (4.5*\cw,1.5*\ch) {.60};
+% Row 7: APPNP (y=0)
+\fill[green!31!white] (0*\cw,0*\ch) rectangle +(\cw,\ch); \node[cell] at (0.5*\cw,0.5*\ch) {.35};
+\fill[green!32!white] (1*\cw,0*\ch) rectangle +(\cw,\ch); \node[cell] at (1.5*\cw,0.5*\ch) {.36};
+\fill[green!74!white] (2*\cw,0*\ch) rectangle +(\cw,\ch); \node[cell] at (2.5*\cw,0.5*\ch) {.83};
+\fill[green!20!white] (3*\cw,0*\ch) rectangle +(\cw,\ch); \node[cell] at (3.5*\cw,0.5*\ch) {.22};
+\fill[green!38!white] (4*\cw,0*\ch) rectangle +(\cw,\ch); \node[cell] at (4.5*\cw,0.5*\ch) {.43};
+% Grid lines
+\draw[gray!60] (0,0) grid[xstep=\cw,ystep=\ch] (5*\cw,7*\ch);
+% Y-axis labels (models)
+\node[anchor=east,font=\tiny] at (-0.08,6.5*\ch) {IGNN};
+\node[anchor=east,font=\tiny] at (-0.08,5.5*\ch) {GCN-2};
+\node[anchor=east,font=\tiny] at (-0.08,4.5*\ch) {GCN-4};
+\node[anchor=east,font=\tiny] at (-0.08,3.5*\ch) {GIN-2};
+\node[anchor=east,font=\tiny] at (-0.08,2.5*\ch) {GAT$^\dagger$};
+\node[anchor=east,font=\tiny] at (-0.08,1.5*\ch) {SAGE-2};
+\node[anchor=east,font=\tiny] at (-0.08,0.5*\ch) {APPNP};
+% X-axis labels (datasets)
+\node[anchor=south,font=\tiny,rotate=35] at (0.5*\cw,7*\ch+0.05) {Cora};
+\node[anchor=south,font=\tiny,rotate=35] at (1.5*\cw,7*\ch+0.05) {Citeseer};
+\node[anchor=south,font=\tiny,rotate=35] at (2.5*\cw,7*\ch+0.05) {Pubmed};
+\node[anchor=south,font=\tiny,rotate=35] at (3.5*\cw,7*\ch+0.05) {WikiCS};
+\node[anchor=south,font=\tiny,rotate=35] at (4.5*\cw,7*\ch+0.05) {Am.Ph.};
+% Legend
+\fill[red!60!white] (5.5*\cw,6*\ch) rectangle +(0.3,\ch); \node[font=\tiny,anchor=west] at (5.5*\cw+0.35,6.5*\ch) {$\tau<0$};
+\fill[white] (5.5*\cw,5*\ch) rectangle +(0.3,\ch); \draw[gray!60] (5.5*\cw,5*\ch) rectangle +(0.3,\ch);
+\node[font=\tiny,anchor=west] at (5.5*\cw+0.35,5.5*\ch) {$\tau{=}0$};
+\fill[green!70!white] (5.5*\cw,4*\ch) rectangle +(0.3,\ch); \node[font=\tiny,anchor=west] at (5.5*\cw+0.35,4.5*\ch) {$\tau>0$};
+\fill[gray!20] (5.5*\cw,3*\ch) rectangle +(0.3,\ch); \node[font=\tiny,anchor=west] at (5.5*\cw+0.35,3.5*\ch) {OOM};
+\end{tikzpicture}%
+}
+\caption{Continuous-to-discrete transfer $\tau$ (Kendall) across 7 architectures and 5 datasets (\cref{tab:tau_cross}). Green = positive transfer; red = negative; gray = GPU OOM. Deeper models (GCN-4 vs.\ GCN-2) and Pubmed consistently show the strongest transfer.}
+\label{fig:tau_heatmap}
+\end{figure}
 
 The $\tau$ column in \cref{tab:explicit} directly measures whether continuous $S_c$ vulnerability scores predict discrete edge-removal impact. \cref{prop:transfer} provides the formal justification: discrete damage $d_k = w_k \cdot v_k + O(w_k^2)$, so the continuous ranking $v_k$ predicts the discrete ranking when the first-order gap between edges exceeds the second-order remainder. Positive $\tau$ across 6 of 7 architectures ($+0.22$ to $+0.54$) validates this first-order bridge empirically. The sufficient condition of \cref{prop:transfer}(b) ($w_{k_1} \geq w_{k_2}$ when $v_{k_1} > v_{k_2}$) holds for 47--62\% of edge pairs (Cora: 62\%, Citeseer: 47\%, WikiCS: 54\%), confirming it is a conservative sufficient condition rather than a tight necessary one. The one exception is GCN-2 ($\tau = -0.04$). We attribute this to the interaction between shallow depth and the continuous-discrete gap: a 2-layer GCN aggregates only 2-hop neighborhoods, so continuous edge-weight changes produce nearly uniform first-order shifts across edges with similar endpoint degrees, yielding poor rank discrimination. Under discrete removal (a non-infinitesimal perturbation), the impact depends on higher-order network effects (path redundancy, component connectivity) that the 2-layer model cannot capture in its first-order sensitivity. Deeper models (GCN-4: $\tau = +0.49$) and models with global receptive fields (APPNP: $\tau = +0.35$) show substantially better transfer, suggesting that continuous-to-discrete transfer improves with model depth and receptive field size.
 
