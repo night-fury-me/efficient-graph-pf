@@ -71,6 +71,11 @@ B.~Wang, J.~Jia, X.~Cao, and N.~Z. Gong, ``Certified robustness of graph neural
   of the 27th ACM SIGKDD Conference on Knowledge Discovery \& Data Mining},
   2021, pp. 1645--1653.
 
+\bibitem{schuchardt2023localized}
+J.~Schuchardt, Y.~Scholten, A.~Bojchevski, and S.~G{\"u}nnemann, ``Localized
+  randomized smoothing for {GNN}s,'' in \emph{International Conference on
+  Machine Learning}, 2023.
+
 \bibitem{zhu2019robust}
 D.~Zhu, Z.~Zhang, P.~Cui, and W.~Zhu, ``Robust graph convolutional networks
   against adversarial attacks,'' in \emph{Proceedings of the 25th ACM SIGKDD
@@ -278,11 +283,6 @@ S.~Geisler, T.~Schmidt, H.~Sirin, D.~Z{\"u}gner, A.~Bojchevski, and
   \emph{Advances in Neural Information Processing Systems}, vol.~34, 2021, pp.
   7637--7649.
 
-\bibitem{schuchardt2023localized}
-J.~Schuchardt, Y.~Scholten, A.~Bojchevski, and S.~G{\"u}nnemann, ``Localized
-  randomized smoothing for {GNN}s,'' in \emph{International Conference on
-  Machine Learning}, 2023.
-
 \bibitem{liu2021eignn}
 J.~Liu, K.~Kawaguchi, B.~Hooi, Y.~Wang, and X.~Xiao, ``{EIGNN}: Efficient
   infinite-depth graph neural networks,'' in \emph{Advances in Neural
@@ -297,6 +297,21 @@ E.~Winston and J.~Z. Kolter, ``Monotone operator equilibrium networks,'' in
 F.~Gama, J.~Bruna, and A.~Ribeiro, ``Stability properties of graph neural
   networks,'' \emph{IEEE Transactions on Signal Processing}, vol.~68, pp.
   5680--5695, 2020.
+
+\bibitem{kenlay2021stability}
+H.~Kenlay, D.~Thanou, and X.~Dong, ``Stability and generalisation of graph
+  neural networks via spectral analysis,'' in \emph{International Conference on
+  Machine Learning}, 2021, pp. 5412--5422.
+
+\bibitem{topping2022understanding}
+J.~Topping, F.~Di~Giovanni, B.~P. Chamberlain, X.~Dong, and M.~M. Bronstein,
+  ``Understanding over-squashing and bottlenecks on graphs via curvature,'' in
+  \emph{International Conference on Learning Representations}, 2022.
+
+\bibitem{digiovanni2023oversquashing}
+F.~Di~Giovanni, L.~Giusti, F.~Barbero, G.~Luise, P.~Lio, and M.~M. Bronstein,
+  ``Over-squashing in graph neural networks: A comprehensive survey,'' in
+  \emph{International Conference on Machine Learning}, 2023.
 
 \bibitem{luo2020parameterized}
 D.~Luo, W.~Cheng, D.~Xu, W.~Yu, B.~Zong, H.~Chen, and X.~Zhang, ``Parameterized

@@ -8,58 +8,49 @@ Reallocated singl_function (elt_size=8) to 100 items from 50.
 Reallocated wiz_functions (elt_size=8) to 6000 items from 3000.
 Reallocated singl_function (elt_size=8) to 100 items from 50.
 Database file #1: aegis.bib
-Repeated entry---line 177 of file aegis.bib
- : @book{trefethen2005spectra
- :                           ,
-I'm skipping whatever remains of this entry
-Repeated entry---line 628 of file aegis.bib
- : @inproceedings{pei2020geomgcn
- :                              ,
-I'm skipping whatever remains of this entry
 -- IEEEtran.bst version 1.14 (2015/08/26) by Michael Shell.
 -- http://www.michaelshell.org/tex/ieeetran/bibtex/
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
 
 Done.
-You've used 60 entries,
+You've used 63 entries,
             4087 wiz_defined-function locations,
-            1097 strings with 18409 characters,
-and the built_in function-call counts, 49872 in all, are:
-= -- 3725
-> -- 1385
-< -- 398
-+ -- 777
-- -- 279
-* -- 2379
-:= -- 6844
-add.period$ -- 121
-call.type$ -- 60
-change.case$ -- 59
-chr.to.int$ -- 996
-cite$ -- 60
-duplicate$ -- 3514
-empty$ -- 4379
-format.name$ -- 308
-if$ -- 11848
+            1107 strings with 18979 characters,
+and the built_in function-call counts, 52028 in all, are:
+= -- 3873
+> -- 1454
+< -- 409
++ -- 813
+- -- 293
+* -- 2479
+:= -- 7139
+add.period$ -- 127
+call.type$ -- 63
+change.case$ -- 62
+chr.to.int$ -- 1026
+cite$ -- 63
+duplicate$ -- 3674
+empty$ -- 4591
+format.name$ -- 325
+if$ -- 12364
 int.to.chr$ -- 0
-int.to.str$ -- 60
-missing$ -- 648
-newline$ -- 203
-num.names$ -- 60
-pop$ -- 1663
+int.to.str$ -- 63
+missing$ -- 681
+newline$ -- 212
+num.names$ -- 63
+pop$ -- 1756
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 3890
+skip$ -- 4059
 stack$ -- 0
-substring$ -- 2462
-swap$ -- 2790
-text.length$ -- 66
+substring$ -- 2535
+swap$ -- 2901
+text.length$ -- 67
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 60
+type$ -- 63
 warning$ -- 0
-while$ -- 202
-width$ -- 62
-write$ -- 566
-(There were 2 error messages)
+while$ -- 209
+width$ -- 65
+write$ -- 591

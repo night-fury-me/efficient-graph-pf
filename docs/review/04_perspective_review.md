@@ -1,115 +1,181 @@
-# Perspective Review Report -- AEGIS
+# Perspective Review Report — AEGIS
 
-## Reviewer Profile
-- **Role**: Peer Reviewer 3 (Cross-Disciplinary Perspective)
-- **Expertise**: Power systems engineering, applied ML for critical infrastructure
-- **Review Focus**: Cross-disciplinary connections, practical impact, broader implications
+**Reviewer**: Dr. Line Roald, University of Wisconsin-Madison
+**Expertise**: Power systems optimization, GNNs for grid operations, N-1/N-2 contingency analysis, physics-informed ML, safe ML deployment in critical infrastructure
+**Confidence**: 4/5 (high confidence on power systems aspects; strong familiarity with GNN adversarial robustness literature)
 
-## Summary Assessment
+## Summary (280 words)
 
-AEGIS presents a mathematically elegant framework for structural vulnerability analysis of GNNs, grounded in the implicit function theorem and constrained sensitivity matrices. The core ML contribution -- the constrained sensitivity matrix $S_c$ that reduces perturbation space from $N^2$ to $|E|$ dimensions while enforcing symmetry -- is sound and well-validated across 7 architectures and 9 datasets. The first-order tightness results (1.00 +/- 0.01 at epsilon=0.01) are impressive and the SVD-optimal attack's 2-8x advantage over random perturbation is convincing.
+AEGIS introduces the constrained sensitivity matrix $S_c$ as a unified object for adversarial vulnerability analysis of graph neural networks. The framework projects the full $N^2$-dimensional adjacency perturbation space onto the $|E|$-dimensional space of realistic (symmetric, edge-only) perturbations, then extracts three outputs from a single computation: SVD-optimal attack directions, per-edge vulnerability rankings, and per-node first-order sensitivity radii. For contractive implicit GNNs (IGNN-class), formal guarantees including a critical perturbation budget and three-regime vulnerability characterization are additionally provided; for explicit GNNs with edge-weight-differentiable message passing, the practical analysis tools transfer without formal regime guarantees. A matrix-free formulation using Neumann-series resolvent iteration and randomized SVD enables full-graph analysis up to N=7,650 nodes on a single GPU.
 
-The power systems case study (Section VII) is the most novel and cross-disciplinarily interesting contribution, but also the most vulnerable to scrutiny from a domain perspective. The N-1 contingency analogy is conceptually appealing -- edge perturbation maps to line trips, vulnerability spectrum maps to contingency severity -- but the mapping involves several engineering simplifications that the paper only partially acknowledges. The use of binary adjacency rather than admittance-weighted edges, the continuous perturbation model versus discrete line outages, and the uniform load scaling training data all limit the operational relevance of the results. The authors are appropriately cautious in calling tau=0.37-0.67 "insufficient for direct operational use," but this honesty also undercuts the practical motivation.
+From a cross-disciplinary perspective, the most compelling contribution is the power grid case study (Section VII), which demonstrates that the $S_c$ vulnerability spectrum recovers N-1 contingency rankings on five IEEE test cases (14-300 buses) with $\tau = 0.37$-$0.72$ and P@10 = 0.66-0.87, without requiring line-impedance data. This bridges two communities that rarely interact at this technical depth: the GNN adversarial robustness community and the power systems contingency analysis community. The analogy between structural edge perturbation and transmission line outage is physically intuitive and mathematically grounded through Proposition 3's continuous-to-discrete transfer result.
 
-The paper occupies an interesting niche: it is neither a pure attack paper nor a pure defense paper, but a diagnostic tool. This positioning is a strength for the ML community but creates tension in the power systems framing, where practitioners need actionable tools with well-characterized failure modes. The dual-use implications of providing an attack toolkit for safety-critical infrastructure receive no discussion, which is a notable omission for a paper that explicitly targets "safety-critical domains."
-
-## Scores (0-100)
-
-| Dimension | Score | Justification |
-|-----------|-------|---------------|
-| Cross-Disciplinary Value | 72 | The power systems bridge is genuinely novel but the engineering model is too simplified to convince domain experts. The conceptual connection between IFT sensitivity and contingency analysis is valuable but underdeveloped. |
-| Practical Impact | 58 | The N~300 subgraph limit and 2.3s single-IFT timing are useful for screening on small grids but do not scale to real transmission networks (1000+ buses). Binary adjacency discards impedance information that is critical for contingency severity ranking. |
-| Case Study Validity | 62 | P@10 = 0.66-0.81 is promising for a topology-only method, but the comparison with LODF is not entirely fair (LODF uses reactances; AEGIS uses a trained model). The claim of "outperforming on larger grids" (tau=0.62-0.67 vs LODF 0.44-0.58 on case57/118) needs more careful analysis of what each method captures. |
-| Broader Implications | 65 | The framework's generality across GNN architectures is well-demonstrated, but the paper misses opportunities to connect to other safety-critical network domains. No discussion of dual-use risks. |
-| Ethical Considerations | 40 | Complete absence of dual-use discussion for a paper that provides attack optimization tools and explicitly targets safety-critical infrastructure. This is a significant gap. |
-| Overall | 63 | Solid ML contribution with an ambitious but underdeveloped cross-disciplinary case study. The power systems framing needs substantial strengthening or honest rescoping. |
+However, significant gaps remain between the current demonstration and practical deployment in power systems operations. The binary adjacency representation discards essential electrical information, the training data covers only uniform load scaling, and the comparison with industry-standard tools (LODF) needs deeper engagement with the power systems literature. Despite these gaps, the paper opens a genuinely novel research direction at the intersection of adversarial ML and power grid security assessment.
 
 ## Strengths
 
-1. **Sound mathematical framework with practical tightness.** The constrained sensitivity matrix $S_c$ (Section IV, Eq. 7) is a genuine contribution that makes first-order sensitivity analysis practical for realistic graph perturbations. The $N^2 \to |E|$ reduction with enforced symmetry is elegant and the empirical tightness of 1.00 +/- 0.01 at epsilon=0.01 (Table I) validates the theory convincingly.
+1. **Principled cross-domain transfer (Section VII, Table VI).** The paper does not merely apply an ML tool to power data; it identifies a structural isomorphism between adversarial edge perturbation and N-1 contingency analysis. The observation that binary adjacency outperforms admittance-weighted adjacency (P@10 = 0.81 vs. 0.27 on case118) is a non-obvious and well-explained finding: N-1 is an all-or-nothing event, so binary sensitivity correctly models the discrete nature of line trips. This insight demonstrates genuine understanding of the power systems domain.
 
-2. **Architecture-agnostic generalization.** Proposition 4 (Section IV-D) and the validation across 7 architectures (Table IV) demonstrate that $S_c$ is not an IGNN-specific trick. The unrolled sensitivity matrix $S_K$ for explicit GNNs provides a unified framework. The acknowledgment that explicit models lack the critical budget $\varepsilon_{crit}$ and convergence regime guarantees is appropriately honest.
+2. **Honest operational caveat (Section VII).** The paper explicitly states that "$\tau = 0.37$-$0.67$ is insufficient for direct operational use" and positions AEGIS as a "screening layer, not a standalone contingency tool." This intellectual honesty is rare in cross-disciplinary ML papers and builds trust with the power systems audience. The distinction between model sensitivity and physical measurement (i.e., $\tau$ reflects "the fidelity of the GNN's learned physics, not a direct physical measurement") is correctly drawn.
 
-3. **Appropriate calibration of claims in the power systems case study.** The operational caveat in Section VII-C ("AEGIS is a screening layer, not a standalone contingency tool") is commendably honest. The training data limitation ("covers uniform load scaling but not seasonal or generator-outage variation") is also clearly stated. This calibration builds trust.
+3. **Scale progression through IEEE test cases (Table VI).** Testing on case14 through case300 (with the 200-node subgraph approach for case300) demonstrates meaningful scalability awareness. The improving $\tau$ with grid size ($+0.42$ at case14 to $+0.72$ at case300) is an encouraging trend, though the subgraph extraction for case300 introduces a confound that should be discussed more carefully.
 
-4. **The LODF comparison provides a meaningful engineering baseline.** Comparing against the industry-standard DC screening tool (Section VII-C) rather than only ML baselines shows awareness of domain practice. The observation that AEGIS outperforms LODF on larger grids by "capturing nonlinear AC effects" is an interesting hypothesis worth further investigation.
+4. **LODF baseline comparison (Section VII).** Including the industry-standard Linear Outage Distribution Factor comparison is essential for credibility with the power systems audience. The result that AEGIS matches or exceeds LODF on case57/118 ($\tau = 0.62$-$0.67$ vs. $0.44$-$0.58$) with statistical validation (Wilcoxon signed-rank $p < 0.01$) is a meaningful benchmark, even if the comparison merits deeper analysis (see Weaknesses).
 
-5. **The implicit physics observation is genuinely interesting.** The finding that ContractiveGCN-PF achieves Delta-S = 0.03-0.11 p.u. without explicit power-balance penalty (Section VII-C) connects equilibrium GNN architecture to physical self-consistency in a way that could inform future physics-informed ML design.
+5. **N-2 extension via SVD (Section VII).** The observation that the leading singular vector $v_1$ naturally identifies multi-edge vulnerabilities, with 40-64% edge-level overlap against brute-force N-2 ground truth, is a genuinely useful result. N-2 contingency screening is computationally expensive ($O(|E|^2)$ full power flow solves), and any data-driven pre-screening has practical value.
 
-6. **Defense-informed edge protection experiment.** Section VI-G demonstrates practical utility: masking the top-5 AEGIS-identified edges reduces SVD attack damage by 42 +/- 8% vs 11 +/- 6% for random masking. This is directly actionable for defense design.
+6. **Rank stability analysis (Section VII).** Reporting pairwise Kendall $\tau$ of vulnerability rankings across 10 seeds ($+0.78 \pm 0.07$ on case57, $+0.67 \pm 0.12$ on case118) with the observation that 60% of top-10 edges appear in every seed's top-10 on case118 addresses a concern that power systems engineers would immediately raise: "Can I trust this ranking to be reproducible?"
+
+7. **Comprehensive experimental methodology (Section VI).** The 10-seed protocol with explicit seed values, the four-quadrant attack taxonomy (gradient-based/free, same/different objective), and the honest discussion of where AEGIS underperforms (Amazon Photo IGNN $\tau = -0.15$; Cora greedy-optimal at 54%) set a high standard for empirical rigor.
 
 ## Weaknesses
 
-1. **Binary adjacency discards critical engineering information.** The paper reports that "binary adjacency outperforms admittance-weighted (P@10 = 0.81 vs 0.27)" (Section VII-C), interpreting this as evidence that "N-1 contingency is a discrete event better modeled by uniform sensitivity." This interpretation is problematic. In power systems engineering, the severity of a line trip is determined precisely by the line's impedance and loading relative to the network: a tripped 500kV tie-line with 1000MW flow causes far more disruption than a tripped 69kV radial feeder at 10MW. The poor performance of admittance-weighted adjacency likely reflects a feature engineering failure (e.g., poor normalization of admittance values) rather than a fundamental property of contingency analysis. **Suggestion**: Investigate whether log-admittance or normalized susceptance weighting improves P@10 before concluding that binary is inherently superior. Report the admittance-weighted model's training loss and voltage RMSE to rule out a training failure.
+1. **Binary adjacency discards essential electrical information (Section VII).** While the authors correctly argue that binary adjacency suits N-1's all-or-nothing character, this framing is incomplete. In practice, the severity of an N-1 contingency depends critically on line impedance, thermal limits, and the resulting power flow redistribution. Two lines with identical binary connectivity but different impedances (e.g., a 138 kV tie-line vs. a 500 kV backbone) produce vastly different post-contingency states. The paper's admittance-weighted comparison (P@10 = 0.27) does not mean impedance information is unimportant---it means the current model fails to incorporate it effectively.
 
-2. **The N-1 contingency analogy conflates continuous perturbation with discrete outage.** AEGIS perturbs edge weights continuously (Section III-B: "edge weights are perturbed continuously in R, not discretely flipped"), but N-1 contingency is inherently discrete: a line is either in service or out. The paper acknowledges this ("continuous first-order vs. discrete removal") but does not quantify how much this mismatch degrades the ranking. LODF, despite being a linearization, at least models the correct discrete event (full line removal). **Suggestion**: Add an experiment comparing AEGIS rankings when using large epsilon (approaching full edge removal) versus the small-epsilon first-order rankings. If the two diverge significantly, the analogy weakens.
+   **Suggested fix:** Discuss alternative encoding strategies: edge-feature GNNs where impedance, thermal rating, and voltage level are edge attributes rather than adjacency weights; or a physics-informed loss that penalizes violation of Kirchhoff's laws. Acknowledge explicitly that binary adjacency limits the framework to topological screening and cannot capture impedance-dependent severity.
 
-3. **Uniform load scaling training data severely limits generalization claims.** The ContractiveGCN-PF is trained on "2,000 load samples per case, uniformly sampled at 70-130% of nominal load" (Section VII-B). Real power grids operate with spatially heterogeneous load patterns, generator redispatch, and renewable intermittency. A model trained on uniform scaling will not capture contingency severity that depends on the specific dispatch pattern. **Suggestion**: At minimum, test on a few non-uniform load scenarios (e.g., heavy north-south transfer, peak summer, light load with high renewable penetration) to characterize sensitivity to operating point. If P@10 degrades substantially, the "recovers N-1 contingency rankings" claim should be qualified.
+2. **Training data covers only uniform load scaling (Section VII, "Limitation" paragraph).** The 2,000 samples at 70-130% of nominal load represent a single operating mode. Real power grids exhibit seasonal load patterns, generator commitment schedules, renewable intermittency, and scheduled maintenance that create fundamentally different operating points. A vulnerability ranking derived from a narrow operating envelope may not generalize to stressed conditions where contingencies are most dangerous.
 
-4. **No discussion of dual-use risks.** The paper explicitly targets "safety-critical domains" (abstract, introduction) and provides an optimized attack toolkit (SVD-optimal perturbation directions, per-edge vulnerability rankings). For power grids specifically, identifying the most critical lines to attack is precisely the information a malicious actor would seek. The paper provides no discussion of responsible disclosure, access controls, or the ethics of publishing attack tools for critical infrastructure. **Suggestion**: Add a dedicated "Ethical Considerations" subsection discussing: (a) the dual-use nature of vulnerability analysis, (b) how the screening-layer positioning mitigates risk (an attacker still needs physical access to trip lines), (c) whether code release should include safeguards, and (d) how the defensive application (edge protection, Section VI-G) balances the offensive capability.
+   **Suggested fix:** Add at least one experiment with non-uniform load variation (e.g., scale individual bus loads independently at 50-150%, or include generator outage scenarios). If computationally prohibitive, explicitly quantify the limitation: "Our training data spans X% of the feasible operating space estimated by [method]."
 
-5. **The LODF comparison is not apples-to-apples.** LODF requires line reactances but no training data; AEGIS requires 2,000 training samples from a full AC solver but no line parameters. The paper claims AEGIS "outperforms on larger grids" but does not discuss the practical cost of generating training data, which requires the same Newton-Raphson solver that brute-force N-1 uses. For a fair comparison, report the total computation (training data generation + model training + AEGIS analysis) versus brute-force N-1. **Suggestion**: Add a wall-clock comparison including data generation time. If generating 2,000 AC power flow samples takes longer than 179 brute-force N-1 solves, the computational advantage claim is misleading.
+3. **LODF comparison lacks depth (Section VII).** The comparison reports $\tau$ values but does not analyze where AEGIS and LODF disagree and why. LODF is a DC approximation that ignores reactive power, voltage magnitude, and transformer tap ratios---precisely the information that the ContractiveGCN-PF model attempts to learn from AC power flow data. If AEGIS outperforms LODF, it should be because the GNN captures AC effects that DC linearization misses. The paper does not verify this hypothesis.
 
-6. **The tau=0.37-0.67 range has high variance across grid sizes with no clear explanation.** Case14 achieves tau=0.42, case30 drops to tau=0.37, then case57 jumps to tau=0.67 and case118 achieves tau=0.62. This non-monotonic behavior is unexplained. Is case30 harder because of its meshed topology? Does case57's high tau reflect a more tree-like structure where topological sensitivity better predicts contingency severity? **Suggestion**: Analyze what structural properties (mesh density, tree-likeness, degree distribution) correlate with AEGIS ranking accuracy. This would help practitioners judge when AEGIS is trustworthy.
+   **Suggested fix:** Identify the specific lines where AEGIS ranks higher than LODF (and vice versa) and correlate with physical characteristics: are the AEGIS-unique critical lines those with high reactive power sensitivity, voltage-constrained corridors, or transformer-connected? This analysis would demonstrate that AEGIS adds value precisely where DC approximation fails. Also compare against PTDF (Power Transfer Distribution Factors), which is more widely used than LODF for pre-contingency screening.
 
-7. **Bus type features embed domain knowledge that undermines "without domain-specific inputs."** The model uses 5 bus features including "bus type indicators (slack, PV)" (Section VII-B). The claim that AEGIS works "without domain-specific modifications" (abstract) and "without domain-specific inputs" (abstract) is technically about the AEGIS analysis stage, but the underlying model encodes significant domain knowledge through these features. A power systems engineer would note that slack bus identification and PV/PQ bus classification are non-trivial domain knowledge. **Suggestion**: Clarify that "without domain-specific inputs" refers to the AEGIS analysis pipeline, not the GNN model itself. Consider an ablation removing bus-type features to test how much domain knowledge the model actually needs.
+4. **No voltage or thermal limit violations in contingency assessment (Section VII).** The N-1 ground truth is described as "brute-force contingency ranking" based on "voltage and flow deviations," but the paper does not specify the severity metric. In practice, N-1 severity is measured by post-contingency thermal overloads (MW flow exceeding line rating) and voltage violations (p.u. voltage outside 0.95-1.05). The per-unit RMSE reported in Table VI ($|V|$ RMSE = 0.007-0.033, $\theta$ RMSE = 0.020-0.076) does not directly map to operational severity.
 
-8. **The N~300 subgraph limit is impractical for real transmission networks.** Real transmission grids have 1,000-60,000+ buses. The paper notes the limit is N~300 due to dense Jacobian memory (Section V-E: 12.6 GB at N=300), and the conclusion lists "sparse solvers for larger subgraphs" as future work. For the power systems community, this is not a minor limitation -- it means AEGIS cannot analyze even a medium-sized utility's transmission network in its current form. **Suggestion**: Discuss whether hierarchical decomposition (analyzing zones/areas separately) could extend the approach, and whether the BFS ego-subgraph extraction introduces boundary artifacts for power flow problems where electrical distance matters more than topological distance.
+   **Suggested fix:** Define the N-1 severity metric explicitly (e.g., maximum post-contingency line loading as fraction of thermal limit, or maximum voltage deviation in p.u.). Report whether AEGIS's top-ranked lines correspond to those causing the most severe thermal or voltage violations, not just the largest $\Delta|V|$ or $\Delta\theta$.
 
-## Cross-Disciplinary Opportunities
+5. **Missing transient stability and voltage stability considerations (Section VII).** N-1 contingency analysis in practice involves three timescales: (a) steady-state power flow redistribution (what the paper addresses), (b) voltage stability (seconds to minutes), and (c) transient/angular stability (milliseconds to seconds). The paper's static analysis captures only (a). For certain contingencies---particularly loss of large generators or key interconnecting lines---the dynamic response dominates the severity ranking, and a purely steady-state ranking may be misleading.
 
-1. **Chemical process safety and HAZOP analysis.** Chemical plants are modeled as directed graphs of unit operations connected by material/energy streams. The analog of N-1 contingency is single-equipment failure analysis (part of HAZOP). AEGIS could identify which stream disruptions most destabilize a process simulation GNN. The continuous perturbation model maps well to gradual fouling, catalyst deactivation, or flow rate changes. This domain has established safety analysis standards (IEC 61882) that would provide rigorous validation frameworks.
+   **Suggested fix:** Add a paragraph acknowledging this limitation and discussing how dynamic GNN models (e.g., temporal GNNs or recurrent architectures) might extend AEGIS to capture time-domain vulnerability. At minimum, state that the current framework addresses only steady-state severity and that dynamic contingencies require separate analysis.
 
-2. **Transportation network vulnerability.** Traffic flow on road/rail networks exhibits equilibrium behavior (Wardrop equilibrium) analogous to the DEQ fixed point. Link removal (road closure, bridge failure) is the transportation N-1 analog. The Bureau of Public Roads function gives a known physics model for comparison, similar to LODF for power systems. AEGIS could identify critical links whose disruption causes disproportionate network-wide delay increases.
+6. **Case300 uses subgraph extraction, confounding the scalability claim (Table VI).** The $\tau = +0.72$ and P@10 = 0.87 for case300 are obtained on a 200-node BFS subgraph with only 1,000 training samples (vs. 2,000 for smaller cases). The subgraph ablation in Section VI.D shows that subgraph-to-full-graph ranking correlation degrades significantly on larger, sparser graphs (Cora: $\tau = 0.16$). While power grids are denser than citation networks, the case300 result should be interpreted cautiously: the 200-node subgraph covers 67% of the 300-bus grid, but this coverage ratio will drop sharply for realistic grids (2,000+ buses).
 
-3. **Water distribution network resilience.** Water networks are governed by conservation laws (mass balance at nodes, energy balance in loops) that are structurally similar to Kirchhoff's laws. Pipe breaks are the N-1 analog. The hydraulic modeling community has well-established vulnerability analysis tools (e.g., EPANET-based methods) that would provide strong baselines.
+   **Suggested fix:** Add full-graph matrix-free analysis for case300 (the matrix-free pipeline handles N=2,708 for Cora in 78s; case300 with N=300 should be tractable). If the dense path OOMs at N>200 but the matrix-free path should handle N=300 easily, explain why the subgraph approach was chosen over matrix-free for case300. Also discuss the coverage ratio issue for larger grids (e.g., Polish 2383-bus system).
 
-4. **Supply chain network stress testing.** Global supply chains are graphs where node/edge disruptions propagate non-locally (COVID-19 demonstrated this dramatically). The continuous perturbation model maps to gradual capacity degradation. Supply chain GNNs are an active research area, and vulnerability analysis would have immediate practical value.
+7. **ContractiveGCN-PF model quality degrades at scale (Table VI).** The $\theta$ RMSE of 0.394 p.u. for case300 is an order of magnitude worse than case14-118 (0.020-0.076). In a 300-bus system, a 0.394 radian ($\approx 22.6$ degree) average angle error is physically unrealistic and suggests the model has not adequately learned the power flow physics. If the GNN's learned physics is poor, the vulnerability ranking measures model sensitivity rather than physical criticality, undermining the N-1 analogy.
 
-5. **Telecommunications network reliability.** The AEGIS framework maps directly to identifying single points of failure in communication networks, where the analog of contingency analysis is well-established (network survivability analysis). The equilibrium behavior of routing protocols provides a natural DEQ connection.
+   **Suggested fix:** Investigate the case300 model quality issue. Try deeper networks, larger hidden dimension, or more training samples. If the quality cannot be improved with the current architecture, report case300 results with a prominent caveat and focus the N-1 claims on case14-118 where model quality is adequate.
 
-6. **Connection to classical network reliability theory.** The paper could strengthen its theoretical positioning by connecting $S_c$ to established concepts in network reliability: importance measures (Birnbaum importance, Fussell-Vesely importance) for components in fault trees. The per-edge vulnerability score $v_{ij}$ is conceptually related to Birnbaum structural importance. Making this connection explicit would position AEGIS within a well-understood theoretical landscape.
+8. **No discussion of bus-type heterogeneity (Section VII).** Power grids have three bus types (slack/swing, PV/generator, PQ/load) with fundamentally different physical behavior. The two binary bus-type indicators (is-slack, is-PV) are a reasonable encoding, but the paper does not discuss whether vulnerability rankings correlate with bus-type topology. In practice, edges connecting to generator buses are often more critical than load-to-load connections because generator outages cascade differently.
+
+   **Suggested fix:** Report vulnerability rankings stratified by endpoint bus types. Do the top-ranked edges disproportionately connect to PV or slack buses? This analysis would strengthen the physical interpretability of the results.
+
+## Power Systems Case Study Assessment
+
+### Setup Validity
+
+The experimental setup in Section VII is reasonable for a proof-of-concept demonstration. The choice of IEEE test cases (14-300 buses) is standard in the power systems ML literature. Using PandaPower's Newton-Raphson solver for training data generation is appropriate, and the 5 bus features (is-slack, is-PV, P, Q, |V|) capture the essential node-level physics.
+
+However, several aspects would concern a power systems practitioner:
+
+**Graph construction.** The binary adjacency from the admittance matrix treats all transmission lines identically regardless of voltage level, impedance, or thermal rating. In a real grid, a 500 kV backbone line and a 69 kV distribution feeder have fundamentally different roles in system security, but they receive equal treatment in the binary representation. The finding that admittance-weighted adjacency performs worse is interesting but does not resolve this concern---it suggests that a more sophisticated edge encoding is needed, not that impedance information is irrelevant.
+
+**Training data.** Uniform load scaling at 70-130% of nominal produces a narrow operating envelope. Real contingency screening must be valid across seasonal peaks, light-load conditions, and N-1-1 cascading scenarios. The absence of generator commitment variation is particularly limiting because the dispatch pattern fundamentally changes power flow directions on the network.
+
+**Model architecture.** The IGNN architecture with spectral normalization sacrifices accuracy ($\sim$6% penalty per Section VI) for formal guarantees. In power systems, model accuracy directly affects the reliability of vulnerability rankings. The $\theta$ RMSE of 0.394 for case300 raises concerns about whether the model has learned meaningful physics at this scale.
+
+### N-1 Analogy Validity
+
+The mapping from $S_c$ vulnerability to N-1 contingency is conceptually sound: both quantify the impact of removing/perturbing a single edge (transmission line) on system state (equilibrium representation / power flow solution). Proposition 3's continuous-to-discrete transfer result provides formal justification, and the empirical $\tau$ values (0.37-0.72) confirm partial ranking agreement.
+
+The analogy has fundamental limitations that should be more prominently discussed:
+
+- **Continuous vs. discrete**: N-1 is inherently discrete (a line is either in or out). The first-order continuous approximation works well for small perturbations but may miss discontinuous effects (e.g., islanding, loss of path connectivity).
+- **Single-point sensitivity vs. post-contingency state**: AEGIS measures the first-order sensitivity of the GNN's learned equilibrium. N-1 severity depends on the full post-contingency power flow, which involves nonlinear redistribution, generator re-dispatch, and potentially corrective actions.
+- **Topological vs. electrical**: AEGIS captures topological vulnerability (which edges matter for the learned representation). N-1 severity is electrical (which line outages cause the worst thermal or voltage violations). These are correlated but distinct.
+
+### Missing Elements for Power Systems Credibility
+
+- **PTDF comparison**: Power Transfer Distribution Factors are the most common industry tool for pre-contingency screening. LODF is a related but less commonly used metric. Including PTDF would strengthen the baseline comparison.
+- **Thermal limit analysis**: The most operationally relevant N-1 metric is the post-contingency line loading as a fraction of the thermal limit. This is absent.
+- **Reactive power and voltage stability**: The case study focuses on $\Delta|V|$ and $\Delta\theta$ but does not analyze Q-V curves or voltage stability margins, which drive many critical contingencies.
+- **Larger test systems**: The 300-bus system is the largest tested; realistic N-1 screening operates on 2,000-30,000 bus systems. The matrix-free pipeline's scalability to N=7,650 suggests this is feasible but untested for power grids.
+
+## Cross-Disciplinary Impact
+
+### Bridge Quality
+
+The paper does a commendable job of bridging ML and power systems, though each audience will find gaps:
+
+**For ML readers:** The power systems background (Section VII.A) provides adequate context on N-1 contingency. The analogy table (edge perturbation $\leftrightarrow$ line trip, vulnerability spectrum $\leftrightarrow$ contingency severity, $\varepsilon_{\text{crit}}$ $\leftrightarrow$ sensitivity threshold) is well-structured. However, ML readers may not appreciate why binary adjacency is a significant limitation or why $\tau = 0.67$ is both impressive and insufficient for operational use.
+
+**For power systems readers:** The theoretical sections (III-IV) are dense but well-motivated. The connection to LODF (both are linearized sensitivity tools) is the right framing. However, power systems readers will expect discussion of thermal limits, voltage stability, and dispatch-dependent vulnerability---topics absent from the current version.
+
+### Other Application Domains
+
+The AEGIS framework has clear potential beyond power grids:
+
+- **Water distribution networks**: Pipe failure analysis maps directly to edge perturbation; pressure/flow sensitivity is analogous to voltage/power sensitivity.
+- **Transportation networks**: Link failure in traffic networks; vulnerability of route recommendations in navigation GNNs.
+- **Communication networks**: Router/link failure in network topology; QoS degradation under edge perturbation.
+- **Chemical process networks**: Equipment failure propagation in process flow diagrams modeled as graphs.
+- **Supply chain networks**: Supplier/logistics link disruption; resilience of GNN-based demand forecasting.
+
+The paper briefly mentions fraud detection and drug interaction but does not develop these connections. A table mapping AEGIS concepts to 3-4 application domains would significantly strengthen the cross-disciplinary contribution.
+
+## Practical Deployment Assessment
+
+### Gap Between Paper and Deployment
+
+For a power systems engineer considering AEGIS for operational contingency screening, the following gaps exist:
+
+1. **Accuracy gap.** P@10 = 0.66-0.87 means 1-3 of the top-10 critical lines are missed. In power systems operations, missing even one critical contingency can lead to cascading failure. The screening tool must be supplemented by full N-1 analysis on the flagged subset, which the paper correctly acknowledges.
+
+2. **Speed gap.** AEGIS requires 2-23 seconds (training + $S_c$ computation) vs. 0.1-2 seconds for brute-force N-1 and <0.13 seconds for LODF. For grids small enough for brute-force N-1, AEGIS offers no speed advantage. The value proposition depends on scaling to grids where brute-force N-1 is expensive (thousands of buses with AC power flow), but this scaling is not yet demonstrated.
+
+3. **Interpretability gap.** Power systems operators need to understand *why* a line is critical (thermal overload path, voltage support loss, stability margin). AEGIS provides a vulnerability score without physical interpretation. Combining AEGIS rankings with PTDF/LODF decomposition could bridge this gap.
+
+4. **Validation gap.** The IEEE test cases, while standard, are synthetic. Deployment requires validation on realistic utility-scale models (e.g., WECC, ERCOT) with actual operating data, seasonal variation, and generator commitment schedules.
+
+5. **Regulatory gap.** NERC reliability standards require that N-1 analysis use validated power flow models with specific accuracy thresholds. A GNN-based screening tool would need to demonstrate compliance with TPL-001 standards before operational use.
+
+### Realistic Deployment Scenario
+
+The most realistic near-term deployment would be as a **pre-screening filter** in a two-stage pipeline: (1) AEGIS identifies the top-K most vulnerable edges quickly, then (2) full AC power flow N-1 analysis is run only on the top-K set, reducing computation by a factor of $|E|/K$. For a 10,000-bus grid with 15,000 lines, reducing from 15,000 to 500 full AC solves would provide meaningful computational savings if AEGIS can maintain P@500 > 0.95 at that scale. This use case is not discussed in the paper but would be the strongest practical argument.
+
+## Scores (0-100 scale)
+
+| Dimension | Score | Justification |
+|-----------|-------|---------------|
+| Cross-disciplinary Value | 78 | Genuinely novel bridge between adversarial ML and power systems contingency analysis; the structural isomorphism is well-identified but incompletely developed |
+| Application Validity | 62 | IEEE test case results are encouraging but limited by binary adjacency, narrow training data, and degraded model quality at scale (case300 $\theta$ RMSE = 0.394) |
+| Practical Impact | 55 | Currently slower than brute-force N-1 on tested grids; value proposition depends on scaling to large grids, which is untested in the power domain; P@10 insufficient for standalone use |
+| Communication Quality | 74 | Good bridging of both audiences; honest operational caveats; theory sections dense but well-motivated; missing key power systems context (thermal limits, voltage stability, PTDF) |
+| Broader Significance | 80 | Framework generalizes to any domain where graph edge failure drives system-level consequences; 7-architecture validation and matrix-free scalability are strong contributions beyond power systems |
+| Overall Perspective | 72 | A promising cross-disciplinary contribution that opens a new research direction; the power grid case study is well-conceived but needs deeper engagement with power systems reality to be fully convincing |
 
 ## Questions for Authors
 
-1. **On the binary vs. admittance-weighted result**: Can you provide the training curves and voltage RMSE for the admittance-weighted model? The dramatic P@10 drop (0.81 to 0.27) suggests a possible training failure rather than a fundamental property. Did you normalize the admittance values? What was the condition number of the admittance-weighted adjacency matrix?
+1. **Impedance encoding.** The binary adjacency result is surprising and well-argued for the all-or-nothing N-1 case. But for operational use, one needs to rank contingencies by *severity*, which depends on impedance-driven power redistribution. Have you experimented with edge-feature GNNs (where impedance, thermal rating, and voltage level are edge attributes rather than adjacency weights)? This would preserve the binary connectivity structure that works well while adding the electrical information needed for severity ranking.
 
-2. **On implicit physics**: You observe that the DEQ architecture recovers approximate power balance (Delta-S = 0.03-0.11 p.u.) without explicit enforcement. Is this genuinely surprising, or is it expected because the model is trained to predict voltages that are generated by a power flow solver that enforces Kirchhoff's laws? The training targets embed the physics; the question is whether the DEQ architecture recovers it more faithfully than an explicit GNN would. Did you compare Delta-S for a 2-layer GCN on the same task?
+2. **Full-graph matrix-free for case300.** The matrix-free pipeline handles Cora (N=2,708) in 78 seconds. Why was a 200-node subgraph extraction used for case300 (N=300) instead of full-graph matrix-free analysis? If the matrix-free pipeline were applied to case300 (and potentially to larger IEEE cases like the 2383-bus Polish system), would the P@10 improve or degrade relative to the subgraph result?
 
-3. **On computational cost fairness**: How long does it take to generate the 2,000 PandaPower training samples for case118? If it takes more than 2.3 seconds per sample (i.e., >76 minutes total), the total AEGIS pipeline (data generation + training + analysis) is slower than brute-force N-1, which would significantly qualify the "2.3s single IFT" advantage.
+3. **Where do AEGIS and LODF disagree?** You report aggregate $\tau$ values but do not analyze the disagreement structure. On case118, which specific lines does AEGIS rank in the top-10 but LODF does not, and vice versa? Do the AEGIS-unique critical lines correspond to those with high reactive power sensitivity or voltage-constrained corridors---i.e., effects that the DC-based LODF cannot capture? This analysis would demonstrate the specific value-add of an AC-trained GNN over DC linearization.
 
-4. **On the epsilon_crit interpretation for power grids**: What is the physical meaning of epsilon_crit = (1-kappa)/||W||_2 in the power systems context? Can you map it to a meaningful engineering quantity (e.g., maximum tolerable impedance change, loading margin)?
+4. **Contingency severity metric.** The paper describes "brute-force contingency ranking" based on "voltage and flow deviations" but does not specify the exact severity index. Is it $\max_i |\Delta V_i|$, $\sum_i (\Delta V_i)^2$, maximum post-contingency line loading, or a composite performance index? The choice of severity metric significantly affects the ground-truth ranking and thus the meaning of the reported $\tau$.
 
-5. **On the non-monotonic tau across grid sizes**: What structural property of case57 makes it easier for AEGIS (tau=0.67) than case30 (tau=0.37)? Is it related to the ratio of radial vs. meshed topology, the number of parallel paths, or the distribution of line impedances?
-
-6. **On the edge-only constraint**: Real power system attacks can involve node removal (generator trip, bus fault). Your threat model restricts to edge perturbation (Section III-B). How would extending to node perturbation change the analysis? Is there a natural $S_c$ construction for combined node-and-edge perturbation?
-
-7. **On scalability to real grids**: Have you considered applying AEGIS to the ACTIVSg synthetic grids (2000, 10000, 25000 buses)? Even with subgraph extraction, does the BFS ego-subgraph capture enough electrical neighborhood for meaningful contingency ranking on these grids?
-
-8. **On the training data distribution**: If you trained on non-uniform load patterns (e.g., Monte Carlo samples from historical load profiles rather than uniform 70-130% scaling), would you expect P@10 to improve because the model sees more realistic operating conditions, or degrade because the model must generalize over a larger state space?
-
-9. **On responsible disclosure**: Given that AEGIS identifies optimal attack directions on power grid models, have you consulted with grid operators or followed any responsible disclosure protocol before planning code release? IEEE and NERC have specific guidelines for vulnerability disclosure in the power sector.
-
-10. **On the defense application**: The edge protection experiment (Section VI-G) shows 42% damage reduction from masking top-5 edges. In a power systems context, "masking" an edge from the perturbation space would mean hardening a transmission line. Is there a practical mapping from "edge masking" to real protective actions (e.g., adding redundancy, installing FACTS devices, or rerouting power flow)?
+5. **Generator dispatch sensitivity.** N-1 contingency rankings are dispatch-dependent: a line that is critical at summer peak may be non-critical at spring light load because the power flow direction reverses. Your uniform load scaling preserves the relative dispatch pattern. Have you tested whether AEGIS rankings are stable across different dispatch scenarios (e.g., training on multiple dispatch patterns and comparing per-dispatch vulnerability rankings)?
 
 ## Recommendation
 
-**Minor Revision**, leaning toward Major.
+**Minor Revision.** Accept with revisions addressing the following priority items:
 
-The core ML contribution (the $S_c$ framework) is technically sound and well-validated. The cross-architecture generalization and the tightness results are convincing. However, the paper's ambitious positioning as a tool for "safety-critical domains" is not fully supported by the power systems case study, which contains several engineering simplifications that would concern domain reviewers.
+The paper presents a genuinely novel cross-disciplinary contribution. The structural isomorphism between adversarial edge sensitivity and N-1 contingency is well-identified, and the empirical validation across five IEEE test cases with honest operational caveats demonstrates intellectual maturity. The broader AEGIS framework (7 architectures, 9 datasets, matrix-free scalability) is a strong ML contribution in its own right.
 
-Specific conditions for acceptance:
+The power grid case study, however, needs targeted strengthening to be fully convincing to both audiences:
 
-1. **Required**: Add an ethical considerations subsection addressing dual-use risks of publishing attack optimization tools for critical infrastructure (Weakness 4). This is a minimum requirement for any paper targeting safety-critical applications.
+**Required revisions:**
+- Specify the N-1 severity metric explicitly (Weakness 4).
+- Add full-graph matrix-free analysis for case300, or explain why the subgraph was used when matrix-free should handle N=300 (Weakness 6).
+- Investigate and address the case300 model quality issue ($\theta$ RMSE = 0.394; Weakness 7).
+- Add one paragraph acknowledging the transient/voltage stability limitation and the dispatch-dependence of rankings (Weaknesses 5, Question 5).
 
-2. **Required**: Clarify the "without domain-specific inputs" claim to distinguish between the AEGIS analysis pipeline and the underlying GNN model, which uses bus-type features (Weakness 7).
+**Recommended revisions (would strengthen the paper significantly):**
+- Analyze AEGIS-vs-LODF disagreement structure on case118 (Question 3).
+- Discuss edge-feature GNN alternatives to binary adjacency (Question 1).
+- Report vulnerability rankings stratified by endpoint bus types (Weakness 8).
+- Discuss the pre-screening filter use case as the realistic deployment scenario (Practical Deployment Assessment).
 
-3. **Strongly recommended**: Investigate the binary vs. admittance-weighted result more carefully (Weakness 1). Report training diagnostics for the admittance-weighted variant.
-
-4. **Strongly recommended**: Add wall-clock comparison including training data generation time for the power systems case (Weakness 5).
-
-5. **Recommended**: Discuss the non-monotonic tau behavior across grid sizes (Weakness 6) and the limitations of uniform load scaling (Weakness 3).
-
-6. **Recommended**: Compare Delta-S for DEQ vs. explicit GNN to contextualize the "implicit physics" claim (Question 2).
-
-The paper makes a genuine contribution at the intersection of adversarial ML and structural sensitivity analysis, but the cross-disciplinary bridge to power systems needs more careful construction to be convincing to both communities.
+The theoretical contributions (Theorem 1, Proposition 3, Observation 1) are sound and the experimental methodology is thorough. The paper's weaknesses are primarily in the depth of power systems engagement, which is addressable through targeted revisions without altering the core contribution. This work is a valuable step toward bridging adversarial ML and safety-critical infrastructure analysis.

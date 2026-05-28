@@ -7,7 +7,12 @@ Translating the results of \cref{sec:theory} into a practical tool requires over
 
 \subsection{Architecture Overview}
 
-\AEGIS takes as input a trained GNN (any architecture whose message passing is differentiable with respect to edge weights) together with a target graph and produces three outputs: (i) a per-edge vulnerability spectrum ranking edges by adversarial impact, (ii) SVD-optimal attack perturbations, and (iii) per-node first-order sensitivity radii. For contractive implicit GNNs (IGNN-class satisfying A1--A3), the pipeline additionally computes the critical budget $\ecrit$ and convergence diagnostics; these theoretical guarantees are specific to the implicit case. The pipeline consists of four stages executed sequentially, as illustrated in \cref{fig:pipeline}.
+\AEGIS takes as input a trained GNN (any architecture whose message passing is differentiable with respect to edge weights) together with a target graph and produces three outputs: (i)~a per-edge vulnerability spectrum ranking edges by adversarial impact, (ii)~the maximally sensitive perturbation direction via SVD, and (iii)~per-node first-order sensitivity thresholds. For contractive implicit GNNs (IGNN-class satisfying A1--A3), the pipeline additionally computes the critical budget $\ecrit$ and convergence diagnostics; these formal guarantees are specific to the implicit case. The pipeline operates in two regimes:
+\begin{itemize}
+\item \textbf{Dense path} ($N \leq 200$): materializes $S_c \in \R^{Nd \times |E|}$, computes exact SVD and unconstrained $r_v$. Applicable to subgraph-level analysis and small power grids.
+\item \textbf{Matrix-free path} ($N > 200$, validated up to $N{=}7{,}650$): operates via JVP/VJP queries on $S_c$ without materializing any matrix. Computes randomized SVD, per-edge column norms, and constrained $r_v^{(c)}$ (\cref{prop:radius}).
+\end{itemize}
+The four stages are illustrated in \cref{fig:pipeline}.
 
 \subsection{Stage 1: Subgraph Extraction and Forward Pass}
 
@@ -33,15 +38,11 @@ The constraint projection $P_c$ (\cref{sec:theory}) maps edge vectors to symmetr
 
 From $S_c$, \AEGIS extracts three complementary outputs:
 
-\textbf{Optimal attack direction.} A randomized SVD~\cite{halko2011finding} of the $S_c$ operator (using only matrix-vector products, with rank $k = 10$, oversampling $p = 10$, and $n_{\text{iter}} = 2$ power iterations) yields the leading singular triplet $(u_1, \sigma_1, v_1)$. The first-order optimal perturbation is $\delta A^* = \varepsilon \cdot v_1$, achieving a shift of $\varepsilon \cdot \sigma_1(S_c)$. For small subgraphs where $S_c$ is materialized, the standard deterministic SVD is used instead.
+\textbf{Maximally sensitive perturbation direction.} A randomized SVD~\cite{halko2011finding} of the $S_c$ operator (using only matrix-vector products, with rank $k = 10$, oversampling $p = 10$, and $n_{\text{iter}} = 2$ power iterations) yields the leading singular triplet $(u_1, \sigma_1, v_1)$. The first-order maximally sensitive perturbation is $\delta A^* = \varepsilon \cdot v_1$, achieving a predicted equilibrium shift of $\varepsilon \cdot \sigma_1(S_c)$. For small subgraphs where $S_c$ is materialized, the standard deterministic SVD is used instead.
 
 \textbf{Per-edge vulnerability spectrum.} For each edge $(i,j) \in E$, the vulnerability score $v_{ij} = \norm{[S_c]_{:,k}}_2$ measures how much a unit perturbation of that edge shifts the equilibrium. Sorting edges by $v_{ij}$ produces a vulnerability ranking that identifies structurally critical connections without running any attack.
 
-\textbf{Per-node first-order sensitivity radii.} For node $v$ with classification margin $m_v$ (gap between the predicted and runner-up class logits), the sensitivity radius from \cref{prop:radius} is
-\begin{equation}
-r_v = \frac{m_v}{\norm{W_{y_v} - W_{c^*}}_2 \cdot \norm{S_v}_2},
-\end{equation}
-where $S_v$ denotes the block-rows of $S$ corresponding to node $v$, and $W_{y_v}, W_{c^*}$ are the classification head weights for the predicted and runner-up classes. Any perturbation with $\norm{\delta \Ahat}_F < r_v$ preserves the classification of node $v$ to first order (this is a local sensitivity guarantee, not a global certificate).
+\textbf{Per-node first-order sensitivity thresholds.} For node $v$ with classification margin $m_v$ (gap between the predicted and runner-up class logits), the first-order sensitivity threshold from \cref{prop:radius} is computed as follows. In the \emph{dense path} ($N \leq 200$), we use the unconstrained $r_v = m_v / (\norm{W_{y_v} - W_{c^*}}_2 \cdot \norm{S_v}_2)$, where $S_v$ denotes the block-rows of the materialized $S$. In the \emph{matrix-free path} ($N > 200$), the full $S$ is never formed; we instead compute the tighter constrained threshold $r_v^{(c)} = m_v / (\norm{W_{y_v} - W_{c^*}}_2 \cdot \norm{S_{c,v}}_2)$, where $\norm{S_{c,v}}_2$ is estimated via 10 iterations of randomized power iteration on the $S_c$ operator restricted to node~$v$'s block-rows. Since $\norm{S_{c,v}}_2 \leq \norm{S_v}_2$, the matrix-free thresholds are tighter than the dense-path ones. Any perturbation with $\norm{\delta \Ahat}_F < r_v$ (or $r_v^{(c)}$) preserves the classification of node $v$ to first order. These are diagnostic sensitivity thresholds, not probabilistic certificates (\cref{rem:certificates}).
 
 \subsection{Computational Cost}
 
