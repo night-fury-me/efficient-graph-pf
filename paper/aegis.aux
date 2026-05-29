@@ -20,7 +20,8 @@
 \citation{jin2020graph}
 \citation{mujkanovic2022defenses}
 \citation{gosch2023adversarial}
-\citation{geisler2021robustness}
+\citation{koh2017understanding}
+\citation{gould2021deep}
 \citation{geisler2021robustness}
 \citation{li2025agnncert}
 \citation{bai2019deep}
@@ -50,7 +51,6 @@
 \citation{bolte2021conservative}
 \citation{bolte2021conservative}
 \citation{stewart1990matrix}
-\citation{stewart1990matrix}
 \newlabel{eq:threat}{{3}{2}{Preliminaries and Threat Model}{equation.3}{}}
 \newlabel{eq:threat@cref}{{[equation][3][]3}{[1][2][]2}{}{}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {III}Adversarial Equilibrium Theory}{2}{section.3}\protected@file@percent }
@@ -62,12 +62,14 @@
 \newlabel{eq:shift_bound@cref}{{[equation][5][]5}{[1][2][]2}{}{}{}}
 \newlabel{obs:eta_bound}{{2}{2}{Graph-Independent Nonnormality Bound, all-active case}{theorem.2}{}}
 \newlabel{obs:eta_bound@cref}{{[theorem][2][]2}{[1][2][]2}{}{}{}}
-\newlabel{rem:eta_relu}{{3}{2}{Empirical extension to general ReLU patterns}{theorem.3}{}}
-\newlabel{rem:eta_relu@cref}{{[theorem][3][]3}{[1][2][]2}{}{}{}}
+\citation{stewart1990matrix}
 \citation{magnus2019matrix}
 \citation{bojchevski2020efficient}
+\citation{bolte2021conservative}
 \citation{stewart1990matrix}
 \citation{trefethen2005spectra}
+\newlabel{rem:eta_relu}{{3}{3}{Empirical extension to general ReLU patterns}{theorem.3}{}}
+\newlabel{rem:eta_relu@cref}{{[theorem][3][]3}{[1][3][]3}{}{}{}}
 \newlabel{prop:attack}{{4}{3}{Maximally Sensitive First-Order Structural Perturbation}{theorem.4}{}}
 \newlabel{prop:attack@cref}{{[theorem][4][]4}{[1][3][]3}{}{}{}}
 \newlabel{prop:radius}{{5}{3}{Per-Node First-Order Sensitivity Radius}{theorem.5}{}}
@@ -83,23 +85,8 @@
 \newlabel{eq:transfer@cref}{{[equation][8][]8}{[1][3][]3}{}{}{}}
 \newlabel{eq:ranking}{{9}{3}{Continuous-to-Discrete Ranking Transfer}{equation.9}{}}
 \newlabel{eq:ranking@cref}{{[equation][9][]9}{[1][3][]3}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Generalization to Explicit GNNs}{3}{subsection.3.2}\protected@file@percent }
-\newlabel{prop:explicit}{{8}{3}{Structural Sensitivity for $K$-Layer GNNs}{theorem.8}{}}
-\newlabel{prop:explicit@cref}{{[theorem][8][]8}{[1][3][]3}{}{}{}}
-\newlabel{eq:unrolled}{{10}{3}{Structural Sensitivity for $K$-Layer GNNs}{equation.10}{}}
-\newlabel{eq:unrolled@cref}{{[equation][10][]10}{[1][3][]3}{}{}{}}
 \citation{halko2011finding}
 \citation{halko2011finding}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces The four-stage \textsc  {Aegis}\xspace  pipeline: (1) graph processing (BFS subgraph or full-graph forward / fixed-point pass); (2) sensitivity computation (dense Jacobian for $N \leq 200$, matrix-free Neumann/JVP otherwise); (3) constrained projection $N^2 \to |E|$ via $P_c$; (4) vulnerability analysis (randomised SVD, $S_c$ column norms, per-node radii). The matrix-free path queries $S_c$ via JVPs/VJPs without materialising it, scaling to $N{=}7{,}650$.}}{4}{figure.caption.1}\protected@file@percent }
-\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{fig:pipeline}{{1}{4}{The four-stage \AEGIS pipeline: (1) graph processing (BFS subgraph or full-graph forward / fixed-point pass); (2) sensitivity computation (dense Jacobian for $N \leq 200$, matrix-free Neumann/JVP otherwise); (3) constrained projection $N^2 \to |E|$ via $P_c$; (4) vulnerability analysis (randomised SVD, $S_c$ column norms, per-node radii). The matrix-free path queries $S_c$ via JVPs/VJPs without materialising it, scaling to $N{=}7{,}650$}{figure.caption.1}{}}
-\newlabel{fig:pipeline@cref}{{[figure][1][]1}{[1][3][]4}{}{}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {IV}\textsc  {Aegis}\xspace  Construction}{4}{section.4}\protected@file@percent }
-\newlabel{sec:framework}{{IV}{4}{\AEGIS Construction}{section.4}{}}
-\newlabel{sec:framework@cref}{{[section][4][]IV}{[1][4][]4}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces $|S_c|$ on a 50-node Cora ego-graph (IGNN, $N{=}50$, $d{=}16$, $|E|{=}61$, seed~0). Vermilion lines: top-3 edges by $|v_1|$ (SVD-optimal direction, bar strip). Sidebar: singular spectrum, $\sigma _1{=}41.2$, $43\%$ gap to $\sigma _2$ (cross-benchmark $(\sigma _1{-}\sigma _2)/\sigma _1\in [0.39,0.50]$; \cref  {sec:adaptive}).}}{4}{figure.caption.2}\protected@file@percent }
-\newlabel{fig:sc_heatmap}{{2}{4}{$|S_c|$ on a 50-node Cora ego-graph (IGNN, $N{=}50$, $d{=}16$, $|E|{=}61$, seed~0). Vermilion lines: top-3 edges by $|v_1|$ (SVD-optimal direction, bar strip). Sidebar: singular spectrum, $\sigma _1{=}41.2$, $43\%$ gap to $\sigma _2$ (cross-benchmark $(\sigma _1{-}\sigma _2)/\sigma _1\in [0.39,0.50]$; \cref {sec:adaptive})}{figure.caption.2}{}}
-\newlabel{fig:sc_heatmap@cref}{{[figure][2][]2}{[1][4][]4}{}{}{}}
 \citation{paszke2019pytorch}
 \citation{gu2020implicit}
 \citation{miyato2018spectral}
@@ -109,31 +96,41 @@
 \citation{ieee2024testcases}
 \citation{thurner2018pandapower}
 \citation{wood2014power}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Generalization to Explicit GNNs}{4}{subsection.3.2}\protected@file@percent }
+\newlabel{prop:explicit}{{8}{4}{Structural Sensitivity for $K$-Layer GNNs}{theorem.8}{}}
+\newlabel{prop:explicit@cref}{{[theorem][8][]8}{[1][4][]4}{}{}{}}
+\newlabel{eq:unrolled}{{10}{4}{Structural Sensitivity for $K$-Layer GNNs}{equation.10}{}}
+\newlabel{eq:unrolled@cref}{{[equation][10][]10}{[1][4][]4}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}\textsc  {Aegis}\xspace  Construction}{4}{section.4}\protected@file@percent }
+\newlabel{sec:framework}{{IV}{4}{\AEGIS Construction}{section.4}{}}
+\newlabel{sec:framework@cref}{{[section][4][]IV}{[1][4][]4}{}{}{}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces \textsc  {Aegis}\xspace  Vulnerability Analysis (matrix-free). Assumes the equilibrium $z^{*}$ is pre-computed on the analysis (sub)graph. Dense fallback ($N\!\leq \!200$): form $S\!=\!(I\!-\!J_z)^{-1}J_A$ and run a deterministic SVD in place of lines~2--11.}}{4}{algorithm.1}\protected@file@percent }
+\newlabel{alg:aegis}{{1}{4}{\AEGIS Vulnerability Analysis (matrix-free). Assumes the equilibrium $\zstar $ is pre-computed on the analysis (sub)graph. Dense fallback ($N\!\leq \!200$): form $S\!=\!(I\!-\!J_z)^{-1}J_A$ and run a deterministic SVD in place of lines~2--11}{algorithm.1}{}}
+\newlabel{alg:aegis@cref}{{[algorithm][1][]1}{[1][4][]4}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Experiments}{4}{section.5}\protected@file@percent }
+\newlabel{sec:experiments}{{V}{4}{Experiments}{section.5}{}}
+\newlabel{sec:experiments@cref}{{[section][5][]V}{[1][4][]4}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Cross-Domain Adversarial Analysis}{4}{subsection.5.1}\protected@file@percent }
+\newlabel{sec:cross_domain}{{\mbox  {V-A}}{4}{Cross-Domain Adversarial Analysis}{subsection.5.1}{}}
+\newlabel{sec:cross_domain@cref}{{[subsection][1][5]\mbox  {V-A}}{[1][4][]4}{}{}{}}
 \citation{zugner2019adversarial}
 \citation{geisler2021robustness}
 \citation{bojchevski2020efficient}
 \citation{schuchardt2023localized}
-\citation{madry2018towards}
-\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces \textsc  {Aegis}\xspace  Vulnerability Analysis (matrix-free). Assumes the equilibrium $z^{*}$ is pre-computed on the analysis (sub)graph. Dense fallback ($N\!\leq \!200$): form $S\!=\!(I\!-\!J_z)^{-1}J_A$ and run a deterministic SVD in place of lines~2--11.}}{5}{algorithm.1}\protected@file@percent }
-\newlabel{alg:aegis}{{1}{5}{\AEGIS Vulnerability Analysis (matrix-free). Assumes the equilibrium $\zstar $ is pre-computed on the analysis (sub)graph. Dense fallback ($N\!\leq \!200$): form $S\!=\!(I\!-\!J_z)^{-1}J_A$ and run a deterministic SVD in place of lines~2--11}{algorithm.1}{}}
-\newlabel{alg:aegis@cref}{{[algorithm][1][]1}{[1][4][]5}{}{}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {V}Experiments}{5}{section.5}\protected@file@percent }
-\newlabel{sec:experiments}{{V}{5}{Experiments}{section.5}{}}
-\newlabel{sec:experiments@cref}{{[section][5][]V}{[1][5][]5}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Cross-Domain Adversarial Analysis}{5}{subsection.5.1}\protected@file@percent }
-\newlabel{sec:cross_domain}{{\mbox  {V-A}}{5}{Cross-Domain Adversarial Analysis}{subsection.5.1}{}}
-\newlabel{sec:cross_domain@cref}{{[subsection][1][5]\mbox  {V-A}}{[1][5][]5}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces The four-stage \textsc  {Aegis}\xspace  pipeline: (1) graph processing (BFS subgraph or full-graph forward / fixed-point pass); (2) sensitivity computation (dense Jacobian for $N \leq 200$, matrix-free Neumann/JVP otherwise); (3) constrained projection $N^2 \to |E|$ via $P_c$; (4) vulnerability analysis (randomised SVD, $S_c$ column norms, per-node radii). The matrix-free path queries $S_c$ via JVPs/VJPs without materialising it, scaling to $N{=}7{,}650$.}}{5}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:pipeline}{{1}{5}{The four-stage \AEGIS pipeline: (1) graph processing (BFS subgraph or full-graph forward / fixed-point pass); (2) sensitivity computation (dense Jacobian for $N \leq 200$, matrix-free Neumann/JVP otherwise); (3) constrained projection $N^2 \to |E|$ via $P_c$; (4) vulnerability analysis (randomised SVD, $S_c$ column norms, per-node radii). The matrix-free path queries $S_c$ via JVPs/VJPs without materialising it, scaling to $N{=}7{,}650$}{figure.caption.1}{}}
+\newlabel{fig:pipeline@cref}{{[figure][1][]1}{[1][4][]5}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces $|S_c|$ on a 50-node Cora ego-graph (IGNN, $N{=}50$, $d{=}16$, $|E|{=}61$, seed~0). Vermilion lines: top-3 edges by $|v_1|$ (SVD-optimal direction, bar strip). Sidebar: singular spectrum, $\sigma _1{=}41.2$, $43\%$ gap to $\sigma _2$ (cross-benchmark $(\sigma _1{-}\sigma _2)/\sigma _1\in [0.39,0.50]$; \cref  {sec:adaptive}).}}{5}{figure.caption.2}\protected@file@percent }
+\newlabel{fig:sc_heatmap}{{2}{5}{$|S_c|$ on a 50-node Cora ego-graph (IGNN, $N{=}50$, $d{=}16$, $|E|{=}61$, seed~0). Vermilion lines: top-3 edges by $|v_1|$ (SVD-optimal direction, bar strip). Sidebar: singular spectrum, $\sigma _1{=}41.2$, $43\%$ gap to $\sigma _2$ (cross-benchmark $(\sigma _1{-}\sigma _2)/\sigma _1\in [0.39,0.50]$; \cref {sec:adaptive})}{figure.caption.2}{}}
+\newlabel{fig:sc_heatmap@cref}{{[figure][2][]2}{[1][4][]5}{}{}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Per-dataset IGNN characterisation (10 seeds). $\kappa {=}\left \|J_z\right \|_2$ verifies (A3); $\varepsilon _{\mathrm  {crit}}{=}(1{-}\kappa )/\left \|W\right \|_2$ is the theoretical critical budget. AtkAdv: \textsc  {Aegis}\xspace  damage / random damage. Cov\%: fraction of subgraph nodes with positive first-order radius $r_v$.}}{5}{table.caption.3}\protected@file@percent }
 \newlabel{tab:cross_domain}{{I}{5}{Per-dataset IGNN characterisation (10 seeds). $\kappa {=}\norm {J_z}_2$ verifies (A3); $\ecrit {=}(1{-}\kappa )/\norm {W}_2$ is the theoretical critical budget. AtkAdv: \AEGIS damage / random damage. Cov\%: fraction of subgraph nodes with positive first-order radius $r_v$}{table.caption.3}{}}
 \newlabel{tab:cross_domain@cref}{{[table][1][]I}{[1][5][]5}{}{}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces First-order envelope ratio (actual / first-order-predicted equilibrium shift) with increasing $\varepsilon $ (10 seeds, $S_c$-optimal constrained perturbation). Tight at $\varepsilon {=}0.01$ ($\approx 1.00$); under-predicts by up to $39\%$ at $\varepsilon {=}0.20$.}}{5}{table.caption.4}\protected@file@percent }
 \newlabel{tab:tightness_eps}{{II}{5}{First-order envelope ratio (actual / first-order-predicted equilibrium shift) with increasing $\varepsilon $ (10 seeds, $S_c$-optimal constrained perturbation). Tight at $\varepsilon {=}0.01$ ($\approx 1.00$); under-predicts by up to $39\%$ at $\varepsilon {=}0.20$}{table.caption.4}{}}
 \newlabel{tab:tightness_eps@cref}{{[table][2][]II}{[1][5][]5}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Four-Quadrant Attack Comparison}{5}{subsection.5.2}\protected@file@percent }
-\newlabel{sec:adaptive}{{\mbox  {V-B}}{5}{Four-Quadrant Attack Comparison}{subsection.5.2}{}}
-\newlabel{sec:adaptive@cref}{{[subsection][2][5]\mbox  {V-B}}{[1][5][]5}{}{}{}}
-\newlabel{sec:certificates}{{\mbox  {V-B}}{5}{Four-Quadrant Attack Comparison}{subsection.5.2}{}}
-\newlabel{sec:certificates@cref}{{[subsection][2][5]\mbox  {V-B}}{[1][5][]5}{}{}{}}
+\citation{madry2018towards}
 \citation{geisler2021robustness}
 \citation{li2025agnncert}
 \citation{wood2014power}
@@ -148,26 +145,23 @@
 \citation{li2025agnncert}
 \citation{wood2014power}
 \citation{geisler2021robustness}
-\citation{geisler2021robustness}
 \citation{li2025agnncert}
-\citation{wood2014power}
-\citation{ejebe1979automatic}
 \citation{halko2011finding}
 \citation{mujkanovic2022defenses}
-\citation{kipf2017semi}
-\citation{hamilton2017inductive}
-\citation{xu2019how}
-\citation{klicpera2019predict}
-\citation{velickovic2018graph}
 \@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Equilibrium damage at $\varepsilon {=}0.10$ across attack methods (IGNN, 50-node subgraph, 10 seeds). SVD: \textsc  {Aegis}\xspace  . Cls-PGD: classification-loss PGD. Shift-PGD: IFT-gradient PGD (solver validation, not an independent baseline).}}{6}{table.caption.5}\protected@file@percent }
 \newlabel{tab:attack_full}{{III}{6}{Equilibrium damage at $\varepsilon {=}0.10$ across attack methods (IGNN, 50-node subgraph, 10 seeds). SVD: \AEGIS . Cls-PGD: classification-loss PGD. Shift-PGD: IFT-gradient PGD (solver validation, not an independent baseline)}{table.caption.5}{}}
 \newlabel{tab:attack_full@cref}{{[table][3][]III}{[1][6][]6}{}{}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces \textsc  {Aegis}\xspace  vs.\ external baselines (10 seeds). GR-BCD~\cite  {geisler2021robustness} is the BCD-family scalable structural attacker (PR-BCD is the same paper's larger-budget variant, see text); AGNNCert~\cite  {li2025agnncert} is a sound IBP certifier (semantics differ from \textsc  {Aegis}\xspace  $r_v$); LODF~\cite  {wood2014power} is the industry DC-PF screener.}}{6}{table.caption.8}\protected@file@percent }
-\newlabel{tab:baselines}{{IV}{6}{\AEGIS vs.\ external baselines (10 seeds). GR-BCD~\cite {geisler2021robustness} is the BCD-family scalable structural attacker (PR-BCD is the same paper's larger-budget variant, see text); AGNNCert~\cite {li2025agnncert} is a sound IBP certifier (semantics differ from \AEGIS $r_v$); LODF~\cite {wood2014power} is the industry DC-PF screener}{table.caption.8}{}}
-\newlabel{tab:baselines@cref}{{[table][4][]IV}{[1][6][]6}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Four-Quadrant Attack Comparison}{6}{subsection.5.2}\protected@file@percent }
+\newlabel{sec:adaptive}{{\mbox  {V-B}}{6}{Four-Quadrant Attack Comparison}{subsection.5.2}{}}
+\newlabel{sec:adaptive@cref}{{[subsection][2][5]\mbox  {V-B}}{[1][5][]6}{}{}{}}
+\newlabel{sec:certificates}{{\mbox  {V-B}}{6}{Four-Quadrant Attack Comparison}{subsection.5.2}{}}
+\newlabel{sec:certificates@cref}{{[subsection][2][5]\mbox  {V-B}}{[1][5][]6}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Comparison with Prior Structural Baselines}{6}{subsection.5.3}\protected@file@percent }
 \newlabel{sec:prior_comparison}{{\mbox  {V-C}}{6}{Comparison with Prior Structural Baselines}{subsection.5.3}{}}
 \newlabel{sec:prior_comparison@cref}{{[subsection][3][5]\mbox  {V-C}}{[1][6][]6}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces \textsc  {Aegis}\xspace  vs.\ external baselines (10 seeds). GR-BCD~\cite  {geisler2021robustness} is the BCD-family scalable structural attacker (PR-BCD is the same paper's larger-budget variant, see text); AGNNCert~\cite  {li2025agnncert} is a sound IBP certifier (semantics differ from \textsc  {Aegis}\xspace  $r_v$); LODF~\cite  {wood2014power} is the industry DC-PF screener.}}{6}{table.caption.8}\protected@file@percent }
+\newlabel{tab:baselines}{{IV}{6}{\AEGIS vs.\ external baselines (10 seeds). GR-BCD~\cite {geisler2021robustness} is the BCD-family scalable structural attacker (PR-BCD is the same paper's larger-budget variant, see text); AGNNCert~\cite {li2025agnncert} is a sound IBP certifier (semantics differ from \AEGIS $r_v$); LODF~\cite {wood2014power} is the industry DC-PF screener}{table.caption.8}{}}
+\newlabel{tab:baselines@cref}{{[table][4][]IV}{[1][6][]6}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-D}}Phase Transition and Scalability}{6}{subsection.5.4}\protected@file@percent }
 \newlabel{sec:phase_transition}{{\mbox  {V-D}}{6}{Phase Transition and Scalability}{subsection.5.4}{}}
 \newlabel{sec:phase_transition@cref}{{[subsection][4][5]\mbox  {V-D}}{[1][6][]6}{}{}{}}
@@ -182,13 +176,12 @@
 \newlabel{sec:convergence@cref}{{[subsection][5][5]\mbox  {V-E}}{[1][6][]6}{}{}{}}
 \newlabel{sec:defense_ablation}{{\mbox  {V-E}}{6}{Ablations and Defense}{subsection.5.5}{}}
 \newlabel{sec:defense_ablation@cref}{{[subsection][5][5]\mbox  {V-E}}{[1][6][]6}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-F}}Extension to Explicit GNNs}{6}{subsection.5.6}\protected@file@percent }
-\newlabel{sec:explicit_extension}{{\mbox  {V-F}}{6}{Extension to Explicit GNNs}{subsection.5.6}{}}
-\newlabel{sec:explicit_extension@cref}{{[subsection][6][5]\mbox  {V-F}}{[1][6][]6}{}{}{}}
+\citation{kipf2017semi}
+\citation{hamilton2017inductive}
+\citation{xu2019how}
+\citation{klicpera2019predict}
+\citation{velickovic2018graph}
 \citation{brody2022how}
-\citation{zhu2019robust}
-\citation{zhang2020gnnguard}
-\citation{pei2020geomgcn}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Cumulative damage from sequential discrete edge removal vs.\ $k$ (IGNN, 50-node subgraph, 10 seeds, $\pm 1$\,sd). \textsc  {Aegis}\xspace  \emph  {matches} the ground-truth-aware Greedy attacker on Citeseer/WikiCS and recovers $\mathbf  {54}$--$\mathbf  {67\%}$ of Greedy's damage on Cora at $k{=}5$--$10$ \emph  {without any access to discrete ground truth}; degree-ranked stays below random on Cora at every $k$.}}{7}{figure.caption.6}\protected@file@percent }
 \newlabel{fig:greedy_topk}{{3}{7}{Cumulative damage from sequential discrete edge removal vs.\ $k$ (IGNN, 50-node subgraph, 10 seeds, $\pm 1$\,sd). \AEGIS \emph {matches} the ground-truth-aware Greedy attacker on Citeseer/WikiCS and recovers $\mathbf {54}$--$\mathbf {67\%}$ of Greedy's damage on Cora at $k{=}5$--$10$ \emph {without any access to discrete ground truth}; degree-ranked stays below random on Cora at every $k$}{figure.caption.6}{}}
 \newlabel{fig:greedy_topk@cref}{{[figure][3][]3}{[1][6][]7}{}{}{}}
@@ -204,6 +197,12 @@
 \@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces $S_c$ framework on 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: \textsc  {Aegis}\xspace  /random damage. $\tau $: Kendall vs.\ brute-force single-edge-removal truth. Acc: full-graph test accuracy.}}{7}{table.caption.10}\protected@file@percent }
 \newlabel{tab:explicit}{{V}{7}{$S_c$ framework on 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: \AEGIS /random damage. $\tau $: Kendall vs.\ brute-force single-edge-removal truth. Acc: full-graph test accuracy}{table.caption.10}{}}
 \newlabel{tab:explicit@cref}{{[table][5][]V}{[1][7][]7}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-F}}Extension to Explicit GNNs}{7}{subsection.5.6}\protected@file@percent }
+\newlabel{sec:explicit_extension}{{\mbox  {V-F}}{7}{Extension to Explicit GNNs}{subsection.5.6}{}}
+\newlabel{sec:explicit_extension@cref}{{[subsection][6][5]\mbox  {V-F}}{[1][7][]7}{}{}{}}
+\citation{zhu2019robust}
+\citation{zhang2020gnnguard}
+\citation{pei2020geomgcn}
 \citation{wood2014power}
 \citation{donon2019graph}
 \citation{bolz2019power}
@@ -219,8 +218,8 @@
 \@writefile{toc}{\contentsline {section}{\numberline {VI}Case Study: Power Flow Contingency}{8}{section.6}\protected@file@percent }
 \newlabel{sec:power_flow}{{VI}{8}{Case Study: Power Flow Contingency}{section.6}{}}
 \newlabel{sec:power_flow@cref}{{[section][6][]VI}{[1][8][]8}{}{}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {VI}{\ignorespaces \textsc  {Aegis}\xspace  on IEEE power-flow benchmarks (10 seeds). Model quality: per-unit RMSE for $|V|$ and angle $\theta $ (std $<0.003$). $\tau $: Kendall correlation against brute-force N-1; P@10: top-10 precision. Case14--118 is the headline operating range; case300 is included as a model-capacity stress-test where the GNN surrogate has not yet converged to operational physics.}}{8}{table.caption.12}\protected@file@percent }
-\newlabel{tab:ieee}{{VI}{8}{\AEGIS on IEEE power-flow benchmarks (10 seeds). Model quality: per-unit RMSE for $|V|$ and angle $\theta $ (std $<0.003$). $\tau $: Kendall correlation against brute-force N-1; P@10: top-10 precision. Case14--118 is the headline operating range; case300 is included as a model-capacity stress-test where the GNN surrogate has not yet converged to operational physics}{table.caption.12}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {VI}{\ignorespaces \textsc  {Aegis}\xspace  on IEEE power-flow benchmarks (10 seeds). Model quality: per-unit RMSE for $|V|$ and angle $\theta $ (std $<0.003$). $\tau $: Kendall correlation against brute-force N-1; P@10: top-10 precision.}}{8}{table.caption.12}\protected@file@percent }
+\newlabel{tab:ieee}{{VI}{8}{\AEGIS on IEEE power-flow benchmarks (10 seeds). Model quality: per-unit RMSE for $|V|$ and angle $\theta $ (std $<0.003$). $\tau $: Kendall correlation against brute-force N-1; P@10: top-10 precision}{table.caption.12}{}}
 \newlabel{tab:ieee@cref}{{[table][6][]VI}{[1][8][]8}{}{}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces \textsc  {Aegis}\xspace  vulnerability ranking on the IEEE 14-bus benchmark (10-seed mean; P@10 $= 0.70$ for this run, consistent with the $0.74 \pm 0.12$ in \cref  {tab:ieee}). Bus markers encode physical bus type (slack / generator / load); green edges are the top-10 by $v_{ij}$ with rank tags ($\#1$--$\#3$); yellow midpoint dots mark edges that also appear in the brute-force N-1 top-10 ($7$ of $10$). Top-ranked edges concentrate on the high-flow inter-area tie lines (1--2, 1--5, 7--8), recovering the single-contingency severity pattern from one matrix-free SVD pass.}}{8}{figure.caption.13}\protected@file@percent }
 \newlabel{fig:ieee14_case}{{8}{8}{\AEGIS vulnerability ranking on the IEEE 14-bus benchmark (10-seed mean; P@10 $= 0.70$ for this run, consistent with the $0.74 \pm 0.12$ in \cref {tab:ieee}). Bus markers encode physical bus type (slack / generator / load); green edges are the top-10 by $v_{ij}$ with rank tags ($\#1$--$\#3$); yellow midpoint dots mark edges that also appear in the brute-force N-1 top-10 ($7$ of $10$). Top-ranked edges concentrate on the high-flow inter-area tie lines (1--2, 1--5, 7--8), recovering the single-contingency severity pattern from one matrix-free SVD pass}{figure.caption.13}{}}
@@ -278,30 +277,30 @@
 \bibcite{jin2020graph}{15}
 \bibcite{mujkanovic2022defenses}{16}
 \bibcite{gosch2023adversarial}{17}
-\bibcite{bai2019deep}{18}
-\bibcite{bai2020multiscale}{19}
-\bibcite{gu2020implicit}{20}
-\bibcite{miyato2018spectral}{21}
-\bibcite{gould2021deep}{22}
-\bibcite{fung2022jfb}{23}
-\bibcite{bai2021stabilizing}{24}
-\bibcite{trefethen2005spectra}{25}
-\bibcite{lorraine2020optimizing}{26}
-\bibcite{el2021implicit}{27}
-\bibcite{revay2020lipschitz}{28}
-\bibcite{bolte2021conservative}{29}
-\bibcite{stewart1990matrix}{30}
-\bibcite{magnus2019matrix}{31}
-\bibcite{halko2011finding}{32}
-\bibcite{paszke2019pytorch}{33}
-\bibcite{sen2008collective}{34}
-\bibcite{shchur2018pitfalls}{35}
-\bibcite{mernyei2020wiki}{36}
-\bibcite{ieee2024testcases}{37}
-\bibcite{thurner2018pandapower}{38}
-\bibcite{wood2014power}{39}
-\bibcite{madry2018towards}{40}
-\bibcite{ejebe1979automatic}{41}
+\bibcite{koh2017understanding}{18}
+\bibcite{gould2021deep}{19}
+\bibcite{bai2019deep}{20}
+\bibcite{bai2020multiscale}{21}
+\bibcite{gu2020implicit}{22}
+\bibcite{miyato2018spectral}{23}
+\bibcite{fung2022jfb}{24}
+\bibcite{bai2021stabilizing}{25}
+\bibcite{trefethen2005spectra}{26}
+\bibcite{lorraine2020optimizing}{27}
+\bibcite{el2021implicit}{28}
+\bibcite{revay2020lipschitz}{29}
+\bibcite{bolte2021conservative}{30}
+\bibcite{stewart1990matrix}{31}
+\bibcite{magnus2019matrix}{32}
+\bibcite{halko2011finding}{33}
+\bibcite{paszke2019pytorch}{34}
+\bibcite{sen2008collective}{35}
+\bibcite{shchur2018pitfalls}{36}
+\bibcite{mernyei2020wiki}{37}
+\bibcite{ieee2024testcases}{38}
+\bibcite{thurner2018pandapower}{39}
+\bibcite{wood2014power}{40}
+\bibcite{madry2018towards}{41}
 \bibcite{kipf2017semi}{42}
 \bibcite{hamilton2017inductive}{43}
 \bibcite{xu2019how}{44}
@@ -313,8 +312,8 @@
 \bibcite{bolz2019power}{50}
 \bibcite{kim2025physicsinformed}{51}
 \bibcite{varbella2024contingency}{52}
-\bibcite{lai2025auditvotes}{53}
-\bibcite{winston2020monotone}{54}
-\bibcite{koh2017understanding}{55}
+\bibcite{ejebe1979automatic}{53}
+\bibcite{lai2025auditvotes}{54}
+\bibcite{winston2020monotone}{55}
 \bibcite{ying2019gnnexplainer}{56}
 \gdef \@abspage@last{10}

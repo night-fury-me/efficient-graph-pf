@@ -16,37 +16,37 @@ Warning--empty booktitle in lai2025auditvotes
 Done.
 You've used 56 entries,
             4087 wiz_defined-function locations,
-            1070 strings with 17166 characters,
-and the built_in function-call counts, 41927 in all, are:
+            1071 strings with 17202 characters,
+and the built_in function-call counts, 41992 in all, are:
 = -- 3091
 > -- 1167
 < -- 293
 + -- 628
 - -- 230
-* -- 1978
-:= -- 5903
+* -- 1981
+:= -- 5904
 add.period$ -- 113
 call.type$ -- 56
 change.case$ -- 55
 chr.to.int$ -- 726
 cite$ -- 57
-duplicate$ -- 3047
-empty$ -- 3817
+duplicate$ -- 3051
+empty$ -- 3836
 format.name$ -- 273
-if$ -- 9937
+if$ -- 9958
 int.to.chr$ -- 0
 int.to.str$ -- 56
-missing$ -- 575
+missing$ -- 577
 newline$ -- 191
 num.names$ -- 56
-pop$ -- 1508
+pop$ -- 1514
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 3282
+skip$ -- 3290
 stack$ -- 0
 substring$ -- 1754
-swap$ -- 2281
+swap$ -- 2282
 text.length$ -- 51
 text.prefix$ -- 0
 top$ -- 5

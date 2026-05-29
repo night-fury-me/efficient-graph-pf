@@ -26,7 +26,7 @@ Then structural perturbations $\delta \Ahat$ with $\norm{\delta \Ahat}_F = \vare
 \end{equation}
 where $S = (I - J_z)^{-1} J_A$ is the structural sensitivity matrix and $\sigma_1(S) \leq \norm{J_A}_{\mathrm{op}} / (1 - \kappa)$.
 
-\noindent\textbf{(b) Critical} ($\varepsilon \to \ecrit$): For \emph{worst-case} directions that maximally increase $\norm{\Ahat{+}\delta\Ahat}_2$ (aligned with the top singular vector of $\Ahat$), $\norm{(I{-}J_z')^{-1}}_2$ diverges as $\Omega(1/(\ecrit{-}\varepsilon))$ from the Neumann lower bound $1/(1{-}\norm{J_z'}_2)$, which holds without normality assumptions on $J_z'$. Generic directions diverge more slowly because $\norm{J_z'}_2$ need not approach 1.
+\noindent\textbf{(b) Critical} ($\varepsilon \to \ecrit$): The resolvent obeys the unconditional eigenvalue bound $\norm{(I{-}J_z')^{-1}}_2 \geq 1/\min_i|1{-}\lambda_i(J_z')|$, so it blows up precisely when an eigenvalue of $J_z'$ approaches $1$---a vanishing spectral gap to $1$, \emph{not} $\norm{J_z'}_2\!\to\!1$ on its own. The rate is $\Omega(1/(\ecrit{-}\varepsilon))$ when $J_z'$ is normal with a dominant real-positive eigenvalue (the Perron mode of symmetric $\Ahat,W$); in general $\ecrit$ is the norm-based contraction radius that \emph{lower-bounds} the eigenvalue divergence threshold, the slack reflecting the nonnormality of $J_z'$ (bounded by $\eta$, \cref{obs:eta_bound}).
 
 \noindent\textbf{(c) Supercritical} ($\varepsilon \geq \ecrit$): The sufficient contraction certificate no longer applies ($\norm{J_z'}_2$ may exceed 1) and the part-(a) first-order guarantees do not apply; the certificate is reported as a sufficient safety boundary, validated empirically by the $\kappa_{\max}$ sweep of \cref{sec:phase_transition} (trained IGNNs hold with $2$--$4\times$ margin).
 \end{theorem}
@@ -38,10 +38,10 @@ where $S = (I - J_z)^{-1} J_A$ is the structural sensitivity matrix and $\sigma_
 \end{equation}
 with $J_A = \partial F/\partial \mathrm{vec}(A)$ and Neumann $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\kappa)$ yielding~\eqref{eq:shift_bound}. For contractivity preservation, $\norm{J_z'}_2 \leq (\norm{\Ahat}_2 + \varepsilon) \norm{W}_2$, so $\varepsilon < \ecrit$ guarantees $\norm{J_z'}_2 < 1$.
 
-\textbf{(b)--(c).} Along the worst-case direction $\norm{J_z'}_2 \to \norm{\Ahat}_2\norm{W}_2{+}\varepsilon\norm{W}_2$, so $1{-}\norm{J_z'}_2 \geq \norm{W}_2(\ecrit{-}\varepsilon)$; the Neumann lower bound $\norm{(I{-}J_z')^{-1}}_2 \geq 1/(1{-}\norm{J_z'}_2)$ requires no normality assumption and gives the $\Omega(1/(\ecrit{-}\varepsilon))$ rate. For $\varepsilon \geq \ecrit$ Banach fails; the iteration may converge elsewhere, oscillate, or diverge.
+\textbf{(b)--(c).} For any $M$, $(I{-}M)^{-1}$ has eigenvalues $(1{-}\lambda_i(M))^{-1}$, hence $\norm{(I{-}M)^{-1}}_2 \geq \rho((I{-}M)^{-1}) = 1/\min_i|1{-}\lambda_i(M)|$ \emph{unconditionally}. Along the worst-case direction $\norm{J_z'}_2 \leq (\norm{\Ahat}_2{+}\varepsilon)\norm{W}_2$, so $1{-}\norm{J_z'}_2 \geq \norm{W}_2(\ecrit{-}\varepsilon)$ and, since $\rho{\leq}\norm{\cdot}_2$, $\varepsilon{<}\ecrit$ certifies $\norm{J_z'}_2{<}1$. The certificate is one-sided: $\norm{J_z'}_2{\to}1$ need not drive $\min_i|1{-}\lambda_i|{\to}0$ (e.g.\ $M{=}\mathrm{diag}(-s,0)$ has $\norm{M}_2{=}s$ yet $\norm{(I{-}M)^{-1}}_2{=}1$). When $J_z'$ is normal with dominant real-positive eigenvalue $\lambda^\star{=}\norm{J_z'}_2$ (the Perron mode for symmetric $\Ahat,W$), $\min_i|1{-}\lambda_i|{=}1{-}\lambda^\star{=}\norm{W}_2(\ecrit{-}\varepsilon)$ yields the $\Omega(1/(\ecrit{-}\varepsilon))$ rate; a negative or complex dominant eigenvalue keeps $\min_i|1{-}\lambda_i|$ away from $0$ (the same $\mathrm{diag}(-s,0)$), so $\ecrit$ only lower-bounds the threshold, slack controlled by $\eta$ (\cref{obs:eta_bound}). For $\varepsilon \geq \ecrit$ Banach contraction fails and the iteration may converge elsewhere, oscillate, or diverge.
 \end{proof}
 
-$\ecrit$ is a closed-form sufficient bound that $S_c$ closes in practice: the envelope ratio is tight ($\approx 1.00$) at $\varepsilon{=}0.01$, against a $7$--$14\times$ slack from the unconstrained $\sqrt{r}$ bound on 50-node subgraphs (\cref{sec:cross_domain}). The Neumann series requires the operator-norm $\kappa$ rather than $\rho(J_z)$~\cite{stewart1990matrix}; the gap is the pseudospectral index $\eta$, bounded by the weight matrix alone:
+$\ecrit$ is a closed-form sufficient bound that $S_c$ tightens in practice, $7$--$14\times$ over the unconstrained $\sqrt{r}$ bound on 50-node subgraphs (\cref{sec:cross_domain}). The Neumann series requires the operator-norm $\kappa$ rather than $\rho(J_z)$~\cite{stewart1990matrix}; the gap is the pseudospectral index $\eta$, bounded by the weight matrix alone:
 
 \begin{observation}[Graph-Independent Nonnormality Bound, all-active case]
 \label{obs:eta_bound}
@@ -60,19 +60,19 @@ The proof above requires $\phi'\equiv 1$; for general ReLU patterns, $\eta\in[1.
 The perturbation $\delta A^*$ maximizing $\norm{\Delta \zstar}$ to first order subject to $\norm{\delta A}_F \leq \varepsilon$ is $\delta A^* = \varepsilon \cdot \mathrm{reshape}(v_1, N \times N)$, where $v_1$ is the leading right singular vector of $S$. The maximum first-order equilibrium shift is $\varepsilon \cdot \sigma_1(S)$.
 \end{proposition}
 
-By the variational characterisation of $\sigma_1$, the direction (\cref{prop:attack}) is optimal for hidden-state damage within the pseudospectral envelope of \cref{obs:eta_bound,rem:eta_relu}, and empirically aligns with classification damage (\cref{sec:adaptive}). The \emph{constrained sensitivity matrix} $S_c \in \R^{Nd \times |E|}$ has columns $[S_c]_{:,k} = S_{:,iN+j} + S_{:,jN+i}$ paired with edge basis $b_k{=}(e_i e_j^\top + e_j e_i^\top)/\sqrt{2}$ ($\norm{b_k}_F{=}1$, so $\sigma_1(S_c)$ is consistent with $\norm{\delta\Ahat}_F{=}\varepsilon$). The $N^2 \to |E|$ projection $P_c$ is the standard duplication-matrix reduction~\cite{magnus2019matrix} on the edge-supported symmetric subspace; the operational contribution is the matrix-free $S_c v$ in \cref{alg:aegis}. The envelope ratio is tight ($\approx 1.00$) at $\varepsilon{=}0.01$ and reaches $\leq 1.39$ at $\varepsilon{=}0.20$, identifying the dangerous direction rather than a global safety margin.
+By the variational characterisation of $\sigma_1$, the direction (\cref{prop:attack}) is optimal for hidden-state damage within the pseudospectral envelope of \cref{obs:eta_bound,rem:eta_relu}, and empirically aligns with classification damage (\cref{sec:adaptive}). The \emph{constrained sensitivity matrix} $S_c \in \R^{Nd \times |E|}$ has columns $[S_c]_{:,k} = S_{:,iN+j} + S_{:,jN+i}$ paired with edge basis $b_k{=}(e_i e_j^\top + e_j e_i^\top)/\sqrt{2}$ ($\norm{b_k}_F{=}1$, so $\sigma_1(S_c)$ is consistent with $\norm{\delta\Ahat}_F{=}\varepsilon$). The $N^2 \to |E|$ projection $P_c$ is the standard duplication-matrix reduction~\cite{magnus2019matrix} on the edge-supported symmetric subspace; the operational contribution is the matrix-free $S_c v$ in \cref{alg:aegis}. The first-order envelope identifies the dangerous direction rather than a global safety margin (\cref{tab:tightness_eps}).
 
 \begin{proposition}[Per-Node First-Order Sensitivity Radius]
 \label{prop:radius}
-For a linear head $f(z){=}Wz{+}b$ and node $v$ with margin $m_v{=}f_{y_v}(\zstar_v){-}\max_{c\neq y_v}f_c(\zstar_v) > 0$, the first-order sensitivity radius
+For a linear head $f(z){=}Wz{+}b$ and a node $v$ classified as $y_v$ with positive margins $m_v^{(c)}{=}f_{y_v}(\zstar_v){-}f_c(\zstar_v){>}0$ to every competitor $c{\neq}y_v$, the first-order sensitivity radius
 \begin{equation}
-r_v = \frac{m_v}{\norm{W_{y_v} - W_{c^*}}_2 \cdot \norm{S_v}_2}
+r_v = \min_{c\neq y_v} \frac{m_v^{(c)}}{\norm{(W_{y_v}{-}W_c)\,S_v}_2}
 \label{eq:radius}
 \end{equation}
-preserves the classification of $v$ for any $\norm{\delta\Ahat}_F < r_v$, where $S_v$ are the block-rows of $S$ at node $v$. Under the constrained threat model the tighter radius $r_v^{(c)} = m_v / (\norm{W_{y_v}{-}W_{c^*}}_2 \norm{S_{c,v}}_2) \geq r_v$ holds, using the block-rows of $S_c$ at node~$v$.
+preserves the classification of $v$ for any $\norm{\delta\Ahat}_F < r_v$, where $S_v$ are the block-rows of $S$ at node $v$; substituting $S_{c,v}$ gives the tighter constrained-threat radius $r_v^{(c)}{\geq}r_v$. Minimizing over \emph{all} competitors is the distance to the nearest first-order boundary, so the bound holds even when the runner-up changes under perturbation; the cheaper runner-up surrogate $\hat r_v{=}m_v/(\norm{W_{y_v}{-}W_{c^*}}_2\norm{S_v}_2)$ ($c^*{=}\arg\max_{c\neq y_v}f_c$) can be optimistic when a non-runner-up class is more aligned.
 \end{proposition}
 
-\textit{Proof sketch.} By Thm.~\ref{thm:phase_transition}(a), $\Delta \zstar_v \approx S_v \cdot \mathrm{vec}(\delta A)$, so $|\Delta f_{y_v}| \leq \norm{W_{y_v}{-}W_{c^*}}_2 \norm{S_v}_2 \norm{\delta A}_F$; misclassification requires $|\Delta f_{y_v}| \geq m_v$, and inverting gives $r_v$. Intuitively, $r_v$ is the margin divided by two amplification factors (decision-boundary sensitivity to hidden-state change, and equilibrium sensitivity to structural perturbation); high-margin, low-sensitivity nodes get large radii.
+\textit{Proof sketch.} By Thm.~\ref{thm:phase_transition}(a), $\Delta\zstar_v \approx S_v\,\mathrm{vec}(\delta A)$, so for each competitor $|\Delta(f_{y_v}{-}f_c)| \leq \norm{(W_{y_v}{-}W_c)S_v}_2 \norm{\delta A}_F$ by Cauchy--Schwarz; the prediction survives while every margin stays positive, i.e.\ $\norm{\delta A}_F < m_v^{(c)}/\norm{(W_{y_v}{-}W_c)S_v}_2$ for all $c$, whose minimum is $r_v$. Intuitively, $r_v$ is the smallest margin divided by two amplification factors (decision-boundary sensitivity to hidden-state change, and equilibrium sensitivity to structure); high-margin, low-sensitivity nodes get large radii.
 
 \begin{remark}[Sensitivity threshold semantics]
 \label{rem:certificates}
@@ -83,14 +83,14 @@ $r_v$ is a first-order sensitivity threshold, not a probabilistic certificate: i
 
 \begin{proposition}[Continuous-to-Discrete Ranking Transfer]
 \label{prop:transfer}
-Under (A1)--(A3), let $w_k = [\Ahat]_{ij}$ denote the normalized weight of edge $k = (i,j) \in E$, $v_k = \norm{[S_c]_{:,k}}_2$ the continuous vulnerability score, and $d_k = \norm{\zstar(A) - \zstar(A \setminus k)}_2$ the discrete damage from full removal of edge~$k$. Assume all single-edge removals are subcritical: $\sqrt{2} \max_k w_k < \ecrit$.
+Under (A1)--(A3), let $w_k = [\Ahat]_{ij}$ denote the normalized weight of edge $k = (i,j) \in E$, $v_k = \norm{[S_c]_{:,k}}_2$ the continuous vulnerability score, and $d_k = \norm{\zstar(A) - \zstar(A \setminus k)}_2$ the discrete damage from fixed-normalization removal of edge~$k$. Assume all single-edge removals are subcritical: $\sqrt{2} \max_k w_k < \ecrit$.
 
 \noindent\textbf{(a) First-order bridge.} The discrete damage satisfies
 \begin{equation}
 d_k = w_k \cdot v_k + R_k, \quad |R_k| \leq \frac{L_J}{2(1-\kappa)^2} \cdot w_k^2,
 \label{eq:transfer}
 \end{equation}
-where $L_J$ is the Lipschitz constant of the state Jacobian $J_z$ with respect to $\mathrm{vec}(A)$.
+where $L_J \leq \norm{W}_2^2\,\norm{\zstar}$ is the second-order curvature constant of $\zstar(A)$, finite at the fixed point.
 
 \noindent\textbf{(b) Ranking preservation.} For two edges $k_1, k_2$ with $v_{k_1} > v_{k_2}$ and $w_{k_1} \geq w_{k_2}$, we have $d_{k_1} > d_{k_2}$ whenever
 \begin{equation}
@@ -101,11 +101,11 @@ Under uniform weights ($w_k = w$ for all $k$), $v_{k_1} > v_{k_2}$ implies $d_{k
 \end{proposition}
 
 \begin{proof}
-\textbf{(a).} Edge removal corresponds to $[\delta\Ahat]_{ij}{=}[\delta\Ahat]_{ji}{=}{-}w_k$, so by the $S_c$ construction $\norm{\Delta \zstar} \approx w_k v_k$. For the remainder, let $g(t){=}\zstar(A{+}t\delta\Ahat_k)$, $t{\in}[0,1]$. IGNN is piecewise affine in $A$ for a fixed activation pattern, so $g(t)$ is piecewise linear and crosses finitely many activation boundaries; on each segment $J_z$ is constant. Across a boundary $J_z$ jumps by at most $\norm{W}_2^2$ (the max change in $\mathrm{diag}(\phi')(\Ahat\otimes W)$ when one activation flips), so the worst-case path Lipschitz constant $L_J \leq \norm{W}_2^2$. The resolvent identity $\frac{d}{dt}(I-M)^{-1}{=}(I-M)^{-1}\frac{dM}{dt}(I-M)^{-1}$ then yields $\norm{g''(\xi)} \leq (1{-}\kappa)^{-2}L_J w_k^2$, hence $|R_k| \leq L_J w_k^2/(2(1{-}\kappa)^2)$.
+\textbf{(a).} We model deletion as \emph{fixed-normalization} masking, $[\delta\Ahat]_{ij}{=}[\delta\Ahat]_{ji}{=}{-}w_k$ with the degree matrix $D$ held fixed, matching the continuous edge-weight perturbation, so by the $S_c$ construction $\norm{\Delta \zstar} \approx w_k v_k$. (recompute-normalization adds an $O(d_i^{-1})$ incident-edge rescaling, negligible off low-degree nodes; agreement in \cref{sec:cross_domain}.) For the remainder, the IFT gives $\partial\zstar/\partial\mathrm{vec}(A){=}(I{-}J_z)^{-1}J_A$, and the dominant curvature term $(I{-}J_z)^{-1}(\partial J_z/\partial\mathrm{vec}(A))(I{-}J_z)^{-1}J_A$ carries two resolvents $(1{-}\kappa)^{-1}$, two factors $\norm{W}_2$, and the equilibrium norm $\norm{\zstar}$ (since $\partial J_z/\partial\mathrm{vec}(A)\!\propto\!W$ and $J_A\!\propto\!\zstar W^\top$), so $L_J \leq \norm{W}_2^2\norm{\zstar}$, finite since $\norm{\zstar}\leq\norm{X_{\mathrm{proj}}}/(1{-}\norm{\Ahat}_2\norm{W}_2)$ (from $\norm{\phi(u)}{\leq}\norm{u}$ at the fixed point and the spectral normalization $\norm{\Ahat}_2\norm{W}_2{<}1$ of \cref{sec:background}), giving $\norm{\partial^2\zstar/\partial\mathrm{vec}(A)^2}_2 \leq (1{-}\kappa)^{-2}L_J$. The path meets finitely many ReLU regions (simultaneous crossings non-generic, measure zero); summing the second-order remainder over these regions, with the conservative IFT~\cite{bolte2021conservative} on each, gives $|R_k| \leq L_J w_k^2/(2(1{-}\kappa)^2)$.
 \textbf{(b).} From (a), $d_{k_1}{-}d_{k_2} \geq w_{k_1}v_{k_1}{-}w_{k_2}v_{k_2}{-}C(w_{k_1}^2{+}w_{k_2}^2)$ with $C{=}L_J/(2(1-\kappa)^2)$; under $v_{k_1}{>}v_{k_2}$, $w_{k_1}{\geq}w_{k_2}$, the first term is positive and~\eqref{eq:ranking} ensures the first-order gap dominates.
 \end{proof}
 
-Empirically $|R_k|$ is $2$--$10\times$ smaller than $L_J w_k^2$; the constrained projection $S_c$ turns the $0.31$ vacuous bound into a tight one ($1.00$; \cref{sec:cross_domain})~\cite{stewart1990matrix,trefethen2005spectra}. The edge-weighted score $w_k v_k$ predicted by (a) achieves $\tau\!\approx\!\mathbf{+0.998}$ against brute-force N-1 on full-graph Amazon Photo ($N{=}7{,}650$; \cref{sec:explicit_extension}), corroborating the first-order bridge at scale.
+Empirically $|R_k|$ is $2$--$10\times$ smaller than $L_J w_k^2$; the constrained projection $S_c$ turns the $0.31$ vacuous bound into a tight one ($1.00$; \cref{sec:cross_domain})~\cite{stewart1990matrix,trefethen2005spectra}. The edge-weighted score $w_k v_k$ predicted by (a) reaches $\tau\!=\!\mathbf{+0.996}$ against brute-force N-1 on full-graph Amazon Photo (10 seeds, \cref{sec:explicit_extension}), corroborating the first-order bridge at scale.
 
 \begin{figure*}[t]
 \centering

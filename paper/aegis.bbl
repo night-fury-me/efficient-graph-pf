@@ -114,6 +114,16 @@ L.~Gosch, S.~Geisler, D.~Sturm, and S.~G{\"u}nnemann, ``Adversarial training
   for graph neural networks: Pitfalls, solutions, and new directions,'' in
   \emph{Advances in Neural Information Processing Systems}, vol.~36, 2023.
 
+\bibitem{koh2017understanding}
+P.~W. Koh and P.~Liang, ``Understanding black-box predictions via influence
+  functions,'' in \emph{International Conference on Machine Learning}.\hskip
+  1em plus 0.5em minus 0.4em\relax PMLR, 2017, pp. 1885--1894.
+
+\bibitem{gould2021deep}
+S.~Gould, R.~Hartley, and D.~Campbell, ``Deep declarative networks,''
+  \emph{IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  vol.~44, no.~8, pp. 3988--4004, 2021.
+
 \bibitem{bai2019deep}
 S.~Bai, J.~Z. Kolter, and V.~Koltun, ``Deep equilibrium models,'' in
   \emph{Advances in Neural Information Processing Systems}, vol.~32, 2019.
@@ -132,11 +142,6 @@ F.~Gu, H.~Chang, W.~Zhu, S.~Sojoudi, and L.~El~Ghaoui, ``Implicit graph neural
 T.~Miyato, T.~Kataoka, M.~Koyama, and Y.~Yoshida, ``Spectral normalization for
   generative adversarial networks,'' in \emph{International Conference on
   Learning Representations}, 2018.
-
-\bibitem{gould2021deep}
-S.~Gould, R.~Hartley, and D.~Campbell, ``Deep declarative networks,''
-  \emph{IEEE Transactions on Pattern Analysis and Machine Intelligence},
-  vol.~44, no.~8, pp. 3988--4004, 2021.
 
 \bibitem{fung2022jfb}
 S.~W. Fung, H.~Heaton, Q.~Li, D.~McKenzie, S.~Osher, and W.~Yin, ``{JFB}:
@@ -229,11 +234,6 @@ A.~Madry, A.~Makelov, L.~Schmidt, D.~Tsipras, and A.~Vladu, ``Towards deep
   learning models resistant to adversarial attacks,'' in \emph{International
   Conference on Learning Representations}, 2018.
 
-\bibitem{ejebe1979automatic}
-G.~C. Ejebe and B.~F. Wollenberg, ``Automatic contingency selection,''
-  \emph{IEEE Transactions on Power Apparatus and Systems}, no.~1, pp. 97--109,
-  1979.
-
 \bibitem{kipf2017semi}
 T.~N. Kipf and M.~Welling, ``Semi-supervised classification with graph
   convolutional networks,'' in \emph{International Conference on Learning
@@ -283,12 +283,18 @@ V.~Bolz, J.~Rue{\ss}, and A.~Zell, ``Power flow approximation based on graph
 C.~Kim, T.~Conrad, R.~Karim, J.~Oelhaf, D.~Riebesel, T.~Arias-Vergara, A.~K.
   Maier, J.~J{\"a}ger, and S.~Bayer, ``Physics-informed {GNN} for medium-high
   voltage {AC} power flow with edge-aware attention and line search correction
-  operator,'' \emph{arXiv preprint arXiv:2509.22458}, 2025.
+  operator,'' in \emph{Proc. IEEE Int. Conf. Acoust., Speech, Signal Process.
+  (ICASSP)}, 2026.
 
 \bibitem{varbella2024contingency}
 A.~Varbella, B.~Gjorgiev, and G.~Sansavini, ``Graph neural networks for fast
   contingency analysis of power systems,'' \emph{IEEE Transactions on Power
   Systems}, 2024.
+
+\bibitem{ejebe1979automatic}
+G.~C. Ejebe and B.~F. Wollenberg, ``Automatic contingency selection,''
+  \emph{IEEE Transactions on Power Apparatus and Systems}, no.~1, pp. 97--109,
+  1979.
 
 \bibitem{lai2025auditvotes}
 Y.~Lai, Y.~Zhu, Y.~Sun, Y.~Wu, B.~Xiao, G.~Li, J.~Li, and K.~Zhou,
@@ -299,11 +305,6 @@ Y.~Lai, Y.~Zhu, Y.~Sun, Y.~Wu, B.~Xiao, G.~Li, J.~Li, and K.~Zhou,
 E.~Winston and J.~Z. Kolter, ``Monotone operator equilibrium networks,'' in
   \emph{Advances in Neural Information Processing Systems}, vol.~33, 2020, pp.
   10\,718--10\,728.
-
-\bibitem{koh2017understanding}
-P.~W. Koh and P.~Liang, ``Understanding black-box predictions via influence
-  functions,'' in \emph{International Conference on Machine Learning}.\hskip
-  1em plus 0.5em minus 0.4em\relax PMLR, 2017, pp. 1885--1894.
 
 \bibitem{ying2019gnnexplainer}
 R.~Ying, D.~Bourgeois, J.~You, M.~Zitnik, and J.~Leskovec, ``{GNNExplainer}:
