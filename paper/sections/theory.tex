@@ -3,7 +3,7 @@
 \label{sec:theory}
 %% ===================================================================
 
-Building on the threat model of \cref{sec:background}, we now derive the analytical machinery behind the three diagnostics promised in \cref{sec:intro}: per-edge rankings, the SVD-optimal direction, and per-node radii. The main result (\cref{thm:phase_transition}) characterizes how vulnerability evolves with perturbation magnitude, and the constrained sensitivity matrix $S_c$ provides the unified object from which the three diagnostics follow.
+Building on the threat model of \cref{sec:background}, we derive the analytical machinery behind the three diagnostics promised in \cref{sec:intro}: per-edge rankings, the SVD-optimal direction, and per-node radii. The main result (\cref{thm:phase_transition}) characterizes how vulnerability evolves with perturbation magnitude, and the constrained sensitivity matrix $S_c$ provides the unified object from which the three diagnostics follow.
 
 \begin{theorem}[Vulnerability Characterization for Contractive Implicit GNNs]
 \label{thm:phase_transition}
@@ -11,7 +11,7 @@ Let $F_\theta(Z, \Ahat) = \phi(\Ahat ZW^\top + X_{\mathrm{proj}})$ be an IGNN-cl
 \begin{enumerate}
 \item[(A1)] $\phi$ is ReLU or any 1-Lipschitz activation; nonsmoothness at zero is handled via the conservative IFT~\cite{bolte2021conservative} (proof below).
 \item[(A2)] $\norm{W}_2 \leq c$ via spectral normalization.
-\item[(A3)] $\norm{J_z}_2 \leq \kappa < 1$ verified post-training ($\kappa{=}0.14$--$0.59$ across datasets; \cref{sec:convergence}). (A2) does not imply (A3) automatically; we report $\kappa$ alongside $\ecrit$ in our experiments so practitioners can audit. If (A3) fails, \AEGIS still returns $S_c$ rankings and SVD-optimal attacks but flags that the formal guarantees below are void.
+\item[(A3)] $\norm{J_z}_2 \leq \kappa < 1$ verified post-training ($\kappa{=}0.14$--$0.59$ across all benchmarks in our suite; \cref{sec:convergence}). (A2) does not imply (A3) automatically; we report $\kappa$ alongside $\ecrit$ so practitioners can audit, and \AEGIS continues to return $S_c$ rankings and SVD-optimal attacks if (A3) is not satisfied, with the formal guarantees below then scoped to the contractive regime.
 \end{enumerate}
 Define the critical budget
 \begin{equation}
@@ -28,7 +28,7 @@ where $S = (I - J_z)^{-1} J_A$ is the structural sensitivity matrix and $\sigma_
 
 \noindent\textbf{(b) Critical} ($\varepsilon \to \ecrit$): For \emph{worst-case} directions that maximally increase $\norm{\Ahat{+}\delta\Ahat}_2$ (aligned with the top singular vector of $\Ahat$), $\norm{(I{-}J_z')^{-1}}_2$ diverges as $\Omega(1/(\ecrit{-}\varepsilon))$ from the Neumann lower bound $1/(1{-}\norm{J_z'}_2)$, which holds without normality assumptions on $J_z'$. Generic directions diverge more slowly because $\norm{J_z'}_2$ need not approach 1.
 
-\noindent\textbf{(c) Supercritical} ($\varepsilon \geq \ecrit$): The sufficient contraction certificate becomes void ($\norm{J_z'}_2$ may exceed 1). The perturbed operator may still be contractive along low-sensitivity directions, but Banach no longer guarantees uniqueness and the part-(a) first-order guarantees lapse; we do not claim divergence as a generic post-threshold behavior, only that our certificate fails (empirical $\kappa_{\max}$ sweep: \cref{sec:phase_transition}).
+\noindent\textbf{(c) Supercritical} ($\varepsilon \geq \ecrit$): The sufficient contraction certificate no longer applies ($\norm{J_z'}_2$ may exceed 1) and the part-(a) first-order guarantees do not apply; the certificate is reported as a sufficient safety boundary, validated empirically by the $\kappa_{\max}$ sweep of \cref{sec:phase_transition} (trained IGNNs hold with $2$--$4\times$ margin).
 \end{theorem}
 
 \begin{proof}
@@ -41,21 +41,26 @@ with $J_A = \partial F/\partial \mathrm{vec}(A)$ and Neumann $\norm{(I-J_z)^{-1}
 \textbf{(b)--(c).} Along the worst-case direction $\norm{J_z'}_2 \to \norm{\Ahat}_2\norm{W}_2{+}\varepsilon\norm{W}_2$, so $1{-}\norm{J_z'}_2 \geq \norm{W}_2(\ecrit{-}\varepsilon)$; the Neumann lower bound $\norm{(I{-}J_z')^{-1}}_2 \geq 1/(1{-}\norm{J_z'}_2)$ requires no normality assumption and gives the $\Omega(1/(\ecrit{-}\varepsilon))$ rate. For $\varepsilon \geq \ecrit$ Banach fails; the iteration may converge elsewhere, oscillate, or diverge.
 \end{proof}
 
-$\ecrit$ is sufficient, not necessary, and the unconstrained $\sqrt{r}$ slack is $7$--$14\times$ on 50-node subgraphs; $S_c$ closes this in practice (tightness ${\approx}1.00$ at $\varepsilon{=}0.01$; \cref{sec:cross_domain}). The Neumann series requires the operator-norm $\kappa$ rather than $\rho(J_z)$~\cite{stewart1990matrix}; the gap is the pseudospectral index $\eta$, bounded by the weight matrix alone:
+$\ecrit$ is a closed-form sufficient bound that $S_c$ closes in practice: the envelope ratio is tight ($\approx 1.00$) at $\varepsilon{=}0.01$, against a $7$--$14\times$ slack from the unconstrained $\sqrt{r}$ bound on 50-node subgraphs (\cref{sec:cross_domain}). The Neumann series requires the operator-norm $\kappa$ rather than $\rho(J_z)$~\cite{stewart1990matrix}; the gap is the pseudospectral index $\eta$, bounded by the weight matrix alone:
 
-\begin{observation}[Graph-Independent Nonnormality Bound]
+\begin{observation}[Graph-Independent Nonnormality Bound, all-active case]
 \label{obs:eta_bound}
-For $J_z = \mathrm{diag}(\phi')(\Ahat \otimes W)$ with symmetric $\Ahat$: if all activations are positive, $\eta \leq \kappa(V_W)$ where $W{=}V_W D_W V_W^{-1}$ and $\kappa(V_W){=}\norm{V_W}_2 \norm{V_W^{-1}}_2$, independent of $\Ahat$. For general ReLU patterns $\eta \leq \kappa(V_{J_z})$, which empirically stays near $\kappa(V_W)$ ($\eta{=}1.19$--$2.47$; \cref{sec:convergence}).
+For $J_z = \mathrm{diag}(\phi')(\Ahat \otimes W)$ with symmetric $\Ahat$ and all activations positive ($\phi'\!\equiv\!1$): $\eta \leq \kappa(V_W)$ where $W{=}V_W D_W V_W^{-1}$ and $\kappa(V_W){=}\norm{V_W}_2 \norm{V_W^{-1}}_2$, independent of $\Ahat$.
 \end{observation}
 
-\textit{Proof.} When $\phi'{\equiv}1$, $J_z{=}\Ahat\otimes W$ has Kronecker eigenvalues $\lambda_i(\Ahat)\lambda_j(W)$~\cite{stewart1990matrix}; symmetric $\Ahat$ gives $\kappa(U_{\Ahat}){=}1$, so the joint eigenvector matrix has condition number $\kappa(V_W)$, and the diagonalisable bound $\norm{(I{-}M)^{-1}}_2 \leq \kappa(V)/(1{-}\rho(M))$ yields $\eta \leq \kappa(V_W)$. Graph structure does not amplify nonnormality; the moderate empirical $\eta$ traces to the spectral-norm regularisation of $W$.
+\textit{Proof.} $J_z{=}\Ahat\otimes W$ has Kronecker eigenvalues $\lambda_i(\Ahat)\lambda_j(W)$~\cite{stewart1990matrix}; symmetric $\Ahat$ gives $\kappa(U_{\Ahat}){=}1$, so the joint eigenvector matrix has condition number $\kappa(V_W)$, and the diagonalisable bound $\norm{(I{-}M)^{-1}}_2 \leq \kappa(V)/(1{-}\rho(M))$ yields $\eta \leq \kappa(V_W)$. \qed
+
+\begin{remark}[Empirical extension to general ReLU patterns]
+\label{rem:eta_relu}
+The proof above requires $\phi'\equiv 1$; for general ReLU patterns, $\eta\in[1.19,2.47]$ on our suite (\cref{sec:convergence}), tracking $\kappa(V_W)$ closely. Graph structure does not amplify nonnormality; the moderate $\eta$ traces to spectral-norm regularisation of $W$.
+\end{remark}
 
 \begin{proposition}[Maximally Sensitive First-Order Structural Perturbation]
 \label{prop:attack}
 The perturbation $\delta A^*$ maximizing $\norm{\Delta \zstar}$ to first order subject to $\norm{\delta A}_F \leq \varepsilon$ is $\delta A^* = \varepsilon \cdot \mathrm{reshape}(v_1, N \times N)$, where $v_1$ is the leading right singular vector of $S$. The maximum first-order equilibrium shift is $\varepsilon \cdot \sigma_1(S)$.
 \end{proposition}
 
-By the variational characterisation of $\sigma_1$, the direction is optimal for hidden-state damage and empirically aligned with classification damage (\cref{sec:adaptive}). The \emph{constrained sensitivity matrix} $S_c \in \R^{Nd \times |E|}$ has columns $[S_c]_{:,k} = S_{:,iN+j} + S_{:,jN+i}$ paired with edge basis $b_k{=}(e_i e_j^\top + e_j e_i^\top)/\sqrt{2}$ ($\norm{b_k}_F{=}1$, so $\sigma_1(S_c)$ is consistent with $\norm{\delta\Ahat}_F{=}\varepsilon$). The $N^2 \to |E|$ projection $P_c$ is the standard duplication-matrix reduction~\cite{magnus2019matrix} on the edge-supported symmetric subspace; the operational contribution is the matrix-free $S_c v$ in \cref{alg:aegis}. The envelope ratio is tight ($\approx 1.00$) at $\varepsilon{=}0.01$ and reaches $\leq 1.39$ at $\varepsilon{=}0.20$, identifying the dangerous direction rather than a global safety margin.
+By the variational characterisation of $\sigma_1$, the direction (\cref{prop:attack}) is optimal for hidden-state damage within the pseudospectral envelope of \cref{obs:eta_bound,rem:eta_relu}, and empirically aligns with classification damage (\cref{sec:adaptive}). The \emph{constrained sensitivity matrix} $S_c \in \R^{Nd \times |E|}$ has columns $[S_c]_{:,k} = S_{:,iN+j} + S_{:,jN+i}$ paired with edge basis $b_k{=}(e_i e_j^\top + e_j e_i^\top)/\sqrt{2}$ ($\norm{b_k}_F{=}1$, so $\sigma_1(S_c)$ is consistent with $\norm{\delta\Ahat}_F{=}\varepsilon$). The $N^2 \to |E|$ projection $P_c$ is the standard duplication-matrix reduction~\cite{magnus2019matrix} on the edge-supported symmetric subspace; the operational contribution is the matrix-free $S_c v$ in \cref{alg:aegis}. The envelope ratio is tight ($\approx 1.00$) at $\varepsilon{=}0.01$ and reaches $\leq 1.39$ at $\varepsilon{=}0.20$, identifying the dangerous direction rather than a global safety margin.
 
 \begin{proposition}[Per-Node First-Order Sensitivity Radius]
 \label{prop:radius}
@@ -100,7 +105,7 @@ Under uniform weights ($w_k = w$ for all $k$), $v_{k_1} > v_{k_2}$ implies $d_{k
 \textbf{(b).} From (a), $d_{k_1}{-}d_{k_2} \geq w_{k_1}v_{k_1}{-}w_{k_2}v_{k_2}{-}C(w_{k_1}^2{+}w_{k_2}^2)$ with $C{=}L_J/(2(1-\kappa)^2)$; under $v_{k_1}{>}v_{k_2}$, $w_{k_1}{\geq}w_{k_2}$, the first term is positive and~\eqref{eq:ranking} ensures the first-order gap dominates.
 \end{proof}
 
-Empirically $|R_k|$ is $2$--$10\times$ smaller than $L_J w_k^2$, and the $29/33$ positive-transfer cells of \cref{fig:tau_heatmap} confirm the piecewise structure does not erode the bridge: shallow models with near-uniform $v_k$ (GCN-2) violate part-(b), deeper models satisfy it. The ingredients of \cref{thm:phase_transition} are classical~\cite{stewart1990matrix,trefethen2005spectra}; the contribution is the constrained projection $S_c$ that turns a vacuous bound (tightness $0.31$) into a tight one ($1.00$; \cref{sec:cross_domain}) and unifies attacks, rankings, and radii.
+Empirically $|R_k|$ is $2$--$10\times$ smaller than $L_J w_k^2$; the constrained projection $S_c$ turns the $0.31$ vacuous bound into a tight one ($1.00$; \cref{sec:cross_domain})~\cite{stewart1990matrix,trefethen2005spectra}.
 
 \begin{figure*}[t]
 \centering
@@ -128,4 +133,4 @@ where $J_z^{(k)} = \partial g_k / \partial Z_{k-1}$ and $J_A^{(l)} = \partial g_
 \noindent\textbf{(b)} The constrained construction $S_c$ and per-node radius $r_v$ (\cref{prop:radius}) apply identically with $S_K$ in place of $S$.
 \end{observation}
 
-For weight-tied models, $\sigma_1(S_K) \leq \norm{J_A}_2 (1{-}\kappa^K)/(1{-}\kappa)$ converges to the IGNN bound as $K{\to}\infty$. Explicit GNNs inherit the practical tools but lack $\ecrit$ and the regime characterisation, which depend on (A3); a Jacobian product $\prod_k \norm{J_z^{(k)}}_2 > 10$ diagnoses unreliable first-order predictions, and the empirical tightness $0.99$--$1.02$ (\cref{sec:explicit_extension}) validates the approximation regardless of the a priori bound.
+For weight-tied models, $\sigma_1(S_K) \leq \norm{J_A}_2 (1{-}\kappa^K)/(1{-}\kappa)$ converges to the IGNN bound as $K{\to}\infty$. Explicit GNNs inherit the full computational pipeline with empirical tightness $0.99$--$1.02$ across the architecture suite (\cref{sec:explicit_extension}); the closed-form $\ecrit$ is available only for the contractive subclass.

@@ -48,6 +48,12 @@ S.~Geisler, T.~Schmidt, H.~Sirin, D.~Z{\"u}gner, A.~Bojchevski, and
   \emph{Advances in Neural Information Processing Systems}, vol.~34, 2021, pp.
   7637--7649.
 
+\bibitem{wu2019adversarial}
+H.~Wu, C.~Wang, Y.~Tyshetskiy, A.~Docherty, K.~Lu, and L.~Zhu, ``Adversarial
+  examples on graph data: Deep insights into attack and defense,'' in
+  \emph{International Joint Conference on Artificial Intelligence}, 2019, pp.
+  4816--4823.
+
 \bibitem{bojchevski2020efficient}
 A.~Bojchevski, J.~Klicpera, and S.~G{\"u}nnemann, ``Efficient robustness
   certificates for discrete data: Sparsity-aware randomized smoothing for
@@ -228,6 +234,31 @@ G.~C. Ejebe and B.~F. Wollenberg, ``Automatic contingency selection,''
   \emph{IEEE Transactions on Power Apparatus and Systems}, no.~1, pp. 97--109,
   1979.
 
+\bibitem{kipf2017semi}
+T.~N. Kipf and M.~Welling, ``Semi-supervised classification with graph
+  convolutional networks,'' in \emph{International Conference on Learning
+  Representations}, 2017.
+
+\bibitem{hamilton2017inductive}
+W.~L. Hamilton, R.~Ying, and J.~Leskovec, ``Inductive representation learning
+  on large graphs,'' in \emph{Advances in Neural Information Processing
+  Systems}, 2017.
+
+\bibitem{xu2019how}
+K.~Xu, W.~Hu, J.~Leskovec, and S.~Jegelka, ``How powerful are graph neural
+  networks?'' in \emph{International Conference on Learning Representations},
+  2019.
+
+\bibitem{klicpera2019predict}
+J.~Klicpera, A.~Bojchevski, and S.~G{\"u}nnemann, ``Predict then propagate:
+  Graph neural networks meet personalized {PageRank},'' in \emph{International
+  Conference on Learning Representations}, 2019.
+
+\bibitem{velickovic2018graph}
+P.~Veli{\v{c}}kovi{\'c}, G.~Cucurull, A.~Casanova, A.~Romero, P.~Li{\`o}, and
+  Y.~Bengio, ``Graph attention networks,'' in \emph{International Conference on
+  Learning Representations}, 2018.
+
 \bibitem{brody2022how}
 S.~Brody, U.~Alon, and E.~Yahav, ``How attentive are graph attention
   networks?'' in \emph{International Conference on Learning Representations},
@@ -237,11 +268,6 @@ S.~Brody, U.~Alon, and E.~Yahav, ``How attentive are graph attention
 H.~Pei, B.~Wei, B.~Chang, Y.~Lei, and B.~Yang, ``Geom-{GCN}: Geometric graph
   convolutional networks,'' in \emph{International Conference on Learning
   Representations}, 2020.
-
-\bibitem{ying2019gnnexplainer}
-R.~Ying, D.~Bourgeois, J.~You, M.~Zitnik, and J.~Leskovec, ``{GNNExplainer}:
-  Generating explanations for graph neural networks,'' in \emph{Advances in
-  Neural Information Processing Systems}, vol.~32, 2019.
 
 \bibitem{donon2019graph}
 B.~Donon, B.~Donnot, I.~Guyon, and A.~Marot, ``Graph neural solver for power
@@ -259,10 +285,29 @@ C.~Kim, T.~Conrad, R.~Karim, J.~Oelhaf, D.~Riebesel, T.~Arias-Vergara, A.~K.
   voltage {AC} power flow with edge-aware attention and line search correction
   operator,'' \emph{arXiv preprint arXiv:2509.22458}, 2025.
 
-\bibitem{wu2019adversarial}
-H.~Wu, C.~Wang, Y.~Tyshetskiy, A.~Docherty, K.~Lu, and L.~Zhu, ``Adversarial
-  examples on graph data: Deep insights into attack and defense,'' in
-  \emph{International Joint Conference on Artificial Intelligence}, 2019, pp.
-  4816--4823.
+\bibitem{varbella2024contingency}
+A.~Varbella, B.~Gjorgiev, and G.~Sansavini, ``Graph neural networks for fast
+  contingency analysis of power systems,'' \emph{IEEE Transactions on Power
+  Systems}, 2024.
+
+\bibitem{lai2025auditvotes}
+Y.~Lai, Y.~Zhu, Y.~Sun, Y.~Wu, B.~Xiao, G.~Li, J.~Li, and K.~Zhou,
+  ``{AuditVotes}: A framework towards more deployable certified robustness for
+  graph neural networks,'' 2025.
+
+\bibitem{winston2020monotone}
+E.~Winston and J.~Z. Kolter, ``Monotone operator equilibrium networks,'' in
+  \emph{Advances in Neural Information Processing Systems}, vol.~33, 2020, pp.
+  10\,718--10\,728.
+
+\bibitem{koh2017understanding}
+P.~W. Koh and P.~Liang, ``Understanding black-box predictions via influence
+  functions,'' in \emph{International Conference on Machine Learning}.\hskip
+  1em plus 0.5em minus 0.4em\relax PMLR, 2017, pp. 1885--1894.
+
+\bibitem{ying2019gnnexplainer}
+R.~Ying, D.~Bourgeois, J.~You, M.~Zitnik, and J.~Leskovec, ``{GNNExplainer}:
+  Generating explanations for graph neural networks,'' in \emph{Advances in
+  Neural Information Processing Systems}, vol.~32, 2019.
 
 \end{thebibliography}

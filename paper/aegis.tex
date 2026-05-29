@@ -10,10 +10,17 @@
 \usepackage{multirow}
 \usepackage{hyperref}
 \usepackage{cleveref}
+\usepackage{silence}
+\WarningFilter{caption}{Unknown document class}
+\usepackage[font=footnotesize]{caption}
 \usepackage{subcaption}
 \usepackage{bm}
 \usepackage{xspace}
 \usepackage{microtype}
+% Improve line breaking and suppress unfixable math-column underfull warnings
+\tolerance=2000
+\setlength{\emergencystretch}{3em}
+\hbadness=10000
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,shapes.geometric}
 
@@ -33,7 +40,7 @@
 
 \begin{document}
 
-\title{\AEGIS: Closed-Form Adversarial Diagnostics\\over the GNN Vulnerability Spectrum}
+\title{\AEGIS: One-Query Adversarial Diagnostics\\over the GNN Vulnerability Spectrum}
 
 \author{\IEEEauthorblockN{Anonymous Author(s)}}
 
