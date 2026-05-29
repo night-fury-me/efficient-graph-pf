@@ -3,12 +3,12 @@
 \label{sec:experiments}
 %% ===================================================================
 
-\textbf{Setup.} We evaluate \AEGIS on 9 datasets across 4 domains with 10 random seeds each (PyTorch~\cite{paszke2019pytorch}). IGNN~\cite{gu2020implicit} uses $F(Z){=}\mathrm{ReLU}(\Ahat ZW^\top{+}U(X))$ with $W\in\R^{64\times64}$ spectral-normalised~\cite{miyato2018spectral} and Adam (lr $0.01$); ContractiveGCN-PF mirrors this with 5 bus features and 2-head readout. Subgraphs: 50-node BFS from the highest-degree node. The spectral-norm constraint costs ${\sim}6\%$ Cora accuracy ($77.5\%$ vs.\ ${\sim}83\%$). Datasets: Cora, Citeseer, Pubmed~\cite{sen2008collective}, Amazon Photo~\cite{shchur2018pitfalls}, WikiCS~\cite{mernyei2020wiki}, IEEE 14/30/57/118~\cite{ieee2024testcases,thurner2018pandapower}. Baselines: smoothing (Gaussian $\sigma{=}0.01$, 200 MC, Clopper--Pearson $\alpha{=}0.001$), Mettack with Meta-Self GCN surrogate, LODF as $\mathrm{PTDF}_{ij}/(1{-}\mathrm{PTDF}_{jj})$ from the DC $B$-matrix~\cite[Ch.~11]{wood2014power}.
+\textbf{Setup.} We evaluate \AEGIS on 9 datasets across 4 domains with 10 random seeds each (PyTorch~\cite{paszke2019pytorch}). IGNN~\cite{gu2020implicit} uses $F(Z){=}\mathrm{ReLU}(\Ahat ZW^\top{+}U(X))$ with $W\in\R^{64\times64}$ spectral-normalised~\cite{miyato2018spectral} and Adam (lr $0.01$); ContractiveGCN-PF mirrors this with 5 bus features and 2-head readout. The spectral-norm constraint costs ${\sim}6\%$ Cora accuracy ($77.5\%$ vs.\ ${\sim}83\%$). Datasets: Cora, Citeseer, Pubmed~\cite{sen2008collective}, Amazon Photo~\cite{shchur2018pitfalls}, WikiCS~\cite{mernyei2020wiki}, IEEE 14/30/57/118~\cite{ieee2024testcases,thurner2018pandapower}. Baselines: smoothing (Gaussian $\sigma{=}0.01$, 200 MC, Clopper--Pearson $\alpha{=}0.001$), Mettack with Meta-Self GCN surrogate, LODF as $\mathrm{PTDF}_{ij}/(1{-}\mathrm{PTDF}_{jj})$ from the DC $B$-matrix~\cite[Ch.~11]{wood2014power}. The 9 datasets and 7 architectures are cumulative: all seven architectures appear only in \cref{tab:explicit} and \cref{fig:tau_heatmap} (33 cells); other studies use IGNN, and power flow the four IEEE cases.
 
 \subsection{Cross-Domain Adversarial Analysis}
 \label{sec:cross_domain}
 
-\Cref{tab:cross_domain} verifies the contractivity assumption (A3) on every benchmark ($\kappa{<}1$) and reports the per-dataset closed-form $\ecrit$ alongside an attack advantage of $3.2$--$4.1\times$ over random perturbations. Unless otherwise stated, IGNN experiments in \cref{sec:cross_domain}--\cref{sec:defense_ablation} use 50-node BFS ego-subgraphs centred on the highest-degree node and report \emph{local vulnerability}; graph-level assessment uses the matrix-free pipeline of \cref{sec:scalability}, since 50-node rankings cover ${\sim}1.8\%$ of Cora's edges ($\tau{=}0.16$ to full-graph; \cref{sec:subgraph_ablation}). All bounds use the operator-norm $\kappa{=}\norm{J_z}_2$.
+\Cref{tab:cross_domain} verifies the contractivity assumption (A3) on every benchmark ($\kappa{<}1$) and reports the per-dataset closed-form $\ecrit$ alongside an attack advantage of $3.2$--$4.1\times$ over random perturbations. Unless otherwise stated, IGNN experiments in \cref{sec:cross_domain}--\cref{sec:defense_ablation} use 50-node BFS ego-subgraphs centred on the highest-degree node and report \emph{local vulnerability}; graph-level assessment uses the matrix-free pipeline of \cref{sec:scalability}. All bounds use the operator-norm $\kappa{=}\norm{J_z}_2$.
 
 \begin{table}[t]
 \centering
@@ -85,14 +85,14 @@ WikiCS   & $\ms{2.10}{.22}$ & $\ms{0.67}{.11}$ & $\ms{1.93}{.20}$ & $\ms{0.53}{.
 
 Per-edge finite differences reproduce the $S_c$ column-norm ranking ($\tau{=}0.999$); iterative $S_c$ recomputation closes $\leq 3$\,pp of the static-vs-greedy gap at $k{\times}$ compute, so the static ranking is the headline.
 
-\textbf{Breach rates.} Every breached node satisfies $\varepsilon > r_v$ across all datasets and budgets, validating $r_v$ as a reliable first-order screening threshold (\cref{rem:certificates}). \Cref{fig:breach} reports prediction-flip fractions across $\varepsilon$: Citeseer and WikiCS stay below $2\%$ throughout; Cora reaches $7.6\%$ at $\varepsilon{=}0.20$; Pubmed exhibits a right-skewed distribution (median $7.8\%$, mean $10.3\%$ at $\varepsilon{=}0.10$).
+\textbf{Breach rates.} Every breached node satisfies $\varepsilon > r_v$ across all datasets and budgets, validating $r_v$ as a reliable first-order screening threshold (\cref{rem:certificates}). \Cref{fig:breach} reports prediction-flip fractions across $\varepsilon$ (bands are $95\%$ CIs): Citeseer and WikiCS stay below $2\%$ throughout; Cora reaches $7.6\%$ (CI $[2.2,13.0]$) at $\varepsilon{=}0.20$; Pubmed is the right-skewed outlier (median $7.8\%$, mean $10.3\%$ at $\varepsilon{=}0.10$; $27.4\%$, CI $[12.3,42.5]$, at $\varepsilon{=}0.20$).
 
 \begin{figure*}[t]
 \centering
 \begin{minipage}[t]{0.32\textwidth}
   \centering
   \includegraphics[width=\linewidth]{figures/fig_breach_rate.pdf}
-  \captionof{figure}{Breach rate (\% of nodes flipped under $S_c$-optimal perturbation) vs.\ $\varepsilon$ (10 seeds, mean $\pm 1$\,sd bands).}
+  \captionof{figure}{Breach rate (\% of nodes flipped under $S_c$-optimal perturbation) vs.\ $\varepsilon$ (10 seeds; mean, $95\%$ CI bands).}
   \label{fig:breach}
 \end{minipage}\hfill
 \begin{minipage}[t]{0.65\textwidth}
@@ -147,7 +147,9 @@ GR-BCD~\cite{geisler2021robustness} aligns with $S_c$ on Pubmed ($\tau{=}{+}0.69
 \subsection{Ablations and Defense}
 \label{sec:subgraph_ablation}\label{sec:hyperparams}\label{sec:convergence}\label{sec:defense_ablation}
 
-\textbf{Subgraph size.} Varying $N{\in}\{30,50,100,200\}$ on Cora (10 seeds): tightness is stable at $1.01$--$1.02$ for $N{\leq}100$ and degrades to $1.031$ at $N{=}200$; we use $N{=}50$ as default ($66\times$ faster). Subgraph-vs-full-graph agreement is high on dense grids (case14 $\tau{=}0.80$--$0.86$) but low on citation-scale graphs (Cora $\tau{=}0.16$ since 50-node BFS covers ${\sim}1.8\%$ of edges), so citation-scale users should prefer the full-graph pipeline. On full citation graphs the AtkAdv ratio over degree-proportional \emph{grows} to $3.25\times$ (Cora) and $9.82\times$ (Citeseer) at $k{=}10$ vs.\ ${\approx}1.1\times$ on 50-node subgraphs.
+\textbf{Subgraph size.} Varying $N{\in}\{30,50,100,200\}$ on Cora (10 seeds): tightness is stable at $1.01$--$1.02$ for $N{\leq}100$ and degrades to $1.031$ at $N{=}200$; we use $N{=}50$ as default ($66\times$ faster). Subgraph-vs-full-graph agreement is high on dense grids (case14 $\tau{=}0.80$--$0.86$).
+
+\textbf{Full-graph scale.} A 50-node BFS covers only ${\sim}1.8\%$ of a citation graph's edges (Cora $\tau{=}0.16$), so at this scale we run \AEGIS on the full graph, where its edge advantage over degree-proportional \emph{amplifies} to $\mathbf{9.82\times}$ (Citeseer) and $\mathbf{3.25\times}$ (Cora) at $k{=}10$, vs.\ ${\approx}1.1\times$ on subgraphs.
 
 \textbf{Hyperparameters.} Tightness is stable across $d{\in}\{16,32,64,128\}$; the spectral-norm ceiling $c{\in}\{0.5,0.9\}$ traces the accuracy--robustness frontier ($r_v{=}0.090$@$72.1\%$ vs.\ $0.051$@$80.6\%$).
 
