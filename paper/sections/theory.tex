@@ -45,10 +45,10 @@ $\ecrit$ is sufficient, not necessary, and the unconstrained $\sqrt{r}$ slack is
 
 \begin{observation}[Graph-Independent Nonnormality Bound]
 \label{obs:eta_bound}
-For $J_z = \mathrm{diag}(\phi')(\Ahat \otimes W)$ with symmetric $\Ahat$: if all activations are positive, $\eta \leq \kappa(V_W)$ where $W{=}V_W D_W V_W^{-1}$ and $\kappa(V_W){=}\norm{V_W}_2 \norm{V_W^{-1}}_2$, independent of $\Ahat$. For general ReLU patterns $\eta \leq \kappa(V_{J_z})$, which empirically stays near $\kappa(V_W)$ ($\eta{=}1.02$--$1.28$; \cref{sec:convergence}).
+For $J_z = \mathrm{diag}(\phi')(\Ahat \otimes W)$ with symmetric $\Ahat$: if all activations are positive, $\eta \leq \kappa(V_W)$ where $W{=}V_W D_W V_W^{-1}$ and $\kappa(V_W){=}\norm{V_W}_2 \norm{V_W^{-1}}_2$, independent of $\Ahat$. For general ReLU patterns $\eta \leq \kappa(V_{J_z})$, which empirically stays near $\kappa(V_W)$ ($\eta{=}1.19$--$2.47$; \cref{sec:convergence}).
 \end{observation}
 
-\textit{Proof.} When $\phi'{\equiv}1$, $J_z{=}\Ahat\otimes W$ has Kronecker eigenvalues $\lambda_i(\Ahat)\lambda_j(W)$~\cite{stewart1990matrix}; symmetric $\Ahat$ gives $\kappa(U_{\Ahat}){=}1$, so the joint eigenvector matrix has condition number $\kappa(V_W)$, and the diagonalisable bound $\norm{(I{-}M)^{-1}}_2 \leq \kappa(V)/(1{-}\rho(M))$ yields $\eta \leq \kappa(V_W)$. Graph structure does not amplify nonnormality; the mild empirical $\eta$ traces to the spectral-norm regularisation of $W$.
+\textit{Proof.} When $\phi'{\equiv}1$, $J_z{=}\Ahat\otimes W$ has Kronecker eigenvalues $\lambda_i(\Ahat)\lambda_j(W)$~\cite{stewart1990matrix}; symmetric $\Ahat$ gives $\kappa(U_{\Ahat}){=}1$, so the joint eigenvector matrix has condition number $\kappa(V_W)$, and the diagonalisable bound $\norm{(I{-}M)^{-1}}_2 \leq \kappa(V)/(1{-}\rho(M))$ yields $\eta \leq \kappa(V_W)$. Graph structure does not amplify nonnormality; the moderate empirical $\eta$ traces to the spectral-norm regularisation of $W$.
 
 \begin{proposition}[Maximally Sensitive First-Order Structural Perturbation]
 \label{prop:attack}

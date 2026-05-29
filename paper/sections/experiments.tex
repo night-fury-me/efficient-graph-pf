@@ -8,7 +8,7 @@
 \subsection{Cross-Domain Adversarial Analysis}
 \label{sec:cross_domain}
 
-Unless otherwise stated, IGNN experiments in \cref{sec:cross_domain}--\cref{sec:defense_ablation} use 50-node BFS ego-subgraphs centred on the highest-degree node and report \emph{local vulnerability}; on Cora ($N{=}2{,}708$), 50-node rankings correlate weakly with full-graph rankings ($\tau{=}0.16$; \cref{sec:subgraph_ablation}), so graph-level assessment uses the matrix-free pipeline (\cref{sec:scalability}). All bounds use the operator-norm $\kappa{=}\norm{J_z}_2$; $\eta{=}1.02$--$1.28$ keeps the $\kappa$-based bound at most $28\%$ more conservative than the spectral-radius bound. \Cref{tab:cross_domain} verifies (A3) on all benchmarks ($\kappa<1$) and reports the per-dataset critical budget $\ecrit$ and attack advantage.
+Unless otherwise stated, IGNN experiments in \cref{sec:cross_domain}--\cref{sec:defense_ablation} use 50-node BFS ego-subgraphs centred on the highest-degree node and report \emph{local vulnerability}; on Cora ($N{=}2{,}708$), 50-node rankings correlate weakly with full-graph rankings ($\tau{=}0.16$; \cref{sec:subgraph_ablation}), so graph-level assessment uses the matrix-free pipeline (\cref{sec:scalability}). All bounds use the operator-norm $\kappa{=}\norm{J_z}_2$; on our suite, the $\kappa$-based $\ecrit$ runs up to $53\%$ tighter than the spectral-radius counterpart (worst on Citeseer; pseudospectral index $\eta{=}1.19$--$2.47$). \Cref{tab:cross_domain} verifies (A3) on all benchmarks ($\kappa<1$) and reports the per-dataset critical budget $\ecrit$ and attack advantage.
 
 \begin{table}[t]
 \centering
@@ -47,7 +47,7 @@ Amazon   & $\ms{1.00}{.00}$ & $\ms{1.01}{.00}$ & $\ms{1.03}{.01}$ & $\ms{1.07}{.
 \end{tabular*}
 \end{table} The envelope ratio is tight ($1.00$--$1.02$) at $\varepsilon{=}0.01$ and grows to $1.05$--$1.39$ at $\varepsilon{=}0.20$; the bound is reliable only at small $\varepsilon$ and under-predicts by up to $39\%$ at the largest budget. The ratio is measured on equilibrium shift $\norm{\Delta\zstar}_F$, distinct from the prediction-flip (breach) rate of \cref{tab:breach} (flips stay $<2\%$ at $\varepsilon{\leq}0.10$, $<6\%$ at $\varepsilon{=}0.20$).
 
-\textbf{Heuristic and surrogate baselines.} \AEGIS beats degree-proportional, edge-betweenness, and spectral rankings at $\varepsilon{=}0.01$ ($+6$--$148\%$ AtkAdv, Wilcoxon $p{<}0.001$) and inflicts $3$--$10\times$ more damage than Mettack~\cite{zugner2019adversarial} (149/150 wins); GR-BCD/PR-BCD~\cite{geisler2021robustness} are in \cref{tab:baselines}. The distinctive value appears under discrete removal (\cref{tab:greedy_topk}) and in the SVD direction itself.
+\textbf{Heuristic and surrogate baselines.} \AEGIS beats degree-proportional, edge-betweenness, and spectral rankings at $\varepsilon{=}0.01$ ($+6$--$148\%$ AtkAdv, Wilcoxon $p{<}0.001$) and inflicts $3$--$10\times$ more damage than Mettack~\cite{zugner2019adversarial} ($149/150$ wins, one-sided sign-test $p{<}10^{-43}$); GR-BCD/PR-BCD~\cite{geisler2021robustness} are in \cref{tab:baselines}. The distinctive value appears under discrete removal (\cref{tab:greedy_topk}).
 
 \subsection{Four-Quadrant Attack Comparison}
 \label{sec:adaptive}\label{sec:certificates}
@@ -83,7 +83,7 @@ WikiCS   & $\ms{2.10}{.22}$ & $\ms{0.67}{.11}$ & $\ms{1.93}{.20}$ & $\ms{0.53}{.
 \label{tab:greedy_topk}
 \end{figure*}
 
-Per-edge finite differences reproduce the $S_c$ column-norm ranking ($\tau{=}0.999$ across datasets), confirming numerical correctness.
+Per-edge finite differences reproduce the $S_c$ column-norm ranking ($\tau{=}0.999$); recomputing $S_c$ iteratively after each removal closes $\leq 3$\,pp of the static-vs-greedy gap on Cora and ${\leq}1$\,pp on Citeseer/Pubmed at $k{\times}$ compute, so we keep the static ranking as the headline.
 
 \textbf{Breach rates.} \Cref{tab:breach} reports prediction-flip fractions across $\varepsilon$. Citeseer and WikiCS stay below $2\%$ across the full range; Cora reaches $7.6\%$ at $\varepsilon{=}0.20$; Pubmed is the right-skewed outlier ($27.4{\pm}21.1\%$ mean, median $7.8\%$ vs.\ mean $10.3\%$ at $\varepsilon{=}0.10$). Every breached node satisfies $\varepsilon > r_v$, consistent with $r_v$ as a first-order diagnostic rather than a probabilistic certificate (\cref{rem:certificates}).
 
@@ -127,7 +127,7 @@ LODF~\cite{wood2014power}               & case118 P@10       & $0.81$  & $\leq 0
 \end{tabular*}
 \end{table}
 
-GR-BCD~\cite{geisler2021robustness} converges with $S_c$ on Pubmed ($\tau{=}{+}0.69$) and diverges on Cora ($\tau{=}{+}0.16$), the dataset-level $\tau$ acting as a self-diagnostic; the labelled attacker dominates \AEGIS on Cora absolute damage by $1.9\times$ at $k{=}5$, as expected for a label-aware attacker vs.\ a label-free closed-form proxy. PR-BCD~\cite{geisler2021robustness} (same family, larger OGB-scale budget) is a natural follow-up benchmark beyond our matrix-free boundary ($N{\approx}7{,}650$). AGNNCert~\cite{li2025agnncert}'s IBP radii are $4.9$--$10.2\times$ looser numerically but mathematically stronger (sound certificate vs.\ first-order threshold). LODF~\cite{wood2014power} retargeted to thermal-overload peaks at $\mathrm{P@10}{=}0.60$ on case57 and collapses on case118; the Ejebe--Wollenberg PI~\cite{ejebe1979automatic} is positively correlated but loses to \AEGIS on both grids.
+GR-BCD~\cite{geisler2021robustness} converges with $S_c$ on Pubmed ($\tau{=}{+}0.69$) and diverges on Cora ($\tau{=}{+}0.16$), the dataset-level $\tau$ acting as a self-diagnostic; PR-BCD~\cite{geisler2021robustness} (same family, OGB-scale budget) sits beyond our matrix-free boundary. AGNNCert~\cite{li2025agnncert}'s IBP radii are $4.9$--$10.2\times$ looser numerically but mathematically stronger (sound certificate vs.\ first-order threshold). LODF~\cite{wood2014power} retargeted to thermal-overload peaks at $\mathrm{P@10}{=}0.60$ on case57 and collapses on case118; Ejebe--Wollenberg PI~\cite{ejebe1979automatic} is positively correlated but loses to \AEGIS on both grids.
 
 \subsection{Phase Transition and Scalability}
 \label{sec:phase_transition}\label{sec:scalability}
@@ -141,17 +141,17 @@ GR-BCD~\cite{geisler2021robustness} converges with $S_c$ on Pubmed ($\tau{=}{+}0
 \label{fig:phase_transition}
 \end{figure}
 
-\textbf{Scalability and matrix-free self-consistency.} \Cref{fig:scalability} compares dense and matrix-free pipelines. The matrix-free $S_c v$ implements the dense $S_c$ up to Neumann truncation; $\sigma_1$ agrees within $0.03\%$ at $N{=}200$ and per-edge $\tau{=}0.999$. For larger $N$ the rSVD error~\cite{halko2011finding} is bounded by the spectral gap. Pubmed ($N{=}19{,}717$) exceeds $24$\,GB.
+\textbf{Scalability and matrix-free self-consistency.} \Cref{fig:scalability} compares dense and matrix-free pipelines. The matrix-free $S_c v$ implements the dense $S_c$ up to Neumann truncation; $\sigma_1$ agrees within $0.03\%$ at $N{=}200$, per-edge $\tau{=}0.999$, and the analytical truncation residual $\kappa^{200}\!\in\![10^{-105},10^{-48}]$ across the suite. For larger $N$ the rSVD error~\cite{halko2011finding} is bounded by the spectral gap; Pubmed ($N{=}19{,}717$) exceeds $24$\,GB.
 
 
 \subsection{Ablations and Defense}
 \label{sec:subgraph_ablation}\label{sec:hyperparams}\label{sec:convergence}\label{sec:defense_ablation}
 
-\textbf{Subgraph size.} Varying $N{\in}\{30,50,100,200\}$ on Cora (10 seeds): tightness is stable at $1.01$--$1.02$ for $N{\leq}100$, degrades to $1.031$ at $N{=}200$, coverage stays $82$--$89\%$. We use $N{=}50$ as default ($66\times$ faster than $N{=}200$, tightness $1.013{\pm}0.003$). Subgraph-vs-full-graph agreement is high on dense grids (case14 $\tau{=}0.80$--$0.86$ at $N_\mathrm{sub}{=}8$--$12$; case30 $\tau{=}0.78{\pm}0.07$) but low on citation-scale graphs (Cora $\tau{=}0.16{\pm}0.13$ since a 50-node BFS covers ${\sim}1.8\%$ of edges), so citation-scale users should prefer the full-graph pipeline. BFS-centre choice barely matters ($\tau{=}0.95{\pm}0.02$ across highest-vs-median-degree).
+\textbf{Subgraph size.} Varying $N{\in}\{30,50,100,200\}$ on Cora (10 seeds): tightness is stable at $1.01$--$1.02$ for $N{\leq}100$, degrades to $1.031$ at $N{=}200$, coverage stays $82$--$89\%$. We use $N{=}50$ as default ($66\times$ faster than $N{=}200$, tightness $1.013{\pm}0.003$). Subgraph-vs-full-graph agreement is high on dense grids (case14 $\tau{=}0.80$--$0.86$ at $N_\mathrm{sub}{=}8$--$12$; case30 $\tau{=}0.78{\pm}0.07$) but low on citation-scale graphs (Cora $\tau{=}0.16{\pm}0.13$ since a 50-node BFS covers ${\sim}1.8\%$ of edges), so citation-scale users should prefer the full-graph pipeline. BFS-centre choice barely matters ($\tau{=}0.95{\pm}0.02$ across highest-vs-median-degree). On the full citation graphs (matrix-free), the AtkAdv ratio over degree-proportional \emph{grows} to $3.25\times$ (Cora) and $9.82\times$ (Citeseer) at $k{=}10$ vs.\ ${\approx}1.1\times$ on 50-node subgraphs, so the BFS regime is conservative rather than artefactual.
 
-\textbf{Hyperparameters.} Tightness is stable across hidden width $d \in \{16,32,64,128\}$; the spectral-norm ceiling $c{\in}\{0.5,0.9\}$ traces the accuracy-robustness frontier ($r_v{=}0.090$ at $72.1\%$ acc vs.\ $r_v{=}0.051$ at $80.6\%$). All runs converge.
+\textbf{Hyperparameters.} Tightness is stable across $d{\in}\{16,32,64,128\}$; the spectral-norm ceiling $c{\in}\{0.5,0.9\}$ traces the accuracy--robustness frontier ($r_v{=}0.090$@$72.1\%$ vs.\ $0.051$@$80.6\%$).
 
-\textbf{Defense-informed edge protection (non-adaptive).} Masking the top-$k$ edges by $v_{ij}$ before re-running the SVD attack on the reduced $S_c$ (Cora IGNN, $N{=}50$, 10 seeds) reduces SVD damage by $42{\pm}8\%$ at $k{=}5$ vs.\ $11{\pm}6\%$ for random masking, and by $61{\pm}7\%$ vs.\ $18{\pm}9\%$ at $k{=}10$ (paired Wilcoxon $p{<}0.002$, all 10 seeds favour vulnerability-guided masking). The attacker is held fixed (same $v_1$ as the unmasked graph); an adaptive attacker recomputing $S_c$ on the masked graph would partially erode the gain, which we leave to future work.
+\textbf{Defense-informed edge protection (non-adaptive).} Masking the top-$k$ edges by $v_{ij}$ (Cora IGNN, $N{=}50$, 10 seeds) cuts SVD damage by $42{\pm}8\%$ at $k{=}5$ and $61{\pm}7\%$ at $k{=}10$, vs.\ $11{\pm}6\%$/$18{\pm}9\%$ for random masking (paired Wilcoxon $p{<}0.002$); the attacker is held fixed, so an adaptive variant recomputing $S_c$ would partially erode the gain.
 
 \subsection{Extension to Explicit GNNs}
 \label{sec:explicit_extension}
@@ -185,7 +185,9 @@ h_i' = \textstyle\sum_{j \in \mathcal{N}(i)} \Ahat_{ij} \cdot \alpha_{ij} \cdot 
 \end{equation}
 restoring continuous differentiability with respect to $\Ahat_{ij}$ and yielding tightness $0.99$, AtkAdv $4.4\times$, $\tau{=}+0.36$. Architectures using binary adjacency masks (hard attention, max/min aggregation) and GATv2~\cite{brody2022how}'s dynamic-attention masking fall outside the framework; the architecture-agnostic property applies only to continuous edge-weight-modulated message passing.
 
-\textbf{Cross-dataset transfer.} \Cref{fig:tau_heatmap} reports $\tau$ over 5 datasets and 7 architectures (330 runs); $29/33$ cells positive (one-sided sign test $p{<}10^{-5}$). Cold cells: GCN-2 on sparse citation graphs, IGNN on dense product graphs at 50-node subgraphs (BFS cap $\kappa_\mathrm{sub}{\leq}0.20$, average degree $\sim 31$); full-graph matrix-free analysis ($N{=}7{,}650$, $\rho{=}0.73$, resolvent $3.9\times$) shifts $\tau$ from $-0.14$ to $+0.24$. Heterophilic WebKB~\cite{pei2020geomgcn} GCN-4 attains $\tau{=}+0.21$--$+0.44$.
+\textbf{Robust backbones.} Under the same $\sigma_1(W){\leq}0.9$ cap, RobustGCN-lite~\cite{zhu2019robust} attains $\tau{=}+0.37/+0.54$ (Cora/Citeseer) and GNNGuard-lite~\cite{zhang2020gnnguard} $+0.10/+0.53$, matching or exceeding IGNN; the cap is a precondition---without it $\kappa{>}1$ voids \cref{thm:phase_transition}.
+
+\textbf{Cross-dataset transfer.} \Cref{fig:tau_heatmap} reports $\tau$ over 5 datasets and 7 architectures (330 runs); $29/33$ cells positive (one-sided sign test $p{<}10^{-5}$). Cold cells (GCN-2 on sparse citation graphs, IGNN on dense product graphs at 50 nodes) recover on full-graph matrix-free analysis ($N{=}7{,}650$ shifts $\tau$ from $-0.14$ to $+0.24$). Heterophilic WebKB~\cite{pei2020geomgcn} GCN-4 attains $\tau{=}+0.21$--$+0.44$.
 
 \begin{figure}[t]
 \centering
@@ -195,4 +197,4 @@ restoring continuous differentiability with respect to $\Ahat_{ij}$ and yielding
 \end{figure}
 
 
-\Cref{prop:transfer}'s sufficient condition holds for $47$--$62\%$ of edge pairs (conservative, not tight); GCN-2 is the only architecture failing the bridge because 2-hop aggregates produce near-uniform first-order shifts. Gradient-based explainers~\cite{ying2019gnnexplainer} against the same discrete truth give $\tau{=}-0.07$ to $-0.21$, since they optimise prediction fidelity not adversarial vulnerability; the \cref{prop:explicit} bound is $1.4$--$5.9\times$ loose, tighter for shallower models. Per-edge $v_{ij}$ correlates with endpoint degree only moderately, and reweighting $S_c$ columns by degree does not improve rankings.
+\Cref{prop:transfer}'s sufficient condition holds for $47$--$62\%$ of edge pairs; GCN-2 fails the bridge because 2-hop aggregates produce near-uniform first-order shifts. Gradient-based explainers~\cite{ying2019gnnexplainer} against the same truth give $\tau{=}-0.07$ to $-0.21$; the \cref{prop:explicit} bound is $1.4$--$5.9\times$ loose, tighter for shallower models.

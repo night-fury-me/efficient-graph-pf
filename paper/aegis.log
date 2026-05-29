@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.16)  29 MAY 2026 03:37
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.16)  29 MAY 2026 04:00
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -990,6 +990,12 @@ Package pdftex.def Info: figures/fig_phase_transition.pdf  used on input line 1
 39.
 (pdftex.def)             Requested size: 252.0pt x 173.924pt.
  [6]
+Underfull \hbox (badness 10000) in paragraph at lines 152--153
+[]\OT1/ptm/b/n/10 (+20) Hyperparameters. \OT1/ptm/m/n/10 (+20) Tight-ness is st
+a-ble across
+ []
+
+
 Underfull \hbox (badness 10000) in paragraph at lines 159--160
 []\OT1/ptm/m/n/10 (+20) For $\OML/cmm/m/it/10 K$\OT1/ptm/m/n/10 (+20) -layer ex
 -plicit GNNs we form
@@ -1009,14 +1015,14 @@ Underfull \hbox (badness 2856) in paragraph at lines 163--163
 
 [7 <./figures/fig_greedy_curves.pdf> <./figures/fig_breach_rate.pdf> <./figures
 /fig_scalability.pdf> <./figures/fig_phase_transition.pdf>]
-<figures/fig_tau_heatmap.pdf, id=711, 314.37451pt x 195.129pt>
+<figures/fig_tau_heatmap.pdf, id=712, 314.37451pt x 195.129pt>
 File: figures/fig_tau_heatmap.pdf Graphic file (type pdf)
 <use figures/fig_tau_heatmap.pdf>
-Package pdftex.def Info: figures/fig_tau_heatmap.pdf  used on input line 192.
+Package pdftex.def Info: figures/fig_tau_heatmap.pdf  used on input line 194.
 (pdftex.def)             Requested size: 252.0pt x 156.419pt.
 )
 (./sections/case_study.tex
-<figures/fig_ieee14_case.pdf, id=725, 272.12766pt x 210.93506pt>
+<figures/fig_ieee14_case.pdf, id=726, 272.12766pt x 210.93506pt>
 File: figures/fig_ieee14_case.pdf Graphic file (type pdf)
 <use figures/fig_ieee14_case.pdf>
 Package pdftex.def Info: figures/fig_ieee14_case.pdf  used on input line 41.
@@ -1044,10 +1050,10 @@ Package rerunfilecheck Info: File `aegis.out' has not changed.
  ) 
 Here is how much of TeX's memory you used:
  28595 strings out of 469515
- 534218 string characters out of 5470807
+ 534227 string characters out of 5470807
  966411 words of memory out of 5000000
  56152 multiletter control sequences out of 15000+600000
- 709339 words of font info for 466 fonts, out of 8000000 for 9000
+ 709424 words of font info for 466 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  84i,13n,94p,1999b,609s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/share/t
@@ -1073,10 +1079,10 @@ type1/urw/symbol/usyr.pfb></usr/share/texmf-dist/fonts/type1/urw/symbol/usyr.pf
 b></usr/share/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-dis
 t/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texmf-dist/fonts/type1/urw/time
 s/utmr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on aegis.pdf (10 pages, 1510708 bytes).
+Output written on aegis.pdf (10 pages, 1511322 bytes).
 PDF statistics:
- 977 PDF objects out of 1000 (max. 8388607)
- 693 compressed objects within 7 object streams
+ 980 PDF objects out of 1000 (max. 8388607)
+ 696 compressed objects within 7 object streams
  122 named destinations out of 1000 (max. 500000)
  90813 words of extra memory for PDF output out of 106986 (max. 10000000)
 
