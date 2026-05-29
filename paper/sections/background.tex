@@ -3,77 +3,23 @@
 \label{sec:background}
 %% ===================================================================
 
-\subsection{Notation and Formalization}
+Let $G = (V, E, A)$ be an undirected graph with $N = |V|$ nodes and adjacency $A \in \R^{N \times N}$, node features $X \in \R^{N \times d_{\mathrm{in}}}$, and symmetric normalized adjacency $\Ahat = D^{-1/2}(A + I)D^{-1/2}$ (self-loops included). Throughout, $\phi$ is the activation, $\sigma_i(\cdot)$ the $i$-th singular value, and $\mathrm{vec}(\cdot)$ the column-major vectorization. The sensitivity objects introduced below are: the unconstrained $S \in \R^{Nd \times N^2}$, constrained $S_c \in \R^{Nd \times |E|}$, unrolled $S_K \in \R^{Nd \times N^2}$ (\cref{prop:explicit}), and per-node block $S_v$; the contractivity $\kappa{=}\norm{J_z}_2$, spectral radius $\rho(J_z)$, pseudospectral index $\eta \geq 1$, critical budget $\ecrit$, and per-node radius $r_v$.
 
-Let $G = (V, E, A)$ denote an undirected graph with $N = |V|$ nodes, edge set $E$, and adjacency matrix $A \in \R^{N \times N}$. Each node $v \in V$ carries a feature vector $x_v \in \R^{d_{\mathrm{in}}}$, collected into $X \in \R^{N \times d_{\mathrm{in}}}$. We write $\Ahat = D^{-1/2}(A + I)D^{-1/2}$ for the symmetric normalized adjacency with self-loops, where $D$ is the degree matrix of $A + I$. Throughout, $\phi$ denotes the activation function, $\sigma_i(\cdot)$ denotes the $i$-th singular value, and $\mathrm{vec}(\cdot)$ stacks a matrix column-wise into a vector (with $\mathrm{reshape}$ as its inverse). \cref{tab:notation} summarizes the key sensitivity objects.
-
-\textbf{Deep equilibrium GNNs.} A DEQ-GNN~\cite{bai2019deep,bai2020multiscale} defines a weight-tied operator $F_\theta: \R^{N \times d} \times \R^{N \times N} \to \R^{N \times d}$ and iterates it from $Z_0 = 0$ until convergence:
-\begin{equation}
-Z_{k+1} = F_\theta(Z_k, A), \quad \zstar = \lim_{k \to \infty} Z_k.
-\end{equation}
-When $F_\theta$ is contractive in operator norm ($\kappa = \norm{J_z}_2 < 1$, where $J_z = \partial F / \partial z |_{\zstar}$), the Banach fixed-point theorem guarantees a unique equilibrium $\zstar = F_\theta(\zstar, A)$ regardless of initialization.
-
-\textbf{IGNN instantiation.} The Implicit Graph Neural Network (IGNN)~\cite{gu2020implicit} uses the operator
+\textbf{IGNN and IFT.} A DEQ-GNN~\cite{bai2019deep,bai2020multiscale} iterates a weight-tied $F_\theta$ to a fixed point; the IGNN instantiation~\cite{gu2020implicit} uses
 \begin{equation}
 F(Z, A) = \phi(\Ahat Z W^\top + X_{\mathrm{proj}}),
 \label{eq:ignn_operator}
 \end{equation}
-where $W \in \R^{d \times d}$ is the shared weight matrix, $X_{\mathrm{proj}} \in \R^{N \times d}$ is a learned feature projection, and $\phi$ is ReLU activation. Contractivity is enforced by constraining $\norm{W}_2$ via spectral normalization~\cite{miyato2018spectral}, ensuring $\kappa \leq \norm{\Ahat}_2 \cdot \norm{W}_2 < 1$. Training uses implicit differentiation through the fixed point~\cite{gould2021deep,fung2022jfb}, and Jacobian regularization~\cite{bai2021stabilizing} can further stabilize convergence. A linear classification head $f(\zstar) = W_{\mathrm{cls}} \zstar + b$ maps the equilibrium to class predictions.
-
-\textbf{Implicit function theorem.} At the equilibrium, the equation $G(\zstar, A) = \zstar - F(\zstar, A) = 0$ defines $\zstar$ as an implicit function of $A$. The IFT gives the sensitivity of $\zstar$ to any parameter $p$:
+with $W \in \R^{d \times d}$ spectral-normalized~\cite{miyato2018spectral} so $\kappa \leq \norm{\Ahat}_2 \norm{W}_2 < 1$, ReLU $\phi$, and a learned projection $X_\mathrm{proj}$. Training uses implicit differentiation through the fixed point~\cite{gould2021deep,fung2022jfb} with optional Jacobian regularization~\cite{bai2021stabilizing}, and a linear head $f(\zstar) = W_\mathrm{cls}\zstar + b$ produces class predictions. At equilibrium, $G(\zstar,A){=}\zstar{-}F(\zstar,A){=}0$ defines $\zstar$ as an implicit function of $A$, with IFT sensitivity
 \begin{equation}
 \frac{\partial \zstar}{\partial p} = (I - J_z)^{-1} \frac{\partial F}{\partial p}\bigg|_{\zstar},
 \label{eq:ift}
 \end{equation}
-where the resolvent $(I - J_z)^{-1}$ exists and satisfies $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\kappa)$ by the Neumann series (convergent because $\kappa < 1$). This bound uses the operator norm $\kappa = \norm{J_z}_2$; the weaker spectral-radius bound $1/(1-\rho)$ holds only for normal $J_z$. The pseudospectral index $\eta = \norm{(I-J_z)^{-1}}_2 \cdot (1-\rho) \geq 1$~\cite{trefethen2005spectra} quantifies this gap, with $\eta = 1$ for normal matrices. (Our definition follows the convention $\eta = \norm{(I-J_z)^{-1}}_2 \cdot (1-\rho)$; the standard Trefethen--Embree pseudospectral theory uses $\varepsilon$-pseudospectra, from which this scalar index is derived.) The IFT has been used for hyperparameter optimization~\cite{lorraine2020optimizing} and implicit differentiation~\cite{gould2021deep}, but not for adversarial structural analysis.
+where $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\kappa)$ via the convergent Neumann series, and the pseudospectral index $\eta{=}\norm{(I-J_z)^{-1}}_2(1-\rho) \geq 1$~\cite{trefethen2005spectra} measures the gap to the spectral-radius bound (with $\eta{=}1$ for normal $J_z$). The IFT has been used for hyperparameter optimization~\cite{lorraine2020optimizing} and implicit differentiation~\cite{gould2021deep}, but not for adversarial structural analysis.
 
-\begin{table}[t]
-\centering
-\caption{Key sensitivity objects in \AEGIS.}
-\label{tab:notation}
-\small
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lll@{}}
-\toprule
-Symbol & Size & Description \\
-\midrule
-$S$ & $Nd \times N^2$ & Unconstrained sensitivity matrix \\
-$S_c$ & $Nd \times |E|$ & Constrained (symmetric, edge-only) \\
-$S_K$ & $Nd \times N^2$ & Unrolled $K$-layer sensitivity (\cref{prop:explicit}) \\
-$S_v$ & $d \times N^2$ & Block-rows of $S$ for node $v$ \\
-$\kappa$ & scalar & Operator-norm contractivity $\norm{J_z}_2$ \\
-$\rho$ & scalar & Spectral radius $\rho(J_z)$ \\
-$\eta$ & scalar & Pseudospectral index $\geq 1$ \\
-$\ecrit$ & scalar & Critical perturbation budget \\
-$r_v$ & scalar & Per-node sensitivity radius \\
-\bottomrule
-\end{tabular*}
-\end{table}
-
-\subsection{Threat Model}
-
-We consider a white-box attacker who has full access to the trained IGNN model and perturbs the normalized adjacency matrix:
+\textbf{Threat model.} A white-box attacker with full access to the trained IGNN perturbs the normalized adjacency
 \begin{equation}
-\Ahat' = \Ahat + \delta \Ahat, \quad \text{subject to} \quad \norm{\delta \Ahat}_F \leq \varepsilon.
+\Ahat' = \Ahat + \delta \Ahat, \quad \norm{\delta \Ahat}_F \leq \varepsilon,
 \label{eq:threat}
 \end{equation}
-The perturbation is further constrained to be:
-\begin{itemize}
-\item \textbf{Symmetric:} $\delta \Ahat = \delta \Ahat^\top$ (preserving the undirected nature of the graph).
-\item \textbf{Edge-only:} $[\delta \Ahat]_{ij} = 0$ for $(i,j) \notin E$ (only existing edge weights may be modified; no new edges are introduced).
-\item \textbf{Continuous:} edge weights are perturbed continuously in $\R$, not discretely flipped.
-\end{itemize}
-
-This threat model captures continuous edge-weight perturbations to the normalized message-passing operator. It aligns naturally with the IGNN architecture, where $\Ahat$ appears directly in $F$ (\cref{eq:ignn_operator}). Discrete edge insertions or deletions, which change the graph topology and require recomputing the degree normalization $D^{-1/2}$, are outside the formal guarantee.
-
-The key distinction from input-feature perturbation (studied for DEQs in~\cite{el2021implicit,revay2020lipschitz}) is that structural perturbation changes the \emph{operator itself}: the equilibrium depends on $A$ through both the state Jacobian $J_z = \mathrm{diag}(\phi') \cdot (\Ahat \otimes W)$ and the adjacency Jacobian $J_A = \partial F / \partial \mathrm{vec}(A)$. This dual dependence makes structural sensitivity qualitatively different from input sensitivity.
-
-\subsection{Problem Statement}
-
-Given a trained contractive implicit GNN with equilibrium $\zstar$ on graph $G$, we aim to answer three questions:
-\begin{enumerate}
-\item \textbf{Vulnerability ranking:} Which edges, if perturbed, cause the largest shift in the equilibrium? That is, find a ranking of edges $(i,j) \in E$ by their adversarial impact on $\zstar$.
-\item \textbf{Optimal attack:} What is the worst-case perturbation $\delta \Ahat^*$ that maximizes $\norm{\Delta \zstar}_F$ subject to the threat model constraints in \cref{eq:threat}?
-\item \textbf{Robustness assessment:} For each node $v$, what is the largest perturbation budget $r_v$ such that any $\norm{\delta \Ahat}_F < r_v$ preserves the classification of $v$?
-\end{enumerate}
-
-\AEGIS addresses all three questions through a unified object: the constrained sensitivity matrix $S_c$ derived from the IFT applied to the equilibrium equation. The following sections formalize this construction (\cref{sec:theory}) and describe the computational pipeline (\cref{sec:framework}).
+with $\delta\Ahat$ symmetric ($\delta\Ahat{=}\delta\Ahat^\top$, preserving the undirected graph), edge-only ($[\delta\Ahat]_{ij}{=}0$ for $(i,j)\notin E$, so no new edges), and continuous in $\R$. \AEGIS targets edge-deletion / weight-perturbation attacks; insertion attacks (e.g., Nettack~\cite{zugner2018adversarial}, Mettack~\cite{zugner2019adversarial}) require enlarging the basis from $E$ to a candidate set $\bar E \supseteq E$ and lie outside our threat model. Discrete deletions are connected to the continuous model through \cref{prop:transfer}. Unlike input-feature perturbation~\cite{el2021implicit,revay2020lipschitz}, structural perturbation changes the operator itself: $\zstar$ depends on $A$ through both $J_z = \mathrm{diag}(\phi') (\Ahat \otimes W)$ and $J_A = \partial F / \partial \mathrm{vec}(A)$, which is what makes structural sensitivity qualitatively different and motivates the construction of $S_c$ in \cref{sec:theory}.

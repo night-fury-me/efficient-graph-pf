@@ -13,44 +13,44 @@ Database file #1: aegis.bib
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
 
 Done.
-You've used 63 entries,
+You've used 47 entries,
             4087 wiz_defined-function locations,
-            1107 strings with 18979 characters,
-and the built_in function-call counts, 52028 in all, are:
-= -- 3873
-> -- 1454
-< -- 409
-+ -- 813
-- -- 293
-* -- 2479
-:= -- 7139
-add.period$ -- 127
-call.type$ -- 63
-change.case$ -- 62
-chr.to.int$ -- 1026
-cite$ -- 63
-duplicate$ -- 3674
-empty$ -- 4591
-format.name$ -- 325
-if$ -- 12364
+            1038 strings with 15849 characters,
+and the built_in function-call counts, 36175 in all, are:
+= -- 2689
+> -- 1004
+< -- 268
++ -- 540
+- -- 191
+* -- 1713
+:= -- 5081
+add.period$ -- 94
+call.type$ -- 47
+change.case$ -- 46
+chr.to.int$ -- 660
+cite$ -- 47
+duplicate$ -- 2606
+empty$ -- 3238
+format.name$ -- 231
+if$ -- 8576
 int.to.chr$ -- 0
-int.to.str$ -- 63
-missing$ -- 681
-newline$ -- 212
-num.names$ -- 63
-pop$ -- 1756
+int.to.str$ -- 47
+missing$ -- 488
+newline$ -- 164
+num.names$ -- 47
+pop$ -- 1261
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 4059
+skip$ -- 2832
 stack$ -- 0
-substring$ -- 2535
-swap$ -- 2901
-text.length$ -- 67
+substring$ -- 1575
+swap$ -- 1990
+text.length$ -- 48
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 63
+type$ -- 47
 warning$ -- 0
-while$ -- 209
-width$ -- 65
-write$ -- 591
+while$ -- 145
+width$ -- 49
+write$ -- 443

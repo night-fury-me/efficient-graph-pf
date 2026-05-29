@@ -3,7 +3,7 @@
 \label{sec:theory}
 %% ===================================================================
 
-We now derive the theoretical machinery for the three questions posed in \cref{sec:background}. The main result (\cref{thm:phase_transition}) characterizes how vulnerability evolves with perturbation magnitude, and the constrained sensitivity matrix $S_c$ provides the unified object from which rankings, attacks, and radii follow.
+Building on the threat model of \cref{sec:background}, we now derive the analytical machinery behind the three diagnostics promised in \cref{sec:intro}: per-edge rankings, the SVD-optimal direction, and per-node radii. The main result (\cref{thm:phase_transition}) characterizes how vulnerability evolves with perturbation magnitude, and the constrained sensitivity matrix $S_c$ provides the unified object from which the three diagnostics follow.
 
 \begin{theorem}[Vulnerability Characterization for Contractive Implicit GNNs]
 \label{thm:phase_transition}
@@ -17,7 +17,7 @@ Define the critical budget
 \begin{equation}
 \ecrit = \frac{1 - \kappa}{\norm{W}_2}.
 \end{equation}
-Then structural perturbations $\delta \Ahat$ with $\norm{\delta \Ahat}_F = \varepsilon$ exhibit the following three regimes, where the critical-regime statement (b) is a \emph{worst-case} bound along directions aligned with the top singular vector of $\Ahat$; generic directions stay subcritical longer:
+Then structural perturbations $\delta \Ahat$ with $\norm{\delta \Ahat}_F = \varepsilon$ exhibit three regimes:
 
 \noindent\textbf{(a) Subcritical} ($\varepsilon < \ecrit$): The perturbed operator remains contractive with a unique fixed point satisfying
 \begin{equation}
@@ -26,22 +26,22 @@ Then structural perturbations $\delta \Ahat$ with $\norm{\delta \Ahat}_F = \vare
 \end{equation}
 where $S = (I - J_z)^{-1} J_A$ is the structural sensitivity matrix and $\sigma_1(S) \leq \norm{J_A}_{\mathrm{op}} / (1 - \kappa)$.
 
-\noindent\textbf{(b) Critical} ($\varepsilon \to \ecrit$): along worst-case directions (aligned with the top singular vector of $\Ahat$), $\norm{(I-J_z')^{-1}}_2$ diverges as $\Omega(1/(\ecrit{-}\varepsilon))$; generic directions diverge more slowly since $\norm{J_z'}_2$ need not approach 1.
+\noindent\textbf{(b) Critical} ($\varepsilon \to \ecrit$): For \emph{worst-case} directions that maximally increase $\norm{\Ahat{+}\delta\Ahat}_2$ (aligned with the top singular vector of $\Ahat$), $\norm{(I{-}J_z')^{-1}}_2$ diverges as $\Omega(1/(\ecrit{-}\varepsilon))$ from the Neumann lower bound $1/(1{-}\norm{J_z'}_2)$, which holds without normality assumptions on $J_z'$. Generic directions diverge more slowly because $\norm{J_z'}_2$ need not approach 1.
 
-\noindent\textbf{(c) Supercritical} ($\varepsilon > \ecrit$): the contraction certificate is void, Banach no longer guarantees uniqueness, and the part-(a) first-order guarantees lapse.
+\noindent\textbf{(c) Supercritical} ($\varepsilon \geq \ecrit$): The sufficient contraction certificate becomes void ($\norm{J_z'}_2$ may exceed 1). The perturbed operator may still be contractive along low-sensitivity directions, but Banach no longer guarantees uniqueness and the part-(a) first-order guarantees lapse; we do not claim divergence as a generic post-threshold behavior, only that our certificate fails (empirical $\kappa_{\max}$ sweep: \cref{sec:phase_transition}).
 \end{theorem}
 
 \begin{proof}
-\textbf{(a).} Under (A1), $F_\theta$ is piecewise-affine on each ReLU linear region, so the conservative-gradient calculus of Bolte--Pauwels~\cite{bolte2021conservative} gives a conservative IFT on each region with a measure-zero exceptional set of activation-boundary crossings. With $J_z = \mathrm{diag}(\phi') \cdot (\Ahat \otimes W)$ and $\kappa{\leq}\norm{\Ahat}_2 \norm{W}_2$, applying the IFT to $G(z,\Ahat){=}z{-}F(z,\Ahat){=}0$ at $(\zstar,\Ahat)$ gives
+\textbf{(a).} Under (A1), $F_\theta$ is piecewise-affine on each ReLU linear region; the activation pattern at $\zstar$ is generically stable for sufficiently small $\norm{\delta\Ahat}$ (the boundary set $\{\Ahat : \zstar(\Ahat)$ lies on a region face$\}$ has Lebesgue measure zero), so the conservative-gradient calculus of Bolte--Pauwels~\cite{bolte2021conservative} yields a conservative IFT on each region. With $J_z = \mathrm{diag}(\phi')(\Ahat \otimes W)$ and $\kappa{\leq}\norm{\Ahat}_2\norm{W}_2$, applying IFT to $G(z,\Ahat){=}z{-}F(z,\Ahat){=}0$ at $(\zstar,\Ahat)$ gives
 \begin{equation}
 \Delta \zstar = (I - J_z)^{-1} J_A \cdot \mathrm{vec}(\delta \Ahat) + O(\norm{\delta \Ahat}^2),
 \end{equation}
-with $J_A = \partial F/\partial \mathrm{vec}(A)$ and the Neumann bound $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\kappa)$ yielding~\eqref{eq:shift_bound}. For contractivity preservation, $\norm{J_z'}_2 \leq (\norm{\Ahat}_2 + \varepsilon) \norm{W}_2$, so $\varepsilon < \ecrit$ guarantees $\norm{J_z'}_2 < 1$. The Frobenius-operator gap leaves $\ecrit$ conservative by up to $\sqrt{\mathrm{rank}(\delta\Ahat)}$; the constrained projection $S_c$ tightens this in practice.
+with $J_A = \partial F/\partial \mathrm{vec}(A)$ and Neumann $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\kappa)$ yielding~\eqref{eq:shift_bound}. For contractivity preservation, $\norm{J_z'}_2 \leq (\norm{\Ahat}_2 + \varepsilon) \norm{W}_2$, so $\varepsilon < \ecrit$ guarantees $\norm{J_z'}_2 < 1$.
 
-\textbf{(b)--(c).} $\norm{J_z'}_2 \to 1$ forces $\norm{(I-J_z')^{-1}}_2 \geq 1/(1-\norm{J_z'}_2) \to \infty$ regardless of $J_z$'s normality; the operator-norm bound holds whenever $\kappa<1$. Empirically $\eta{=}1.02$--$1.28$ (\cref{sec:convergence}). When $\norm{J_z'}_2 \geq 1$ the contraction-mapping hypothesis fails and the iteration can converge to a different equilibrium, oscillate, or diverge.
+\textbf{(b)--(c).} Along the worst-case direction $\norm{J_z'}_2 \to \norm{\Ahat}_2\norm{W}_2{+}\varepsilon\norm{W}_2$, so $1{-}\norm{J_z'}_2 \geq \norm{W}_2(\ecrit{-}\varepsilon)$; the Neumann lower bound $\norm{(I{-}J_z')^{-1}}_2 \geq 1/(1{-}\norm{J_z'}_2)$ requires no normality assumption and gives the $\Omega(1/(\ecrit{-}\varepsilon))$ rate. For $\varepsilon \geq \ecrit$ Banach fails; the iteration may converge elsewhere, oscillate, or diverge.
 \end{proof}
 
-$\ecrit$ is a sufficient, not necessary, condition: the perturbed system may stay contractive beyond $\ecrit$ along low-sensitivity directions, and on 50-node subgraphs the unconstrained $\sqrt{r}$ slack is $7$--$14\times$; $S_c$ closes this gap in practice (tightness ${\approx}1.00$ at $\varepsilon{=}0.01$; \cref{sec:cross_domain}). The Neumann series requires the operator-norm $\kappa$ rather than $\rho(J_z)$~\cite{stewart1990matrix}; their gap is the pseudospectral index $\eta$, which is bounded by the weight matrix alone:
+$\ecrit$ is sufficient, not necessary, and the unconstrained $\sqrt{r}$ slack is $7$--$14\times$ on 50-node subgraphs; $S_c$ closes this in practice (tightness ${\approx}1.00$ at $\varepsilon{=}0.01$; \cref{sec:cross_domain}). The Neumann series requires the operator-norm $\kappa$ rather than $\rho(J_z)$~\cite{stewart1990matrix}; the gap is the pseudospectral index $\eta$, bounded by the weight matrix alone:
 
 \begin{observation}[Graph-Independent Nonnormality Bound]
 \label{obs:eta_bound}
@@ -55,7 +55,7 @@ For $J_z = \mathrm{diag}(\phi')(\Ahat \otimes W)$ with symmetric $\Ahat$: if all
 The perturbation $\delta A^*$ maximizing $\norm{\Delta \zstar}$ to first order subject to $\norm{\delta A}_F \leq \varepsilon$ is $\delta A^* = \varepsilon \cdot \mathrm{reshape}(v_1, N \times N)$, where $v_1$ is the leading right singular vector of $S$. The maximum first-order equilibrium shift is $\varepsilon \cdot \sigma_1(S)$.
 \end{proposition}
 
-The result follows from the variational characterisation of the largest singular value; the direction is optimal for hidden-state damage and empirically aligned with classification damage (\cref{sec:adaptive}). The \emph{constrained sensitivity matrix} $S_c \in \R^{Nd \times |E|}$ has columns $[S_c]_{:,k} = S_{:,iN+j} + S_{:,jN+i}$ paired with the edge basis $b_k{=}(e_i e_j^\top + e_j e_i^\top)/\sqrt{2}$ (so $\norm{b_k}_F{=}1$ and $\sigma_1(S_c)$ is consistent with $\norm{\delta\Ahat}_F{=}\varepsilon$). The $N^2 \to |E|$ projection $P_c$ is the standard duplication-matrix reduction~\cite{magnus2019matrix} restricted to the edge-supported symmetric subspace; the operational contribution is the matrix-free $S_c v$ in \cref{alg:aegis}. Empirically $\sigma_1(S_c)$ gives a first-order envelope ratio ${\approx}1.00$ at $\varepsilon{=}0.01$; the ratio rises to $\leq 1.39$ at $\varepsilon{=}0.20$, so the bound is tight only at small $\varepsilon$ and identifies the dangerous direction rather than a global safety margin.
+By the variational characterisation of $\sigma_1$, the direction is optimal for hidden-state damage and empirically aligned with classification damage (\cref{sec:adaptive}). The \emph{constrained sensitivity matrix} $S_c \in \R^{Nd \times |E|}$ has columns $[S_c]_{:,k} = S_{:,iN+j} + S_{:,jN+i}$ paired with edge basis $b_k{=}(e_i e_j^\top + e_j e_i^\top)/\sqrt{2}$ ($\norm{b_k}_F{=}1$, so $\sigma_1(S_c)$ is consistent with $\norm{\delta\Ahat}_F{=}\varepsilon$). The $N^2 \to |E|$ projection $P_c$ is the standard duplication-matrix reduction~\cite{magnus2019matrix} on the edge-supported symmetric subspace; the operational contribution is the matrix-free $S_c v$ in \cref{alg:aegis}. The envelope ratio is tight ($\approx 1.00$) at $\varepsilon{=}0.01$ and reaches $\leq 1.39$ at $\varepsilon{=}0.20$, identifying the dangerous direction rather than a global safety margin.
 
 \begin{proposition}[Per-Node First-Order Sensitivity Radius]
 \label{prop:radius}
@@ -96,11 +96,11 @@ Under uniform weights ($w_k = w$ for all $k$), $v_{k_1} > v_{k_2}$ implies $d_{k
 \end{proposition}
 
 \begin{proof}
-\textbf{(a).} Edge removal corresponds to $[\delta\Ahat]_{ij}{=}[\delta\Ahat]_{ji}{=}{-}w_k$, so by the $S_c$ construction $\norm{\Delta \zstar} \approx w_k v_k$. For the remainder, let $g(t){=}\zstar(A + t\delta\Ahat_k)$ with $g'(0){=}S\cdot\mathrm{vec}(\delta\Ahat_k)$. Taylor expansion, the resolvent identity $\frac{d}{dt}(I-M)^{-1}{=}(I-M)^{-1}\frac{dM}{dt}(I-M)^{-1}$, and Lipschitz continuity $\norm{dJ_z/dt}_2 \leq L_J \norm{\delta\Ahat_k}_2$ (with $L_J \leq \norm{W}_2^2$ for IGNN) yield $\norm{g''(\xi)} \leq (1{-}\kappa)^{-2}L_J w_k^2$, so $|R_k| \leq L_J w_k^2 / (2(1-\kappa)^2)$.
-\textbf{(b).} From (a), $d_{k_1}{-}d_{k_2} \geq w_{k_1} v_{k_1} - w_{k_2} v_{k_2} - C(w_{k_1}^2 + w_{k_2}^2)$ with $C{=}L_J/(2(1-\kappa)^2)$; under $v_{k_1}{>}v_{k_2}$, $w_{k_1}{\geq}w_{k_2}$, the first term is positive and~\eqref{eq:ranking} ensures the first-order gap dominates.
+\textbf{(a).} Edge removal corresponds to $[\delta\Ahat]_{ij}{=}[\delta\Ahat]_{ji}{=}{-}w_k$, so by the $S_c$ construction $\norm{\Delta \zstar} \approx w_k v_k$. For the remainder, let $g(t){=}\zstar(A{+}t\delta\Ahat_k)$, $t{\in}[0,1]$. IGNN is piecewise affine in $A$ for a fixed activation pattern, so $g(t)$ is piecewise linear and crosses finitely many activation boundaries; on each segment $J_z$ is constant. Across a boundary $J_z$ jumps by at most $\norm{W}_2^2$ (the max change in $\mathrm{diag}(\phi')(\Ahat\otimes W)$ when one activation flips), so the worst-case path Lipschitz constant $L_J \leq \norm{W}_2^2$. The resolvent identity $\frac{d}{dt}(I-M)^{-1}{=}(I-M)^{-1}\frac{dM}{dt}(I-M)^{-1}$ then yields $\norm{g''(\xi)} \leq (1{-}\kappa)^{-2}L_J w_k^2$, hence $|R_k| \leq L_J w_k^2/(2(1{-}\kappa)^2)$.
+\textbf{(b).} From (a), $d_{k_1}{-}d_{k_2} \geq w_{k_1}v_{k_1}{-}w_{k_2}v_{k_2}{-}C(w_{k_1}^2{+}w_{k_2}^2)$ with $C{=}L_J/(2(1-\kappa)^2)$; under $v_{k_1}{>}v_{k_2}$, $w_{k_1}{\geq}w_{k_2}$, the first term is positive and~\eqref{eq:ranking} ensures the first-order gap dominates.
 \end{proof}
 
-For ReLU activations, $J_z$ is locally constant in each linear region (Taylor remainder exact, $R_k{=}0$) and jumps by at most $\norm{W}_2^2$ across activation boundaries, so~\eqref{eq:transfer} holds with $L_J \leq \norm{W}_2^2$. Empirically $|R_k|$ is $2$--$10\times$ smaller than $L_J w_k^2$, and the $29/33$ positive-transfer cells of \cref{fig:tau_heatmap} confirm the piecewise structure does not erode the bridge: shallow models with near-uniform $v_k$ (GCN-2) violate part-(b), deeper models satisfy it. The ingredients of \cref{thm:phase_transition} are classical~\cite{stewart1990matrix,trefethen2005spectra}; the contribution is the constrained projection $S_c$ that turns a vacuous bound (tightness $0.31$) into a tight one ($1.00$; \cref{sec:cross_domain}) and unifies attacks, rankings, and radii.
+Empirically $|R_k|$ is $2$--$10\times$ smaller than $L_J w_k^2$, and the $29/33$ positive-transfer cells of \cref{fig:tau_heatmap} confirm the piecewise structure does not erode the bridge: shallow models with near-uniform $v_k$ (GCN-2) violate part-(b), deeper models satisfy it. The ingredients of \cref{thm:phase_transition} are classical~\cite{stewart1990matrix,trefethen2005spectra}; the contribution is the constrained projection $S_c$ that turns a vacuous bound (tightness $0.31$) into a tight one ($1.00$; \cref{sec:cross_domain}) and unifies attacks, rankings, and radii.
 
 \begin{figure*}[t]
 \centering
