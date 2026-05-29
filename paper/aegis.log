@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.16)  29 MAY 2026 04:31
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.16)  29 MAY 2026 13:56
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -451,9 +451,30 @@ LaTeX Info: Redefining \labelcpageref on input line 2370.
 Package cleveref Info: `amsthm' support loaded on input line 3026.
 )
 ==> First Aid for cleveref.sty applied!
-(/usr/share/texmf-dist/tex/latex/caption/subcaption.sty
-Package: subcaption 2023/07/28 v1.6b Sub-captions (AR)
-
+(/usr/share/texmf-dist/tex/latex/silence/silence.sty
+Package: silence 2012/07/02 v1.5b Selective filtering of warnings and error mes
+sages
+\sl@Save=\count325
+\sl@StateNumber=\count326
+\sl@MessageCount=\count327
+\sl@Casualties=\count328
+\sl@Filter=\toks33
+\sl@Message=\toks34
+\sl@UnexpandedMessage=\toks35
+\sl@Mess@ge=\toks36
+\sl@WarningCount=\count329
+\sl@WarningNumber=\count330
+\sl@WarningCasualties=\count331
+\sl@TempBOW=\toks37
+\sl@BankOfWarnings=\toks38
+LaTeX Info: Redefining \GenericWarning on input line 433.
+\sl@ErrorCount=\count332
+\sl@ErrorNumber=\count333
+\sl@ErrorCasualties=\count334
+\sl@TempBOE=\toks39
+\sl@BankOfErrors=\toks40
+LaTeX Info: Redefining \GenericError on input line 601.
+)
 (/usr/share/texmf-dist/tex/latex/caption/caption.sty
 Package: caption 2023/08/05 v3.6o Customizing captions (AR)
 
@@ -481,21 +502,19 @@ ference \hbox to\hsize {\normalfont \footnotesize \hfil \box \@tempboxa \hfil }
 \else \hbox to\hsize {\normalfont \footnotesize \box \@tempboxa \hfil }\fi \fi 
 \fi  on input line 1175.
 )
-
-Package caption Warning: Unknown document class (or package),
-(caption)                standard defaults will be used.
-See the caption package documentation for explanation.
-
-\c@caption@flags=\count325
-\c@continuedfloat=\count326
+\c@caption@flags=\count335
+\c@continuedfloat=\count336
 Package caption Info: float package is loaded.
 Package caption Info: hyperref package is loaded.
 )
+(/usr/share/texmf-dist/tex/latex/caption/subcaption.sty
+Package: subcaption 2023/07/28 v1.6b Sub-captions (AR)
 Package caption Info: New subtype `subfigure' on input line 238.
-\c@subfigure=\count327
+\c@subfigure=\count337
 Package caption Info: New subtype `subtable' on input line 238.
-\c@subtable=\count328
-) (/usr/share/texmf-dist/tex/latex/tools/bm.sty
+\c@subtable=\count338
+)
+(/usr/share/texmf-dist/tex/latex/tools/bm.sty
 Package: bm 2025/10/21 v1.2g Bold Symbol Support (DPC/FMi)
 \symboldoperators=\mathgroup6
 \symboldletters=\mathgroup7
@@ -510,18 +529,18 @@ Package: xspace 2014/10/28 v1.13 Space after command names (DPC,MH)
 )
 (/usr/share/texmf-dist/tex/latex/microtype/microtype.sty
 Package: microtype 2026/03/01 v3.2d Micro-typographical refinements (RS)
-\MT@toks=\toks33
+\MT@toks=\toks41
 \MT@tempbox=\box59
-\MT@count=\count329
+\MT@count=\count339
 LaTeX Info: Redefining \noprotrusionifhmode on input line 1084.
 LaTeX Info: Redefining \leftprotrusion on input line 1085.
-\MT@prot@toks=\toks34
+\MT@prot@toks=\toks42
 LaTeX Info: Redefining \rightprotrusion on input line 1104.
 LaTeX Info: Redefining \textls on input line 1449.
 \MT@outer@kern=\dimen265
 LaTeX Info: Redefining \microtypecontext on input line 2053.
 LaTeX Info: Redefining \textmicrotypecontext on input line 2070.
-\MT@listname@count=\count330
+\MT@listname@count=\count340
 
 (/usr/share/texmf-dist/tex/latex/microtype/microtype-pdftex.def
 File: microtype-pdftex.def 2026/03/01 v3.2d Definitions specific to pdftex (RS)
@@ -541,7 +560,7 @@ LaTeX Info: Redefining \microtypesetup on input line 3065.
 (/usr/share/texmf-dist/tex/latex/pgf/basiclayer/pgf.sty
 (/usr/share/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty
 (/usr/share/texmf-dist/tex/generic/pgf/utilities/pgfutil-common.tex
-\pgfutil@everybye=\toks35
+\pgfutil@everybye=\toks43
 \pgfutil@tempdima=\dimen266
 \pgfutil@tempdimb=\dimen267
 )
@@ -560,12 +579,12 @@ Package: pgf 2025-08-29 v3.1.11a (3.1.11a)
 Package: pgfsys 2025-08-29 v3.1.11a (3.1.11a)
 
 (/usr/share/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex
-\pgfkeys@pathtoks=\toks36
-\pgfkeys@temptoks=\toks37
+\pgfkeys@pathtoks=\toks44
+\pgfkeys@temptoks=\toks45
 
 (/usr/share/texmf-dist/tex/generic/pgf/utilities/pgfkeyslibraryfiltered.code.te
 x
-\pgfkeys@tmptoks=\toks38
+\pgfkeys@tmptoks=\toks46
 ))
 \pgf@x=\dimen268
 \pgf@y=\dimen269
@@ -579,14 +598,14 @@ x
 \pgf@yd=\dimen277
 \w@pgf@writea=\write3
 \r@pgf@reada=\read2
-\c@pgf@counta=\count331
-\c@pgf@countb=\count332
-\c@pgf@countc=\count333
-\c@pgf@countd=\count334
-\t@pgf@toka=\toks39
-\t@pgf@tokb=\toks40
-\t@pgf@tokc=\toks41
-\pgf@sys@id@count=\count335
+\c@pgf@counta=\count341
+\c@pgf@countb=\count342
+\c@pgf@countc=\count343
+\c@pgf@countd=\count344
+\t@pgf@toka=\toks47
+\t@pgf@tokb=\toks48
+\t@pgf@tokc=\toks49
+\pgf@sys@id@count=\count345
  (/usr/share/texmf-dist/tex/generic/pgf/systemlayer/pgf.cfg
 File: pgf.cfg 2025-08-29 v3.1.11a (3.1.11a)
 )
@@ -600,8 +619,8 @@ File: pgfsys-common-pdf.def 2025-08-29 v3.1.11a (3.1.11a)
 )))
 (/usr/share/texmf-dist/tex/generic/pgf/systemlayer/pgfsyssoftpath.code.tex
 File: pgfsyssoftpath.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgfsyssoftpath@smallbuffer@items=\count336
-\pgfsyssoftpath@bigbuffer@items=\count337
+\pgfsyssoftpath@smallbuffer@items=\count346
+\pgfsyssoftpath@bigbuffer@items=\count347
 )
 (/usr/share/texmf-dist/tex/generic/pgf/systemlayer/pgfsysprotocol.code.tex
 File: pgfsysprotocol.code.tex 2025-08-29 v3.1.11a (3.1.11a)
@@ -613,11 +632,11 @@ Package: pgfcore 2025-08-29 v3.1.11a (3.1.11a)
 (/usr/share/texmf-dist/tex/generic/pgf/math/pgfmathutil.code.tex)
 (/usr/share/texmf-dist/tex/generic/pgf/math/pgfmathparser.code.tex
 \pgfmath@dimen=\dimen278
-\pgfmath@count=\count338
+\pgfmath@count=\count348
 \pgfmath@box=\box61
-\pgfmath@toks=\toks42
-\pgfmath@stack@operand=\toks43
-\pgfmath@stack@operation=\toks44
+\pgfmath@toks=\toks50
+\pgfmath@stack@operand=\toks51
+\pgfmath@stack@operation=\toks52
 )
 (/usr/share/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.code.tex)
 (/usr/share/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.basic.code.tex)
@@ -631,7 +650,7 @@ x) (/usr/share/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.base.code.tex)
 (/usr/share/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.integerarithmetics
 .code.tex) (/usr/share/texmf-dist/tex/generic/pgf/math/pgfmathcalc.code.tex)
 (/usr/share/texmf-dist/tex/generic/pgf/math/pgfmathfloat.code.tex
-\c@pgfmathroundto@lastzeros=\count339
+\c@pgfmathroundto@lastzeros=\count349
 ))
 (/usr/share/texmf-dist/tex/generic/pgf/math/pgfint.code.tex)
 (/usr/share/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepoints.code.tex
@@ -665,7 +684,7 @@ File: pgfcorescopes.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgfpic=\box62
 \pgf@hbox=\box63
 \pgf@layerbox@main=\box64
-\pgf@picture@serial@count=\count340
+\pgf@picture@serial@count=\count350
 )
 (/usr/share/texmf-dist/tex/generic/pgf/basiclayer/pgfcoregraphicstate.code.tex
 File: pgfcoregraphicstate.code.tex 2025-08-29 v3.1.11a (3.1.11a)
@@ -693,8 +712,8 @@ File: pgfcorearrows.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 (/usr/share/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreshade.code.tex
 File: pgfcoreshade.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgf@max=\dimen302
-\pgf@sys@shading@range@num=\count341
-\pgf@shadingcount=\count342
+\pgf@sys@shading@range@num=\count351
+\pgf@shadingcount=\count352
 )
 (/usr/share/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreimage.code.tex
 File: pgfcoreimage.code.tex 2025-08-29 v3.1.11a (3.1.11a)
@@ -738,8 +757,8 @@ Package: pgfcomp-version-1-18 2025-08-29 v3.1.11a (3.1.11a)
 Package: pgffor 2025-08-29 v3.1.11a (3.1.11a)
 \pgffor@iter=\dimen305
 \pgffor@skip=\dimen306
-\pgffor@stack=\toks45
-\pgffor@toks=\toks46
+\pgffor@stack=\toks53
+\pgffor@toks=\toks54
 ))
 (/usr/share/texmf-dist/tex/generic/pgf/frontendlayer/tikz/tikz.code.tex
 Package: tikz 2025-08-29 v3.1.11a (3.1.11a)
@@ -747,7 +766,7 @@ Package: tikz 2025-08-29 v3.1.11a (3.1.11a)
 (/usr/share/texmf-dist/tex/generic/pgf/libraries/pgflibraryplothandlers.code.te
 x
 File: pgflibraryplothandlers.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgf@plot@mark@count=\count343
+\pgf@plot@mark@count=\count353
 \pgfplotmarksize=\dimen307
 )
 \tikz@lastx=\dimen308
@@ -762,17 +781,17 @@ File: pgflibraryplothandlers.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \tikz@figbox@bg=\box68
 \tikz@tempbox=\box69
 \tikz@tempbox@bg=\box70
-\tikztreelevel=\count344
-\tikznumberofchildren=\count345
-\tikznumberofcurrentchild=\count346
-\tikz@fig@count=\count347
+\tikztreelevel=\count354
+\tikznumberofchildren=\count355
+\tikznumberofcurrentchild=\count356
+\tikz@fig@count=\count357
  (/usr/share/texmf-dist/tex/generic/pgf/modules/pgfmodulematrix.code.tex
 File: pgfmodulematrix.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgfmatrixcurrentrow=\count348
-\pgfmatrixcurrentcolumn=\count349
-\pgf@matrix@numberofcolumns=\count350
+\pgfmatrixcurrentrow=\count358
+\pgfmatrixcurrentcolumn=\count359
+\pgf@matrix@numberofcolumns=\count360
 )
-\tikz@expandcount=\count351
+\tikz@expandcount=\count361
 
 (/usr/share/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrary
 topaths.code.tex
@@ -797,46 +816,46 @@ File: tikzlibraryshapes.geometric.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 ric.code.tex
 File: pgflibraryshapes.geometric.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 ))
-\c@theorem=\count352
+\c@theorem=\count362
  (/usr/share/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count353
+\l__color_backend_stack_int=\count363
 ) (./aegis.aux)
 \openout1 = `aegis.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
 
 -- Lines per column: 56 (exact).
 (/usr/share/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count354
+\scratchcounter=\count364
 \scratchdimen=\dimen320
 \scratchbox=\box71
-\nofMPsegments=\count355
-\nofMParguments=\count356
-\everyMPshowfont=\toks47
-\MPscratchCnt=\count357
+\nofMPsegments=\count365
+\nofMParguments=\count366
+\everyMPshowfont=\toks55
+\MPscratchCnt=\count367
 \MPscratchDim=\dimen321
-\MPnumerator=\count358
-\makeMPintoPDFobject=\count359
-\everyMPtoPDFconversion=\toks48
+\MPnumerator=\count368
+\makeMPintoPDFobject=\count369
+\everyMPtoPDFconversion=\toks56
 ) (/usr/share/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
@@ -846,7 +865,7 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-Package hyperref Info: Link coloring OFF on input line 34.
+Package hyperref Info: Link coloring OFF on input line 41.
  (./aegis.out)
 (./aegis.out)
 \@outlinefile=\write4
@@ -854,13 +873,13 @@ Package hyperref Info: Link coloring OFF on input line 34.
 
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
-LaTeX Info: Redefining \microtypecontext on input line 34.
-Package microtype Info: Applying patch `item' on input line 34.
-Package microtype Info: Applying patch `toc' on input line 34.
-Package microtype Info: Applying patch `eqnum' on input line 34.
-Package microtype Info: Applying patch `footnote' on input line 34.
-Package microtype Info: Applying patch `verbatim' on input line 34.
-LaTeX Info: Redefining \microtypesetup on input line 34.
+LaTeX Info: Redefining \microtypecontext on input line 41.
+Package microtype Info: Applying patch `item' on input line 41.
+Package microtype Info: Applying patch `toc' on input line 41.
+Package microtype Info: Applying patch `eqnum' on input line 41.
+Package microtype Info: Applying patch `footnote' on input line 41.
+Package microtype Info: Applying patch `verbatim' on input line 41.
+LaTeX Info: Redefining \microtypesetup on input line 41.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
@@ -893,21 +912,9 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 (/usr/share/texmf-dist/tex/latex/microtype/mt-msb.cfg
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 ))
-(./sections/introduction.tex) (./sections/background.tex
-Underfull \hbox (badness 2809) in paragraph at lines 12--14
-\OT1/ptm/m/n/10 (+20) with $\OML/cmm/m/it/10 W \OMS/cmsy/m/n/10 2 \U/msb/m/n/10
- R[]$ \OT1/ptm/m/n/10 (+20) spectral-normalized [[]] so $\OML/cmm/m/it/10 ^^T \
-OMS/cmsy/m/n/10 ^^T
- []
-
-
-Underfull \hbox (badness 1502) in paragraph at lines 12--14
-[][] [][] \OML/cmm/m/it/10 < \OT1/cmr/m/n/10 1$\OT1/ptm/m/n/10 (+20) , ReLU $\O
-ML/cmm/m/it/10 ^^^$\OT1/ptm/m/n/10 (+20) , and a learned pro-jec-tion
- []
-
-[1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texmf-dist/fon
-ts/enc/dvips/base/8r.enc}
+(./sections/introduction.tex) (./sections/background.tex [1{/var/lib/texmf/font
+s/map/pdftex/updmap/pdftex.map}{/usr/share/texmf-dist/fonts/enc/dvips/base/8r.e
+nc}
 
 
 ]) (./sections/theory.tex
@@ -915,120 +922,76 @@ ts/enc/dvips/base/8r.enc}
 LaTeX Font Warning: Font shape `OT1/ptm/m/scit' undefined
 (Font)              using `OT1/ptm/m/sc' instead on input line 14.
 
-
-Underfull \hbox (badness 5008) in paragraph at lines 41--42
-[]\OT1/ptm/b/n/10 (+20) (b)--(c). \OT1/ptm/m/n/10 (+20) Along the worst-case di
--rec-tion $[][] \OMS/cmsy/m/n/10 !
- []
-
 [2]
 
 LaTeX Font Warning: Font shape `OT1/ptm/m/scit' undefined
-(Font)              using `OT1/ptm/m/sc' instead on input line 74.
+(Font)              using `OT1/ptm/m/sc' instead on input line 79.
 
-<figures/aegis--overview--diagram.pdf, id=216, 1145.23856pt x 775.93887pt>
+<figures/aegis--overview--diagram.pdf, id=224, 1145.23856pt x 775.93887pt>
 File: figures/aegis--overview--diagram.pdf Graphic file (type pdf)
 <use figures/aegis--overview--diagram.pdf>
 Package pdftex.def Info: figures/aegis--overview--diagram.pdf  used on input li
-ne 107.
+ne 112.
 (pdftex.def)             Requested size: 464.39685pt x 314.64423pt.
-) (./sections/framework.tex [3]
+[3]) (./sections/framework.tex
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
 put line 12.
-
-Underfull \hbox (badness 10000) in paragraph at lines 17--18
-[] []$\OML/cmm/m/it/10 ^^T \OMS/cmsy/m/n/10   [][]$ \OT1/ptm/m/n/10 (+20) via p
-ower it-er-a-tion; $\OML/cmm/m/it/10 K \OMS/cmsy/m/n/10  
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 18--19
-[] []$[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 v\OT1/cmr/m/n/10 ) := [][] \OML/cmm/m
-/it/10 J[][][]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 P[]v\OT1/cmr/m/n/10 )\OMS/cmsy/
-m/n/10 j[]$\OT1/ptm/m/n/10 (+20) ;
- []
-
 LaTeX Font Info:    Trying to load font information for OMS+ptm on input line 2
 3.
+
 (/usr/share/texmf-dist/tex/latex/psnfss/omsptm.fd
 File: omsptm.fd 
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 23.
-LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 3
-4.
-
-(/usr/share/texmf-dist/tex/latex/psnfss/ot1pcr.fd
-File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
-)
-<figures/fig_sc_heatmap.pdf, id=243, 314.37451pt x 184.28851pt>
+<figures/fig_sc_heatmap.pdf, id=255, 314.37451pt x 184.28851pt>
 File: figures/fig_sc_heatmap.pdf Graphic file (type pdf)
 <use figures/fig_sc_heatmap.pdf>
 Package pdftex.def Info: figures/fig_sc_heatmap.pdf  used on input line 38.
 (pdftex.def)             Requested size: 252.0pt x 147.72906pt.
-) (./sections/experiments.tex [4 <./figures/aegis--overview--diagram.pdf>] [5 <
-./figures/fig_sc_heatmap.pdf>]
-<figures/fig_greedy_curves.pdf, id=511, 601.86404pt x 203.27481pt>
+) (./sections/experiments.tex [4 <./figures/aegis--overview--diagram.pdf> <./fi
+gures/fig_sc_heatmap.pdf>]
+[5]
+<figures/fig_greedy_curves.pdf, id=523, 601.86404pt x 203.27481pt>
 File: figures/fig_greedy_curves.pdf Graphic file (type pdf)
 <use figures/fig_greedy_curves.pdf>
 Package pdftex.def Info: figures/fig_greedy_curves.pdf  used on input line 81.
 (pdftex.def)             Requested size: 387.0pt x 130.70956pt.
-<figures/fig_breach_rate.pdf, id=514, 289.08pt x 198.7425pt>
+<figures/fig_breach_rate.pdf, id=526, 289.08pt x 198.7425pt>
 File: figures/fig_breach_rate.pdf Graphic file (type pdf)
 <use figures/fig_breach_rate.pdf>
 Package pdftex.def Info: figures/fig_breach_rate.pdf  used on input line 94.
 (pdftex.def)             Requested size: 165.12378pt x 113.52094pt.
-<figures/fig_scalability.pdf, id=515, 589.66814pt x 217.19104pt>
+<figures/fig_scalability.pdf, id=527, 589.66814pt x 217.19104pt>
 File: figures/fig_scalability.pdf Graphic file (type pdf)
 <use figures/fig_scalability.pdf>
 Package pdftex.def Info: figures/fig_scalability.pdf  used on input line 100.
 (pdftex.def)             Requested size: 335.39685pt x 123.53505pt.
-<figures/fig_phase_transition.pdf, id=537, 314.2882pt x 216.91238pt>
+<figures/fig_phase_transition.pdf, id=552, 314.2882pt x 216.91238pt>
 File: figures/fig_phase_transition.pdf Graphic file (type pdf)
 <use figures/fig_phase_transition.pdf>
 Package pdftex.def Info: figures/fig_phase_transition.pdf  used on input line 1
 39.
 (pdftex.def)             Requested size: 252.0pt x 173.924pt.
  [6]
-Underfull \hbox (badness 10000) in paragraph at lines 152--153
-[]\OT1/ptm/b/n/10 (+20) Hyperparameters. \OT1/ptm/m/n/10 (+20) Tight-ness is st
-a-ble across
- []
+Underfull \vbox (badness 1348) has occurred while \output is active []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 159--160
-[]\OT1/ptm/m/n/10 (+20) For $\OML/cmm/m/it/10 K$\OT1/ptm/m/n/10 (+20) -layer ex
--plicit GNNs we form
- []
-
-
-Underfull \hbox (badness 1902) in paragraph at lines 159--160
-\OT1/ptm/m/n/10 (+20) per-architecture char-ac-ter-i-sa-tion on Cora: IGNN car-
-ries
- []
-
-
-Underfull \hbox (badness 2856) in paragraph at lines 163--163
-\OT1/ptm/m/n/10 (+20) 10 seeds). Tight.: ac-tual/predicted shift ra-tio. AtkAdv
-:
- []
-
-[7 <./figures/fig_greedy_curves.pdf> <./figures/fig_breach_rate.pdf> <./figures
-/fig_scalability.pdf> <./figures/fig_phase_transition.pdf>]
-<figures/fig_tau_heatmap.pdf, id=712, 314.37451pt x 195.129pt>
+ [7 <./figures/fig_greedy_curves.pdf> <./figures/fig_breach_rate.pdf> <./figure
+s/fig_scalability.pdf> <./figures/fig_phase_transition.pdf>]
+<figures/fig_tau_heatmap.pdf, id=739, 314.37451pt x 195.129pt>
 File: figures/fig_tau_heatmap.pdf Graphic file (type pdf)
 <use figures/fig_tau_heatmap.pdf>
-Package pdftex.def Info: figures/fig_tau_heatmap.pdf  used on input line 194.
+Package pdftex.def Info: figures/fig_tau_heatmap.pdf  used on input line 190.
 (pdftex.def)             Requested size: 252.0pt x 156.419pt.
-)
-(./sections/case_study.tex
-<figures/fig_ieee14_case.pdf, id=726, 272.12766pt x 210.93506pt>
+) (./sections/case_study.tex
+<figures/fig_ieee14_case.pdf, id=753, 272.12766pt x 210.93506pt>
 File: figures/fig_ieee14_case.pdf Graphic file (type pdf)
 <use figures/fig_ieee14_case.pdf>
 Package pdftex.def Info: figures/fig_ieee14_case.pdf  used on input line 41.
 (pdftex.def)             Requested size: 231.83954pt x 179.70761pt.
-) (./sections/related_work.tex [8 <./figures/fig_tau_heatmap.pdf>]) (./sections
-/conclusion.tex) (./aegis.bbl [9 <./figures/fig_ieee14_case.pdf>])
+)
+(./sections/related_work.tex [8 <./figures/fig_tau_heatmap.pdf> <./figures/fig_
+ieee14_case.pdf>]) (./sections/conclusion.tex) (./aegis.bbl [9])
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -1049,40 +1012,40 @@ Package rerunfilecheck Info: File `aegis.out' has not changed.
 (rerunfilecheck)             Checksum: 758A4CC442D4AE59DF83A67BE8BF6C25;3016.
  ) 
 Here is how much of TeX's memory you used:
- 28617 strings out of 469515
- 534418 string characters out of 5470807
- 966411 words of memory out of 5000000
- 56152 multiletter control sequences out of 15000+600000
- 710490 words of font info for 481 fonts, out of 8000000 for 9000
+ 28815 strings out of 469515
+ 537171 string characters out of 5470807
+ 973573 words of memory out of 5000000
+ 56280 multiletter control sequences out of 15000+600000
+ 714650 words of font info for 523 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 84i,13n,94p,2052b,609s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/share/t
-exmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/share/texmf-dist/fonts
-/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/
-amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-mi5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/s
-hare/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist
-/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texmf-dist/fonts/type1/pu
-blic/amsfonts/cm/cmmi9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/c
-m/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></us
-r/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texmf-di
-st/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/p
-ublic/amsfonts/cm/cmr8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/c
-m/cmr9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></u
-sr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texmf-dist/fonts/type
-1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfon
-ts/cm/cmsy8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb
-></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/sh
-are/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texmf-dist/fonts/
-type1/urw/symbol/usyr.pfb></usr/share/texmf-dist/fonts/type1/urw/symbol/usyr.pf
-b></usr/share/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-dis
-t/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texmf-dist/fonts/type1/urw/time
-s/utmr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on aegis.pdf (10 pages, 1511585 bytes).
+ 84i,13n,94p,1909b,614s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/share/texmf-dist/font
+s/type1/public/amsfonts/cm/cmbx9.pfb></usr/share/texmf-dist/fonts/type1/public/
+amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cm
+mi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/
+share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texmf-dis
+t/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/p
+ublic/amsfonts/cm/cmmi8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmmi9.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></
+usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texmf-
+dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texmf-dist/fonts/type1
+/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts
+/cm/cmr8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></u
+sr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texmf-dist/fonts/typ
+e1/public/amsfonts/cm/cmsy6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pf
+b></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/t
+exmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/share/texmf-dist
+/fonts/type1/urw/symbol/usyr.pfb></usr/share/texmf-dist/fonts/type1/urw/symbol/
+usyr.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/te
+xmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texmf-dist/fonts/type1/u
+rw/times/utmr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on aegis.pdf (10 pages, 1523828 bytes).
 PDF statistics:
- 981 PDF objects out of 1000 (max. 8388607)
- 697 compressed objects within 7 object streams
- 122 named destinations out of 1000 (max. 500000)
- 90813 words of extra memory for PDF output out of 106986 (max. 10000000)
+ 1016 PDF objects out of 1200 (max. 8388607)
+ 731 compressed objects within 8 object streams
+ 131 named destinations out of 1000 (max. 500000)
+ 98493 words of extra memory for PDF output out of 106986 (max. 10000000)
 
