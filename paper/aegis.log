@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.16)  29 MAY 2026 04:14
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.16)  29 MAY 2026 04:28
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -968,22 +968,22 @@ Package pdftex.def Info: figures/fig_sc_heatmap.pdf  used on input line 38.
 (pdftex.def)             Requested size: 252.0pt x 147.72906pt.
 ) (./sections/experiments.tex [4 <./figures/aegis--overview--diagram.pdf>] [5 <
 ./figures/fig_sc_heatmap.pdf>]
-<figures/fig_greedy_curves.pdf, id=512, 601.86404pt x 203.27481pt>
+<figures/fig_greedy_curves.pdf, id=511, 601.86404pt x 203.27481pt>
 File: figures/fig_greedy_curves.pdf Graphic file (type pdf)
 <use figures/fig_greedy_curves.pdf>
 Package pdftex.def Info: figures/fig_greedy_curves.pdf  used on input line 81.
 (pdftex.def)             Requested size: 387.0pt x 130.70956pt.
-<figures/fig_breach_rate.pdf, id=515, 289.08pt x 198.7425pt>
+<figures/fig_breach_rate.pdf, id=514, 289.08pt x 198.7425pt>
 File: figures/fig_breach_rate.pdf Graphic file (type pdf)
 <use figures/fig_breach_rate.pdf>
 Package pdftex.def Info: figures/fig_breach_rate.pdf  used on input line 94.
 (pdftex.def)             Requested size: 165.12378pt x 113.52094pt.
-<figures/fig_scalability.pdf, id=516, 589.66814pt x 217.19104pt>
+<figures/fig_scalability.pdf, id=515, 589.66814pt x 217.19104pt>
 File: figures/fig_scalability.pdf Graphic file (type pdf)
 <use figures/fig_scalability.pdf>
 Package pdftex.def Info: figures/fig_scalability.pdf  used on input line 100.
 (pdftex.def)             Requested size: 335.39685pt x 123.53505pt.
-<figures/fig_phase_transition.pdf, id=538, 314.2882pt x 216.91238pt>
+<figures/fig_phase_transition.pdf, id=537, 314.2882pt x 216.91238pt>
 File: figures/fig_phase_transition.pdf Graphic file (type pdf)
 <use figures/fig_phase_transition.pdf>
 Package pdftex.def Info: figures/fig_phase_transition.pdf  used on input line 1
@@ -1049,11 +1049,11 @@ Package rerunfilecheck Info: File `aegis.out' has not changed.
 (rerunfilecheck)             Checksum: 758A4CC442D4AE59DF83A67BE8BF6C25;3016.
  ) 
 Here is how much of TeX's memory you used:
- 28607 strings out of 469515
- 534323 string characters out of 5470807
+ 28617 strings out of 469515
+ 534418 string characters out of 5470807
  966411 words of memory out of 5000000
  56152 multiletter control sequences out of 15000+600000
- 709948 words of font info for 474 fonts, out of 8000000 for 9000
+ 710490 words of font info for 481 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  84i,13n,94p,2052b,609s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/share/t
@@ -1079,10 +1079,10 @@ type1/urw/symbol/usyr.pfb></usr/share/texmf-dist/fonts/type1/urw/symbol/usyr.pf
 b></usr/share/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-dis
 t/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texmf-dist/fonts/type1/urw/time
 s/utmr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on aegis.pdf (10 pages, 1511334 bytes).
+Output written on aegis.pdf (10 pages, 1511592 bytes).
 PDF statistics:
- 980 PDF objects out of 1000 (max. 8388607)
- 696 compressed objects within 7 object streams
+ 981 PDF objects out of 1000 (max. 8388607)
+ 697 compressed objects within 7 object streams
  122 named destinations out of 1000 (max. 500000)
  90813 words of extra memory for PDF output out of 106986 (max. 10000000)
 
