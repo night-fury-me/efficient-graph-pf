@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.16)  29 MAY 2026 04:12
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=pdflatex 2026.4.16)  29 MAY 2026 04:14
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1049,13 +1049,13 @@ Package rerunfilecheck Info: File `aegis.out' has not changed.
 (rerunfilecheck)             Checksum: 758A4CC442D4AE59DF83A67BE8BF6C25;3016.
  ) 
 Here is how much of TeX's memory you used:
- 28595 strings out of 469515
- 534227 string characters out of 5470807
+ 28607 strings out of 469515
+ 534323 string characters out of 5470807
  966411 words of memory out of 5000000
  56152 multiletter control sequences out of 15000+600000
- 709424 words of font info for 466 fonts, out of 8000000 for 9000
+ 709948 words of font info for 474 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 84i,13n,94p,1999b,609s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,13n,94p,2052b,609s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/share/t
 exmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/share/texmf-dist/fonts
 /type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/
@@ -1079,7 +1079,7 @@ type1/urw/symbol/usyr.pfb></usr/share/texmf-dist/fonts/type1/urw/symbol/usyr.pf
 b></usr/share/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-dis
 t/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texmf-dist/fonts/type1/urw/time
 s/utmr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on aegis.pdf (10 pages, 1511322 bytes).
+Output written on aegis.pdf (10 pages, 1511334 bytes).
 PDF statistics:
  980 PDF objects out of 1000 (max. 8388607)
  696 compressed objects within 7 object streams
