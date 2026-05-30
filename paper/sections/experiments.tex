@@ -146,7 +146,7 @@ The construction is not tied to implicit models. For $K$-layer explicit GNNs (GC
 
 \begin{table}[t]
 \centering
-\caption{$S_c$ framework on 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: \AEGIS/random damage. $\tau$: Kendall vs.\ brute-force fixed-normalization single-edge removal (\cref{prop:transfer}). Acc: full-graph test accuracy.}
+\caption{$S_c$ framework on 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: \AEGIS/random damage. $\tau$: Kendall of the \emph{unweighted} $v_{ij}$ ranking vs.\ single-edge removal; the edge-weighted $A_{ij}v_{ij}$ ranking of \cref{prop:transfer} (\cref{fig:tau_heatmap}) is the higher headline score. Acc: full-graph test accuracy.}
 \label{tab:explicit}
 \small
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l rrrr@{}}
@@ -169,7 +169,7 @@ APPNP         & $\ms{1.02}{.00}$ & $\ms{3.4}{0.3}\times$ & $\ms{+.35}{.01}$ & $\
 
 \textbf{Robust backbones.} Under the $\sigma_1(W){\leq}0.9$ cap, RobustGCN-lite~\cite{zhu2019robust} and GNNGuard-lite~\cite{zhang2020gnnguard} match or exceed IGNN; the cap is a precondition (without it $\kappa{>}1$ voids \cref{thm:phase_transition}).
 
-\textbf{Cross-dataset transfer.} We rank edges by the score \cref{prop:transfer} predicts, the edge-weighted $A_{ij}v_{ij}$. \Cref{fig:tau_heatmap} reports its $\tau$ over 6 datasets and 7 architectures (390 runs): \emph{all $39/39$ cells positive}, median $\tau{=}\mathbf{+0.99}$ (sign test $p{<}10^{-5}$), vs.\ $34/39$ for unweighted $v_{ij}$. It beats a pure edge-weight baseline by $\Delta\tau{\approx}\mathbf{+0.25}$, rising to $\mathbf{+0.65}$ on the fraud graph where uniform weights are uninformative, so $v_{ij}$ adds rank information beyond the weight. Weighting matters most at full-graph scale: on Amazon Photo ($N{=}7{,}650$) it reaches $\tau\!=\!\mathbf{+0.996\!\pm\!0.002}$ (stratified top-$v_{ij}$ N-1). GAT-2$^\dagger$ is the exception: attention reweights edges, so the unweighted $v_{ij}$ transfers better there ($+0.47$ vs.\ $+0.35$).
+\textbf{Cross-dataset transfer.} We rank edges by the score \cref{prop:transfer} predicts, the edge-weighted $A_{ij}v_{ij}$. \Cref{fig:tau_heatmap} reports its $\tau$ over 6 datasets and 7 architectures (390 runs): \emph{all $39/39$ cells positive}, median $\tau{=}\mathbf{+0.99}$ (sign test $p{<}10^{-5}$), vs.\ $34/39$ for unweighted $v_{ij}$. It beats a pure edge-weight baseline by $\Delta\tau{\approx}\mathbf{+0.25}$, rising to $\mathbf{+0.65}$ on the fraud graph where uniform weights are uninformative, so $v_{ij}$ adds rank information beyond the weight. Weighting matters most at full-graph scale: on Amazon Photo ($N{=}7{,}650$; full-graph $\kappa{\approx}1.00$, marginally non-contractive, so empirical) it reaches $\tau\!=\!\mathbf{+0.996\!\pm\!0.002}$ (stratified top-$v_{ij}$ N-1). GAT-2$^\dagger$ is the exception: attention reweights edges, so the unweighted $v_{ij}$ transfers better there ($+0.47$ vs.\ $+0.35$).
 
 \begin{figure}[t]
 \centering
