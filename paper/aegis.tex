@@ -25,9 +25,18 @@
 \usetikzlibrary{arrows.meta,positioning,shapes.geometric}
 
 \newtheorem{theorem}{Theorem}
-\newtheorem{proposition}[theorem]{Proposition}
-\newtheorem{observation}[theorem]{Observation}
-\newtheorem{remark}[theorem]{Remark}
+\newtheorem{proposition}{Proposition}
+\newtheorem{observation}{Observation}
+\newtheorem{remark}{Remark}
+% Each theorem-like environment carries its own counter and its own cleveref name
+\crefname{theorem}{Theorem}{Theorems}
+\Crefname{theorem}{Theorem}{Theorems}
+\crefname{proposition}{Proposition}{Propositions}
+\Crefname{proposition}{Proposition}{Propositions}
+\crefname{observation}{Observation}{Observations}
+\Crefname{observation}{Observation}{Observations}
+\crefname{remark}{Remark}{Remarks}
+\Crefname{remark}{Remark}{Remarks}
 
 \newcommand{\ms}[2]{#1_{\pm #2}}
 \newcommand{\R}{\mathbb{R}}
@@ -37,6 +46,16 @@
 \newcommand{\Ahat}{\hat{A}}
 \newcommand{\ecrit}{\varepsilon_{\mathrm{crit}}}
 \newcommand{\AEGIS}{\textsc{Aegis}\xspace}
+
+% --- Content-neutral space compaction (float/caption/display spacing) to meet the 10-page limit ---
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{7pt plus 2pt minus 2pt}
+\setlength{\intextsep}{7pt plus 2pt minus 2pt}
+\captionsetup{skip=3pt}
+\setlength{\abovedisplayskip}{5pt plus 1pt minus 1pt}
+\setlength{\belowdisplayskip}{5pt plus 1pt minus 1pt}
+\setlength{\abovedisplayshortskip}{3pt plus 1pt minus 1pt}
+\setlength{\belowdisplayshortskip}{3pt plus 1pt minus 1pt}
 
 \begin{document}
 

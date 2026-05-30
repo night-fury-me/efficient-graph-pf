@@ -26,7 +26,7 @@ Then structural perturbations $\delta \Ahat$ with $\norm{\delta \Ahat}_F = \vare
 \end{equation}
 where $S = (I - J_z)^{-1} J_A$ is the structural sensitivity matrix and $\sigma_1(S) \leq \norm{J_A}_{\mathrm{op}} / (1 - \kappa)$.
 
-\noindent\textbf{(b) Critical} ($\varepsilon \to \ecrit$): The resolvent obeys the unconditional eigenvalue bound $\norm{(I{-}J_z')^{-1}}_2 \geq 1/\min_i|1{-}\lambda_i(J_z')|$, so it blows up precisely when an eigenvalue of $J_z'$ approaches $1$---a vanishing spectral gap to $1$, \emph{not} $\norm{J_z'}_2\!\to\!1$ on its own. The rate is $\Omega(1/(\ecrit{-}\varepsilon))$ when $J_z'$ is normal with a dominant real-positive eigenvalue (the Perron mode of symmetric $\Ahat,W$); in general $\ecrit$ is the norm-based contraction radius that \emph{lower-bounds} the eigenvalue divergence threshold, the slack reflecting the nonnormality of $J_z'$ (bounded by $\eta$, \cref{obs:eta_bound}).
+\noindent\textbf{(b) Critical} ($\varepsilon \to \ecrit$): The resolvent obeys the unconditional eigenvalue bound $\norm{(I{-}J_z')^{-1}}_2 \geq 1/\min_i|1{-}\lambda_i(J_z')|$, so it blows up precisely when an eigenvalue of $J_z'$ approaches $1$: a vanishing spectral gap to $1$, \emph{not} $\norm{J_z'}_2\!\to\!1$ on its own. The rate is $\Omega(1/(\ecrit{-}\varepsilon))$ when $J_z'$ is normal with a dominant real-positive eigenvalue (the Perron mode of symmetric $\Ahat,W$); in general $\ecrit$ is the norm-based contraction radius that \emph{lower-bounds} the eigenvalue divergence threshold, the slack reflecting the nonnormality of $J_z'$ (bounded by $\eta$, \cref{obs:eta_bound}).
 
 \noindent\textbf{(c) Supercritical} ($\varepsilon \geq \ecrit$): The sufficient contraction certificate no longer applies ($\norm{J_z'}_2$ may exceed 1) and the part-(a) first-order guarantees do not apply; the certificate is reported as a sufficient safety boundary, validated empirically by the $\kappa_{\max}$ sweep of \cref{sec:phase_transition} (trained IGNNs hold with $2$--$4\times$ margin).
 \end{theorem}
@@ -116,7 +116,7 @@ Empirically $|R_k|$ is $2$--$10\times$ smaller than $L_J w_k^2$; the constrained
 
 \subsection{Generalization to Explicit GNNs}
 
-\begin{observation}[Structural Sensitivity for $K$-Layer GNNs]
+\begin{proposition}[Structural Sensitivity for $K$-Layer GNNs]
 \label{prop:explicit}
 Let $Z_K = g_K \circ \cdots \circ g_1(X, A)$ be a $K$-layer GNN where each layer $g_l$ is differentiable with respect to both its input and $A$. Define the \emph{unrolled sensitivity matrix}
 \begin{equation}
@@ -131,6 +131,6 @@ where $J_z^{(k)} = \partial g_k / \partial Z_{k-1}$ and $J_A^{(l)} = \partial g_
 \end{equation}
 
 \noindent\textbf{(b)} The constrained construction $S_c$ and per-node radius $r_v$ (\cref{prop:radius}) apply identically with $S_K$ in place of $S$.
-\end{observation}
+\end{proposition}
 
 For weight-tied models, $\sigma_1(S_K) \leq \norm{J_A}_2 (1{-}\kappa^K)/(1{-}\kappa)$ converges to the IGNN bound as $K{\to}\infty$. Explicit GNNs inherit the full computational pipeline with empirical tightness $0.99$--$1.02$ across the architecture suite (\cref{sec:explicit_extension}); the closed-form $\ecrit$ is available only for the contractive subclass.

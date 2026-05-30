@@ -3,7 +3,7 @@
 \label{sec:framework}
 %% ===================================================================
 
-The pipeline turns \cref{sec:theory} into a practical tool through matrix-free computation, sidestepping both the materialisation of $S \in \R^{Nd \times N^2}$ and the formation of the resolvent. One $S_c$ computation returns the per-edge spectrum $\{v_{ij}\}$, the SVD-optimal direction $\delta\Ahat^\star$, and per-node radii $\{r_v\}$, plus $\ecrit$ and the regime characterisation of \cref{thm:phase_transition} for IGNN-class operators. A dense path ($N \leq 200$) computes an exact SVD; a matrix-free path ($N > 200$, validated to $N{=}7{,}650$) uses JVP/VJP queries and randomized SVD. \Cref{fig:pipeline} illustrates the four stages; \cref{alg:aegis} summarises the matrix-free routing.
+The pipeline makes the theory of \cref{sec:theory} practical: it queries $S_c$ matrix-free, never materialising $S \in \R^{Nd \times N^2}$ or forming the resolvent. One $S_c$ computation returns the per-edge spectrum $\{v_{ij}\}$, the SVD-optimal direction $\delta\Ahat^\star$, and per-node radii $\{r_v\}$, plus $\ecrit$ and the regime characterisation of \cref{thm:phase_transition} for IGNN-class operators. A dense path ($N \leq 200$) computes an exact SVD; a matrix-free path ($N > 200$, validated to $N{=}7{,}650$) uses JVP/VJP queries and randomized SVD. \Cref{fig:pipeline} illustrates the four stages; \cref{alg:aegis} summarises the matrix-free routing.
 
 \begin{algorithm}[t]
 \caption{\AEGIS Vulnerability Analysis (matrix-free). Assumes the

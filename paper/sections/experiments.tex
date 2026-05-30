@@ -3,7 +3,9 @@
 \label{sec:experiments}
 %% ===================================================================
 
-\textbf{Setup.} We evaluate \AEGIS on 9 datasets across 4 domains with 10 random seeds each (PyTorch~\cite{paszke2019pytorch}). IGNN~\cite{gu2020implicit} uses $F(Z){=}\mathrm{ReLU}(\Ahat ZW^\top{+}U(X))$ with $W\in\R^{64\times64}$ spectral-normalised~\cite{miyato2018spectral} and Adam (lr $0.01$); ContractiveGCN-PF mirrors this with 5 bus features and 2-head readout. The spectral-norm constraint costs ${\sim}6\%$ Cora accuracy ($77.5\%$ vs.\ ${\sim}83\%$). Datasets: Cora, Citeseer, Pubmed~\cite{sen2008collective}, Amazon Photo~\cite{shchur2018pitfalls}, WikiCS~\cite{mernyei2020wiki}, IEEE 14/30/57/118~\cite{ieee2024testcases,thurner2018pandapower}. Baselines: smoothing (Gaussian $\sigma{=}0.01$, 200 MC, Clopper--Pearson $\alpha{=}0.001$), Mettack with Meta-Self GCN surrogate, LODF as $\mathrm{PTDF}_{ij}/(1{-}\mathrm{PTDF}_{jj})$ from the DC $B$-matrix~\cite[Ch.~11]{wood2014power}. The 9 datasets and 7 architectures are cumulative: all seven architectures appear only in \cref{tab:explicit} and \cref{fig:tau_heatmap} (33 cells); other studies use IGNN, and power flow the four IEEE cases.
+Our evaluation tests four claims in turn: the contractivity assumptions hold on trained models (\cref{sec:cross_domain}); the one-query SVD direction matches iterative attackers (\cref{sec:adaptive}); the continuous $S_c$ ranking transfers to discrete edge removal across architectures (\cref{sec:explicit_extension}); and the same object screens power-grid contingencies (\cref{sec:power_flow}).
+
+\textbf{Setup.} We evaluate \AEGIS on 9 datasets across 4 domains with 10 random seeds each (PyTorch~\cite{paszke2019pytorch}). IGNN~\cite{gu2020implicit} uses $F(Z){=}\mathrm{ReLU}(\Ahat ZW^\top{+}U(X))$ with $W\in\R^{64\times64}$ spectral-normalised~\cite{miyato2018spectral} and Adam (lr $0.01$); ContractiveGCN-PF mirrors this for power flow. The spectral-norm constraint costs ${\sim}6\%$ Cora accuracy ($77.5\%$ vs.\ ${\sim}83\%$). Datasets: Cora, Citeseer, Pubmed~\cite{sen2008collective}, Amazon Photo~\cite{shchur2018pitfalls}, WikiCS~\cite{mernyei2020wiki}, IEEE 14/30/57/118~\cite{ieee2024testcases,thurner2018pandapower}. Baselines: smoothing (Gaussian $\sigma{=}0.01$, 200 MC, Clopper--Pearson $\alpha{=}0.001$), Mettack with Meta-Self GCN surrogate, LODF as $\mathrm{PTDF}_{ij}/(1{-}\mathrm{PTDF}_{jj})$ from the DC $B$-matrix~\cite[Ch.~11]{wood2014power}. Coverage is not uniform across studies: all seven architectures appear only in \cref{tab:explicit} and \cref{fig:tau_heatmap} (33 cells), while the other classification studies use IGNN and the power-flow study uses the four IEEE cases.
 
 \subsection{Cross-Domain Adversarial Analysis}
 \label{sec:cross_domain}
@@ -45,16 +47,16 @@ WikiCS   & $\ms{1.00}{.01}$ & $\ms{1.01}{.01}$ & $\ms{1.02}{.01}$ & $\ms{1.05}{.
 Amazon   & $\ms{1.00}{.00}$ & $\ms{1.01}{.00}$ & $\ms{1.03}{.01}$ & $\ms{1.07}{.01}$ \\
 \bottomrule
 \end{tabular*}
-\end{table} The envelope ratio is measured on equilibrium shift $\norm{\Delta\zstar}_F$ (\cref{tab:tightness_eps}), distinct from the prediction-flip (breach) rate of \cref{fig:breach} (flips stay $<2\%$ at $\varepsilon{\leq}0.10$, $<6\%$ at $\varepsilon{=}0.20$).
+\end{table} The envelope ratio is measured on equilibrium shift $\norm{\Delta\zstar}_F$ (\cref{tab:tightness_eps}), distinct from the prediction-flip (breach) rate of \cref{fig:breach}.
 
 \textbf{Heuristic and surrogate baselines.} \AEGIS beats degree-proportional, edge-betweenness, and spectral rankings at $\varepsilon{=}0.01$ ($+6$--$148\%$ AtkAdv, Wilcoxon $p{<}0.001$) and inflicts $3$--$10\times$ more equilibrium damage than Mettack~\cite{zugner2019adversarial} at the early-warning regime $k\!\in\!\{1,\ldots,5\}$ ($\mathbf{149/150}$ paired wins, $p{<}10^{-43}$); GR-BCD/PR-BCD~\cite{geisler2021robustness} and the discrete-removal curves are in \cref{tab:baselines,fig:greedy_topk}.
 
 \subsection{Four-Quadrant Attack Comparison}
 \label{sec:adaptive}\label{sec:certificates}
 
-\textbf{Radius vs.\ smoothing.} Randomized smoothing~\cite{bojchevski2020efficient} gives constant-per-node base radii ($0.123$ vs.\ \AEGIS's $0.078$ at $\sigma{=}0.05$) and localized smoothing~\cite{schuchardt2023localized} needs $10^3$--$10^4$ MC/node, both lacking edge structure; \AEGIS radii are structurally informative ($r_v{\approx}0.10$ dense, $0.01$ at boundaries), a complementary point on the certificate-vs-diagnostic frontier.
+\textbf{Radius vs.\ smoothing.} Randomized smoothing~\cite{bojchevski2020efficient} gives constant-per-node base radii ($0.123$ vs.\ \AEGIS's $0.078$ at $\sigma{=}0.05$), and localized smoothing~\cite{schuchardt2023localized} needs $10^3$--$10^4$ MC/node; both lack edge structure. \AEGIS radii are instead structurally informative ($r_v{\approx}0.10$ in dense regions, $0.01$ at boundaries), a complementary point on the certificate-versus-diagnostic frontier.
 
-\Cref{tab:attack_full} evaluates \AEGIS against baselines spanning the four quadrants of (gradient-based, gradient-free) $\times$ (equilibrium-shift, classification-loss). The one-query SVD direction dominates: a $50$-step equilibrium-shift PGD~\cite{madry2018towards} using \AEGIS's own IFT gradients recovers only $72$--$92\%$ of its damage (solver validation, not an independent baseline), and a classification-loss PGD inflicts $15$--$70\%$ less while flipping predictions at comparable rates ($0$--$1.8\%$). The decisive test is a \emph{gradient-independent} adversary: a transfer direction from a separately trained surrogate IGNN (zero shared gradients) recovers only $99\%$ of the one-query damage ($\cos{=}0.99$ alignment), and a $512$-query black-box search just $44{\pm}4\%$. The direction is therefore model-intrinsic, not a circular gradient artifact: we term it the \emph{maximally sensitive first-order direction}, a one-query guarantee that empirically matches iterative attackers.
+\Cref{tab:attack_full} evaluates \AEGIS against baselines spanning the four quadrants of (gradient-based, gradient-free) $\times$ (equilibrium-shift, classification-loss). The one-query SVD direction dominates: a $50$-step equilibrium-shift PGD~\cite{madry2018towards} using \AEGIS's own IFT gradients recovers only $72$--$92\%$ of its damage, and a classification-loss PGD inflicts $15$--$70\%$ less while flipping predictions at comparable rates ($0$--$1.8\%$). The decisive test is a \emph{gradient-independent} adversary: a transfer direction from a separately trained surrogate IGNN (zero shared gradients) still recovers $99\%$ of the one-query damage ($\cos{=}0.99$ alignment), while a $512$-query black-box search recovers just $44{\pm}4\%$. The direction is therefore model-intrinsic, not a circular gradient artifact: we term it the \emph{maximally sensitive first-order direction}, a one-query guarantee that empirically matches iterative attackers.
 
 \begin{table}[t]
 \centering
@@ -73,8 +75,6 @@ WikiCS   & $\ms{2.10}{.22}$ & $\ms{0.67}{.11}$ & $\ms{1.93}{.20}$ & $\ms{0.53}{.
 \end{table}
 
 \textbf{Classification-gradient edges differ.} Per-edge classification gradients anti-correlate with discrete ground truth on Cora ($\tau{=}\ms{-0.20}{0.05}$ vs.\ \AEGIS's $\ms{+0.32}{0.04}$) and stay near zero elsewhere; \AEGIS achieves $2$--$6\times$ higher P@10, confirming that equilibrium and classification sensitivities are distinct vulnerability surfaces.
-
-\textbf{Discrete edge removal.} See \cref{fig:greedy_topk} for four sequential orderings.
 
 \begin{figure*}[!t]
 \centering
@@ -127,12 +127,12 @@ LODF~\cite{wood2014power}               & case118 P@10       & $0.81$  & $\leq 0
 \end{tabular*}
 \end{table}
 
-GR-BCD~\cite{geisler2021robustness} aligns with $S_c$ on Pubmed ($\tau{=}{+}0.69$) but decorrelates on Cora ($\tau{=}{+}0.16$): \AEGIS is a label-free one-pass diagnostic, not a budget-optimal attacker, so it is competitive rather than dominant under direct attack damage (\cref{tab:baselines}). AGNNCert~\cite{li2025agnncert} is complementary---a sound IBP certificate vs.\ first-order radii $4.4$--$15.0\times$ tighter that expose the dominant direction (decision rule: \cref{tab:baselines}). Power-grid LODF/PI comparisons are in \cref{sec:power_flow}.
+GR-BCD~\cite{geisler2021robustness} aligns with $S_c$ on Pubmed ($\tau{=}{+}0.69$) but decorrelates on Cora ($\tau{=}{+}0.16$); as a label-free one-pass diagnostic rather than a budget-optimal attacker, \AEGIS is competitive rather than dominant under direct attack damage (\cref{tab:baselines}). AGNNCert~\cite{li2025agnncert} is complementary: a sound IBP certificate, against which \AEGIS's first-order radii run $4.4$--$15.0\times$ tighter while also exposing the dominant direction (decision rule: \cref{tab:baselines}). Power-grid LODF/PI comparisons are in \cref{sec:power_flow}.
 
 \subsection{Phase Transition and Scalability}
 \label{sec:phase_transition}\label{sec:scalability}
 
-\textbf{Phase transition.} \Cref{fig:phase_transition} sweeps $\kappa_{\max}{\in}[0.30,0.99]$ on Cora (10 seeds): even when the spectral-normalisation cap is pushed to $0.99$ (driving the theoretical $\ecrit$ down $230\times$), the trained ReLU pattern keeps $\rho(J_z)\!\leq\!0.42$, so the resolvent grows only $\mathbf{1.17{\to}1.80}$, \emph{validating} $\ecrit$ as a closed-form sufficient safety boundary that holds with $\mathbf{2{-}4\times}$ empirical margin across the sweep. Training converges throughout; the matrix-free pipeline reaches its 50-step fixed-point budget at $\kappa_{\max}{\geq}0.85$.
+\textbf{Phase transition.} \Cref{fig:phase_transition} sweeps $\kappa_{\max}{\in}[0.30,0.99]$ on Cora (10 seeds). Even when the spectral-normalisation cap is pushed to $0.99$, driving the theoretical $\ecrit$ down $230\times$, the trained ReLU pattern keeps $\rho(J_z)\!\leq\!0.42$, so the resolvent grows only $\mathbf{1.17{\to}1.80}$. This \emph{validates} $\ecrit$ as a closed-form sufficient safety boundary, one that holds with $\mathbf{2{-}4\times}$ empirical margin across the sweep. Training converges throughout, and the matrix-free pipeline reaches its 50-step fixed-point budget at $\kappa_{\max}{\geq}0.85$.
 
 \begin{figure}[t]
 \centering
@@ -149,11 +149,11 @@ GR-BCD~\cite{geisler2021robustness} aligns with $S_c$ on Pubmed ($\tau{=}{+}0.69
 
 \textbf{Subgraph size.} Varying $N{\in}\{30,50,100,200\}$ on Cora (10 seeds): tightness is stable at $1.01$--$1.02$ for $N{\leq}100$ and degrades to $1.031$ at $N{=}200$; we use $N{=}50$ as default ($66\times$ faster). Subgraph-vs-full-graph agreement is high on dense grids (case14 $\tau{=}0.80$--$0.86$).
 
-\textbf{Full-graph scale.} A 50-node BFS covers only ${\sim}1.8\%$ of a citation graph's edges (Cora $\tau{=}0.16$), so at this scale we run \AEGIS on the full graph, where its edge advantage over degree-proportional \emph{amplifies} to $\mathbf{9.82\times}$ (Citeseer) and $\mathbf{3.25\times}$ (Cora) at $k{=}10$, vs.\ ${\approx}1.1\times$ on subgraphs.
+\textbf{Full-graph scale.} A 50-node BFS covers only ${\sim}1.8\%$ of a citation graph's edges (Cora $\tau{=}0.16$), so at this scale we run \AEGIS on the full graph. There its edge advantage over degree-proportional ranking \emph{amplifies} to $\mathbf{9.82\times}$ (Citeseer) and $\mathbf{3.25\times}$ (Cora) at $k{=}10$, against ${\approx}1.1\times$ on subgraphs.
 
 \textbf{Hyperparameters.} Tightness is stable across $d{\in}\{16,32,64,128\}$; the spectral-norm ceiling $c{\in}\{0.5,0.9\}$ traces the accuracy--robustness frontier ($r_v{=}0.147$@$72.1\%$ vs.\ $0.089$@$80.6\%$).
 
-\textbf{Defense-informed edge protection: gains survive adaptive attack.} Masking the top-$k$ edges by $v_{ij}$ (Cora IGNN, $N{=}50$, 10 seeds) cuts $\sigma_1(S_c)$-damage by $\mathbf{42{\pm}8\%}$ at $k{=}5$ and $\mathbf{61{\pm}7\%}$ at $k{=}10$, vs.\ $11{\pm}6\%$/$18{\pm}9\%$ for random masking (paired Wilcoxon $p{<}0.002$). An \emph{adaptive} attacker that recomputes $S_c$ on the masked graph matches the non-adaptive attacker within $0.1$\,pp (10 seeds, $\varepsilon{=}0.10$): the $43\%$ spectral gap of $S_c$ (\cref{fig:sc_heatmap}) keeps the dominant direction robust, so the defense \emph{does not erode under recomputation}---the failure mode sober-look critiques~\cite{mujkanovic2022defenses} flag.
+\textbf{Defense-informed edge protection: gains survive adaptive attack.} Masking the top-$k$ edges by $v_{ij}$ (Cora IGNN, $N{=}50$, 10 seeds) cuts $\sigma_1(S_c)$-damage by $\mathbf{42{\pm}8\%}$ at $k{=}5$ and $\mathbf{61{\pm}7\%}$ at $k{=}10$, vs.\ $11{\pm}6\%$/$18{\pm}9\%$ for random masking (paired Wilcoxon $p{<}0.002$). An \emph{adaptive} attacker that recomputes $S_c$ on the masked graph matches the non-adaptive attacker within $0.1$\,pp (10 seeds, $\varepsilon{=}0.10$): the $43\%$ spectral gap of $S_c$ (\cref{fig:sc_heatmap}) keeps the dominant direction robust, so the defense \emph{does not erode under recomputation}, the failure mode that sober-look critiques~\cite{mujkanovic2022defenses} flag.
 
 \subsection{Extension to Explicit GNNs}
 \label{sec:explicit_extension}
