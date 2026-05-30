@@ -12,7 +12,7 @@
 
 \begin{table}[t]
 \centering
-\caption{Per-dataset IGNN characterisation (10 seeds). $\kappa{=}\norm{J_z}_2$ verifies (A3); $\ecrit{=}(1{-}\kappa)/\norm{W}_2$ is the theoretical critical budget. AtkAdv: \AEGIS damage / random damage. Cov\%: fraction of subgraph nodes with positive first-order radius $r_v$.}
+\caption{Per-dataset IGNN characterisation (10 seeds). $\kappa{=}\norm{J_z}_2$ verifies (A3); $\ecrit{=}(1{-}\kappa)/\norm{W}_2$ is the theoretical critical budget. AtkAdv: \AEGIS damage / random damage. Cov\%: fraction of subgraph nodes certified first-order-safe at budget $\varepsilon{=}0.05$ (i.e.\ corrected radius $r_v{>}0.05$).}
 \label{tab:cross_domain}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -20,11 +20,11 @@
 \toprule
 Dataset & Test Acc & $\kappa$ & $\ecrit$ & AtkAdv & Cov\% \\
 \midrule
-Cora     & $\ms{77.5}{1.7}$ & $\ms{.33}{.14}$ & $\ms{.66}{.15}$ & $\ms{3.6}{.6}$ & $\ms{81}{9}$ \\
-Citeseer & $\ms{66.0}{0.7}$ & $\ms{.59}{.02}$ & $\ms{.41}{.02}$ & $\ms{4.1}{.5}$ & $\ms{83}{4}$ \\
-Pubmed   & $\ms{78.9}{0.7}$ & $\ms{.41}{.11}$ & $\ms{.59}{.11}$ & $\ms{3.2}{.4}$ & $\ms{74}{23}$ \\
-Amazon   & $\ms{94.8}{0.3}$ & $\ms{.14}{.02}$ & $\ms{.86}{.02}$ & $\ms{3.8}{.2}$ & $\ms{92}{4}$ \\
-WikiCS   & $\ms{77.9}{0.4}$ & $\ms{.34}{.04}$ & $\ms{.66}{.04}$ & $\ms{3.8}{.4}$ & $\ms{70}{3}$ \\
+Cora     & $\ms{77.5}{1.7}$ & $\ms{.33}{.14}$ & $\ms{.66}{.15}$ & $\ms{3.6}{.6}$ & $\ms{83}{10}$ \\
+Citeseer & $\ms{66.0}{0.7}$ & $\ms{.59}{.02}$ & $\ms{.41}{.02}$ & $\ms{4.1}{.5}$ & $\ms{94}{5}$ \\
+Pubmed   & $\ms{78.9}{0.7}$ & $\ms{.41}{.11}$ & $\ms{.59}{.11}$ & $\ms{3.2}{.4}$ & $\ms{76}{18}$ \\
+Amazon   & $\ms{94.8}{0.3}$ & $\ms{.14}{.02}$ & $\ms{.86}{.02}$ & $\ms{3.8}{.2}$ & $\ms{86}{8}$ \\
+WikiCS   & $\ms{77.9}{0.4}$ & $\ms{.34}{.04}$ & $\ms{.66}{.04}$ & $\ms{3.8}{.4}$ & $\ms{78}{4}$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -52,7 +52,7 @@ Amazon   & $\ms{1.00}{.00}$ & $\ms{1.01}{.00}$ & $\ms{1.03}{.01}$ & $\ms{1.07}{.
 \subsection{Four-Quadrant Attack Comparison}
 \label{sec:adaptive}\label{sec:certificates}
 
-\textbf{Radius vs.\ smoothing.} Randomized smoothing~\cite{bojchevski2020efficient} gives constant-per-node base radii ($0.123$ vs.\ \AEGIS's $0.046$ at $\sigma{=}0.05$) and localized smoothing~\cite{schuchardt2023localized} needs $10^3$--$10^4$ MC/node, both lacking edge structure; \AEGIS radii are structurally informative ($r_v{\approx}0.09$ dense, $0.01$ at boundaries), a complementary point on the certificate-vs-diagnostic frontier.
+\textbf{Radius vs.\ smoothing.} Randomized smoothing~\cite{bojchevski2020efficient} gives constant-per-node base radii ($0.123$ vs.\ \AEGIS's $0.078$ at $\sigma{=}0.05$) and localized smoothing~\cite{schuchardt2023localized} needs $10^3$--$10^4$ MC/node, both lacking edge structure; \AEGIS radii are structurally informative ($r_v{\approx}0.10$ dense, $0.01$ at boundaries), a complementary point on the certificate-vs-diagnostic frontier.
 
 \Cref{tab:attack_full} evaluates \AEGIS against baselines spanning the four quadrants of (gradient-based, gradient-free) $\times$ (equilibrium-shift, classification-loss). The one-query SVD direction dominates: $1{,}000$ random unit directions reach $0.45$--$0.49\times$ of $\sigma_1(S_c)$; a $50$-step equilibrium-shift PGD~\cite{madry2018towards} using \AEGIS's own IFT gradients recovers only $72$--$92\%$ of its damage (a solver-validation upper bound, not an independent baseline); and a classification-loss PGD inflicts $15$--$70\%$ less equilibrium damage while flipping predictions at comparable rates ($0$--$1.8\%$). We accordingly term it the \emph{maximally sensitive perturbation direction}: a first-order guarantee that empirically matches iterative attackers in one query.
 
@@ -120,14 +120,14 @@ Baseline & Setting & \AEGIS & Baseline & $\tau$ \\
 \midrule
 GR-BCD~\cite{geisler2021robustness}     & Pubmed $k{=}10$    & $0.356$ & $0.350$ & $\mathbf{+0.69}$ \\
 GR-BCD~\cite{geisler2021robustness}     & Cora $k{=}5$       & $0.643$ & $1.207$ & $+0.16$ \\
-AGNNCert$^{\dagger}$~\cite{li2025agnncert}  & Cora med.\ $r_v$ & $0.187$ & $1.414$ & $+0.08$ \\
+AGNNCert$^{\dagger}$~\cite{li2025agnncert}  & Cora med.\ $r_v$ & $0.163$ & $1.414$ & $+0.08$ \\
 LODF~\cite{wood2014power}               & case118 P@10       & $0.81$  & $\leq 0.20$ & $+0.14$ \\
 \bottomrule
-\multicolumn{5}{@{}p{0.95\columnwidth}}{\scriptsize $^{\dagger}$AGNNCert is a \emph{sound} IBP certificate; \AEGIS $r_v$ is a first-order sensitivity threshold (\cref{rem:certificates}). Per-dataset mean tightness ratio $r_{\mathrm{cert}}/r_v\!\in\![4.9, 10.2]$ (per-cell across 30 seeds $[1.5, 22.5]\times$); per-seed Kendall $\tau\!\in\![{-}0.08, 0.23]$. \textbf{Decision rule:} if AGNNCert certifies node $v$ safe at budget $\rho$, trust it; if $r_v\!<\!\rho$ and AGNNCert does \emph{not} certify, $v$ is first-order unsafe and warrants attention. The methods are complementary in this prescribed sense, not interchangeable.}
+\multicolumn{5}{@{}p{0.95\columnwidth}}{\scriptsize $^{\dagger}$AGNNCert is a \emph{sound} IBP certificate; \AEGIS $r_v$ is a first-order sensitivity threshold (\cref{rem:certificates}). Per-dataset mean tightness ratio $r_{\mathrm{cert}}/r_v\!\in\![4.4, 15.0]$ (per-cell across 30 seeds $[2.1, 39.0]\times$); per-seed Kendall $\tau\!\in\![{-}0.11, 0.24]$. \textbf{Decision rule:} if AGNNCert certifies node $v$ safe at budget $\rho$, trust it; if $r_v\!<\!\rho$ and AGNNCert does \emph{not} certify, $v$ is first-order unsafe and warrants attention. The methods are complementary in this prescribed sense, not interchangeable.}
 \end{tabular*}
 \end{table}
 
-GR-BCD~\cite{geisler2021robustness} aligns with $S_c$ on Pubmed ($\tau{=}{+}0.69$) but decorrelates on Cora ($\tau{=}{+}0.16$): \AEGIS is a label-free one-pass diagnostic, not a budget-optimal attacker, so it is competitive rather than dominant under direct attack damage (\cref{tab:baselines}). AGNNCert~\cite{li2025agnncert} is complementary---a sound IBP certificate vs.\ first-order radii $4.9$--$10.2\times$ tighter that expose the dominant direction (decision rule: \cref{tab:baselines}). Power-grid LODF/PI comparisons are in \cref{sec:power_flow}.
+GR-BCD~\cite{geisler2021robustness} aligns with $S_c$ on Pubmed ($\tau{=}{+}0.69$) but decorrelates on Cora ($\tau{=}{+}0.16$): \AEGIS is a label-free one-pass diagnostic, not a budget-optimal attacker, so it is competitive rather than dominant under direct attack damage (\cref{tab:baselines}). AGNNCert~\cite{li2025agnncert} is complementary---a sound IBP certificate vs.\ first-order radii $4.4$--$15.0\times$ tighter that expose the dominant direction (decision rule: \cref{tab:baselines}). Power-grid LODF/PI comparisons are in \cref{sec:power_flow}.
 
 \subsection{Phase Transition and Scalability}
 \label{sec:phase_transition}\label{sec:scalability}
@@ -151,7 +151,7 @@ GR-BCD~\cite{geisler2021robustness} aligns with $S_c$ on Pubmed ($\tau{=}{+}0.69
 
 \textbf{Full-graph scale.} A 50-node BFS covers only ${\sim}1.8\%$ of a citation graph's edges (Cora $\tau{=}0.16$), so at this scale we run \AEGIS on the full graph, where its edge advantage over degree-proportional \emph{amplifies} to $\mathbf{9.82\times}$ (Citeseer) and $\mathbf{3.25\times}$ (Cora) at $k{=}10$, vs.\ ${\approx}1.1\times$ on subgraphs.
 
-\textbf{Hyperparameters.} Tightness is stable across $d{\in}\{16,32,64,128\}$; the spectral-norm ceiling $c{\in}\{0.5,0.9\}$ traces the accuracy--robustness frontier ($r_v{=}0.090$@$72.1\%$ vs.\ $0.051$@$80.6\%$).
+\textbf{Hyperparameters.} Tightness is stable across $d{\in}\{16,32,64,128\}$; the spectral-norm ceiling $c{\in}\{0.5,0.9\}$ traces the accuracy--robustness frontier ($r_v{=}0.147$@$72.1\%$ vs.\ $0.089$@$80.6\%$).
 
 \textbf{Defense-informed edge protection: gains survive adaptive attack.} Masking the top-$k$ edges by $v_{ij}$ (Cora IGNN, $N{=}50$, 10 seeds) cuts $\sigma_1(S_c)$-damage by $\mathbf{42{\pm}8\%}$ at $k{=}5$ and $\mathbf{61{\pm}7\%}$ at $k{=}10$, vs.\ $11{\pm}6\%$/$18{\pm}9\%$ for random masking (paired Wilcoxon $p{<}0.002$). An \emph{adaptive} attacker that recomputes $S_c$ on the masked graph matches the non-adaptive attacker within $0.1$\,pp (10 seeds, $\varepsilon{=}0.10$): the $43\%$ spectral gap of $S_c$ (\cref{fig:sc_heatmap}) keeps the dominant direction robust, so the defense \emph{does not erode under recomputation}---the failure mode sober-look critiques~\cite{mujkanovic2022defenses} flag.
 

@@ -146,7 +146,7 @@ def run_adversarial_on_dataset(name: str, data: dict, device, n_epochs: int = 10
         lambda z, c: model.operator(z, c), model, Z_sub, ctx_sub, S,
         epsilons=[0.001, 0.01],
     )
-    tight_ratio = tightness[1]["tightness_ratio"] if len(tightness) > 1 else tightness[0]["tightness_ratio"]
+    tight_ratio = tightness[1]["constr_tightness"] if len(tightness) > 1 else tightness[0]["constr_tightness"]
     atk_adv = tightness[1]["attack_advantage"] if len(tightness) > 1 else tightness[0]["attack_advantage"]
     print(f"  tightness={tight_ratio:.3f}, attack_advantage={atk_adv:.1f}x", flush=True)
 
@@ -284,7 +284,7 @@ def run_adversarial_pf(device):
         lambda z, c: model.operator(z, c), model, Z_sub, ctx_sub, S,
         epsilons=[0.001, 0.01],
     )
-    tight_ratio = tightness[-1]["tightness_ratio"]
+    tight_ratio = tightness[-1]["constr_tightness"]
     atk_adv = tightness[-1]["attack_advantage"]
 
     attack = optimal_structural_attack(S, ctx_sub["A_hat"], epsilon=0.01)

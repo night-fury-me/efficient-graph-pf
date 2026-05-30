@@ -437,50 +437,49 @@ def _scalable_node_radii(
     head: nn.Module,
     n_probes: int = 20,
 ) -> dict:
-    """Per-node robust radius using matrix-free S_v norms."""
-    if rho >= 1.0:
-        N = logits.shape[0]
-        return {"radii": torch.zeros(N), "certified": False, "reason": "rho >= 1"}
+    """Matrix-free per-node first-order radius for N > 200 -- runner-up product-norm SURROGATE.
 
+    Uses one Hutchinson ||S_v||_F probe per node and the runner-up margin direction:
+        r_hat_v = (f_{y_v} - f_{c*}) / (||W_{y_v} - W_{c*}||_2 ||S_v||_F),   y_v = argmax(logits)_v.
+    This is the only affordable form at N ~ 7,650. The EXACT min-over-classes composed-norm radius
+    of prop:radius (``per_node_robust_radius``, the dense-path default) needs N*C rmatvec passes
+    (``||(W_{y_v}-W_c) S_v|| = ||rmatvec(e_v (x) (W_{y_v}-W_c))||``) and is intractable at scale;
+    the surrogate under-estimates each per-class radius by Cauchy-Schwarz. No reported figure uses
+    this path -- all reported r_v come from the exact dense path."""
     N = logits.shape[0]
+    if rho >= 1.0:
+        return {"radii": torch.zeros(N), "certified": False, "reason": "rho >= 1"}
+    if not isinstance(head, nn.Linear):
+        raise ValueError("matrix-free radius assumes a linear head (prop:radius)")
 
-    probs = logits.detach()
-    true_scores = probs[torch.arange(N, device=logits.device), labels]
-    margins = torch.zeros(N, device=logits.device)
-    runner_up = torch.zeros(N, dtype=torch.long, device=logits.device)
+    W = head.weight.detach()
+    L = logits.detach()
+    preds = L.argmax(dim=1)
+    S_node_norms = op.node_sensitivity_norms(n_probes=n_probes).to(L.device)
+
+    radii = torch.zeros(N, device=L.device)
+    margins = torch.zeros(N, device=L.device)
     for v in range(N):
-        other = probs[v].clone()
-        other[labels[v]] = -float("inf")
-        margins[v] = true_scores[v] - other.max()
-        runner_up[v] = other.argmax()
+        p = int(preds[v])
+        marg = L[v, p] - L[v]
+        marg[p] = float("inf")
+        cstar = int(marg.argmin())
+        margins[v] = marg[cstar]
+        denom = (W[p] - W[cstar]).norm() * S_node_norms[v] + 1e-10
+        radii[v] = (marg[cstar] / denom).clamp(min=0)
 
-    z_req = z_star.detach().clone().requires_grad_(True)
-    logits_re = head(z_req)
-    grad_norms = torch.zeros(N, device=logits.device)
-    for v in range(N):
-        if z_req.grad is not None:
-            z_req.grad.zero_()
-        margin_v = logits_re[v, labels[v]] - logits_re[v, runner_up[v]]
-        margin_v.backward(retain_graph=True)
-        if z_req.grad is not None:
-            grad_norms[v] = z_req.grad[v].norm()
-
-    S_node_norms = op.node_sensitivity_norms(n_probes=n_probes)
-
-    denom = grad_norms * S_node_norms.to(logits.device) + 1e-10
-    radii = (margins / denom).clamp(min=0)
-
+    correct = (preds.cpu() == labels.cpu()) if labels is not None \
+        else torch.ones(N, dtype=torch.bool)
     return {
         "radii": radii.detach().cpu(),
         "margins": margins.detach().cpu(),
-        "grad_norms": grad_norms.detach().cpu(),
-        "S_node_norms": S_node_norms.detach().cpu(),
         "certified": True,
+        "method": "runner_up_surrogate (matrix-free)",
         "mean_radius": float(radii.mean()),
         "median_radius": float(radii.median()),
         "frac_nontrivial": float((radii > 1e-6).float().mean()),
         "frac_correct_and_certified": float(
-            ((margins > 0) & (radii > 1e-6)).float().mean()
+            (correct & (radii.cpu() > 1e-6)).float().mean()
         ),
     }
 
