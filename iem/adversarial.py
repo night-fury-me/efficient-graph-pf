@@ -775,6 +775,60 @@ def randomized_smoothing_certificate(
 # Convenience: full analysis in one call
 # ---------------------------------------------------------------------------
 
+def diagnostic_analysis(
+    F: Callable[[Tensor, dict], Tensor],
+    model: nn.Module,
+    z_star: Tensor,
+    ctx: dict,
+    A_key: str = "A_hat",
+    logits: Optional[Tensor] = None,
+    labels: Optional[Tensor] = None,
+) -> dict:
+    """Diagnostic-only path -- released unconditionally; CANNOT synthesise a perturbation.
+
+    Returns the per-edge vulnerability spectrum ``v_ij`` (S_c column norms), the per-node
+    first-order radii ``r_v`` (Prop. radius), the leading sensitivity magnitude ``sigma_1``,
+    the spectral radius ``rho`` and the critical budget ``eps_crit``. It deliberately does NOT
+    call ``optimal_structural_attack`` and does NOT return the SVD-optimal attack DIRECTION
+    ``delta_Ahat*`` (Algorithm 1's direction step), which is gated per the disclosure protocol:
+    only scalar scores and radii are produced, from which a perturbation cannot be directly
+    reconstructed. This is the path the paper releases without restriction.
+    """
+    from .certify import spectral_radius as sr
+
+    J_z, J_A, _ = _compute_structural_jacobian(F, z_star, ctx, A_key)
+    rho = sr(lambda z: F(z.reshape(z_star.shape), ctx).reshape(-1), z_star)
+    S = structural_sensitivity_matrix(F, z_star, ctx, A_key, J_z=J_z, J_A=J_A)
+    S_c, edge_list = constrained_sensitivity_matrix(S, ctx[A_key])
+
+    v_ij = {tuple(e): float(S_c[:, k].norm()) for k, e in enumerate(edge_list)}
+    sigma_1 = float(torch.linalg.svdvals(S_c)[0]) if S_c.shape[1] else 0.0
+
+    eps_crit = None
+    try:
+        W_norm = extract_W_spectral_norm(model)
+        if W_norm:
+            _b = critical_perturbation_budget(rho, W_norm)
+            eps_crit = _b.get("epsilon_crit") if isinstance(_b, dict) else _b
+    except ValueError:
+        pass
+
+    r_v = None
+    if (logits is not None and labels is not None
+            and isinstance(getattr(model, "head", None), nn.Linear)):
+        r_v = per_node_robust_radius(S, z_star, logits, labels, rho, model.head)["radii"]
+
+    return {
+        "v_ij": v_ij,                 # per-edge vulnerability spectrum (scores only)
+        "r_v": r_v,                   # per-node first-order radii (or None)
+        "sigma_1": sigma_1,           # leading sensitivity magnitude (no direction)
+        "rho": float(rho),
+        "eps_crit": eps_crit,
+        "edge_list": [tuple(e) for e in edge_list],
+        "note": "diagnostic-only: no attack direction synthesised (gated per disclosure protocol).",
+    }
+
+
 def full_adversarial_analysis(
     F: Callable[[Tensor, dict], Tensor],
     model: nn.Module,
