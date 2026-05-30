@@ -354,77 +354,74 @@ def per_node_robust_radius(
     labels: Tensor,
     rho: float,
     head: nn.Module,
+    runner_up_surrogate: bool = False,
 ) -> dict:
-    """Proposition 2: Deterministic per-node certified robust radius.
+    """Proposition (prop:radius): per-node first-order sensitivity radius.
 
-    r_v = m_v / (||df/dz_v|| * ||S_v||)
+    Min-over-classes composed-norm form (default, matches the corrected prop:radius):
+        r_v = min_{c != y_v} (f_{y_v} - f_c) / ||(W_{y_v} - W_c) S_v||_2 ,
+    with y_v = argmax(logits)_v the predicted class and S_v the block-row of S at node v
+    (S already incorporates (I - J_z)^{-1}, so no separate (1-rho) factor). The min over ALL
+    competitors is the distance to the nearest first-order boundary, robust to runner-up swaps.
 
-    where S_v is the block-row of S for node v. S already incorporates
-    (I - J_z)^{-1}, so no separate (1-rho) factor is needed.
-    Any structural perturbation with ||dA||_F < r_v preserves node v's class.
+    runner_up_surrogate=True uses the cheaper, possibly-optimistic surrogate
+        r_hat_v = (f_{y_v} - f_{c*}) / (||W_{y_v} - W_{c*}||_2 ||S_v||_2) ,  c* the runner-up;
+    since ||(W_{y_v}-W_c) S_v|| <= ||W_{y_v}-W_c|| ||S_v|| (Cauchy-Schwarz), the surrogate
+    under-estimates each per-class radius and inspects only c* (empirically ~3x smaller; X5).
+
+    Any structural perturbation with ||dA||_F < r_v preserves node v's predicted class (first order).
     """
-    if rho >= 1.0:
-        N = logits.shape[0]
-        return {
-            "radii": torch.zeros(N),
-            "certified": False,
-            "reason": "rho >= 1",
-        }
-
     N = logits.shape[0]
+    if rho >= 1.0:
+        return {"radii": torch.zeros(N), "certified": False, "reason": "rho >= 1"}
+
+    if not isinstance(head, nn.Linear):
+        raise ValueError(
+            "per_node_robust_radius assumes a linear head (prop:radius); "
+            f"got {type(head).__name__}"
+        )
     d = z_star.shape[1] if z_star.dim() > 1 else 1
+    W = head.weight.detach()                                   # (C, d)
+    L = logits.detach()
+    preds = L.argmax(dim=1)
+    C = L.shape[1]
 
-    # Classification margins: m_v = f_{y_v}(z*_v) - max_{c != y_v} f_c(z*_v)
-    probs = logits.detach()
-    true_scores = probs[torch.arange(N, device=logits.device), labels]
-    margins = torch.zeros(N, device=logits.device)
+    radii = torch.zeros(N, device=L.device)
+    margins = torch.zeros(N, device=L.device)                 # runner-up margin (for reporting)
     for v in range(N):
-        other = probs[v].clone()
-        other[labels[v]] = -float("inf")
-        margins[v] = true_scores[v] - other.max()
+        p = int(preds[v])
+        Sv = S[v * d:(v + 1) * d]                             # (d, pert)
+        marg = L[v, p] - L[v]                                 # (C,)  f_pred - f_c, >= 0
+        marg_excl = marg.clone()
+        marg_excl[p] = float("inf")
+        cstar = int(torch.argmin(marg_excl))                 # runner-up
+        margins[v] = marg[cstar]
+        if runner_up_surrogate:
+            denom = (W[p] - W[cstar]).norm() * Sv.norm() + 1e-10
+            radii[v] = (marg[cstar] / denom).clamp(min=0)
+        else:
+            best = float("inf")
+            for c in range(C):
+                if c == p:
+                    continue
+                comp = (W[p] - W[c]) @ Sv                     # (pert,)
+                r_c = float(marg[c]) / (float(comp.norm()) + 1e-10)
+                if r_c < best:
+                    best = r_c
+            radii[v] = max(best, 0.0)
 
-    # ||W_{y_v} - W_{c*}||_2: margin gradient norm per node
-    # For linear head f(z) = Wz + b, this is ||W[y_v,:] - W[c*,:]||_2
-    # where c* is the runner-up class for node v.
-    preds = probs.argmax(dim=1)
-    runner_up = torch.zeros(N, dtype=torch.long, device=logits.device)
-    for v in range(N):
-        other = probs[v].clone()
-        other[labels[v]] = -float("inf")
-        runner_up[v] = other.argmax()
-
-    z_req = z_star.detach().clone().requires_grad_(True)
-    logits_re = head(z_req)
-    grad_norms = torch.zeros(N, device=logits.device)
-    for v in range(N):
-        if z_req.grad is not None:
-            z_req.grad.zero_()
-        margin_v = logits_re[v, labels[v]] - logits_re[v, runner_up[v]]
-        margin_v.backward(retain_graph=True)
-        if z_req.grad is not None:
-            grad_norms[v] = z_req.grad[v].norm()
-
-    # ||S_v|| = norm of block-rows of S for node v
-    S_node_norms = torch.zeros(N, device=S.device)
-    for v in range(N):
-        s, e = v * d, (v + 1) * d
-        if e <= S.shape[0]:
-            S_node_norms[v] = S[s:e].norm()
-
-    denom = grad_norms * S_node_norms + 1e-10
-    radii = (margins / denom).clamp(min=0)
-
+    correct = (preds.cpu() == labels.cpu()) if labels is not None \
+        else torch.ones(N, dtype=torch.bool)
     return {
         "radii": radii.detach().cpu(),
         "margins": margins.detach().cpu(),
-        "grad_norms": grad_norms.detach().cpu(),
-        "S_node_norms": S_node_norms.detach().cpu(),
         "certified": True,
+        "method": "runner_up_surrogate" if runner_up_surrogate else "min_over_classes",
         "mean_radius": float(radii.mean()),
         "median_radius": float(radii.median()),
         "frac_nontrivial": float((radii > 1e-6).float().mean()),
         "frac_correct_and_certified": float(
-            ((margins > 0) & (radii > 1e-6)).float().mean()
+            (correct & (radii.cpu() > 1e-6)).float().mean()
         ),
     }
 

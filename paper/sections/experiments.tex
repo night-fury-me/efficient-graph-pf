@@ -162,7 +162,7 @@ For $K$-layer explicit GNNs (GCN, SAGE, GIN, APPNP, GAT$^\dagger$~\cite{kipf2017
 
 \begin{table}[t]
 \centering
-\caption{$S_c$ framework on 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: \AEGIS/random damage. $\tau$: Kendall vs.\ brute-force single-edge-removal truth. Acc: full-graph test accuracy.}
+\caption{$S_c$ framework on 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: \AEGIS/random damage. $\tau$: Kendall vs.\ brute-force fixed-normalization single-edge removal (\cref{prop:transfer}). Acc: full-graph test accuracy.}
 \label{tab:explicit}
 \small
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l rrrr@{}}
@@ -185,7 +185,7 @@ APPNP         & $\ms{1.02}{.00}$ & $\ms{3.4}{0.3}\times$ & $\ms{+.35}{.01}$ & $\
 
 \textbf{Robust backbones.} Under the $\sigma_1(W){\leq}0.9$ cap, RobustGCN-lite~\cite{zhu2019robust} ($\tau{=}+0.37/+0.54$, Cora/Citeseer) and GNNGuard-lite~\cite{zhang2020gnnguard} ($+0.10/+0.53$) match or exceed IGNN; the cap is a precondition (without it $\kappa{>}1$ voids \cref{thm:phase_transition}).
 
-\textbf{Cross-dataset transfer.} \Cref{fig:tau_heatmap} reports $\tau$ over 5 datasets and 7 architectures (330 runs); $29/33$ cells positive (one-sided sign test $p{<}10^{-5}$). Cold cells (GCN-2 on sparse citation graphs, IGNN on dense product graphs at 50 nodes) recover decisively at full-graph scale: on Amazon Photo ($N{=}7{,}650$, stratified top-$v_{ij}$ ground-truth sampling) the edge-weighted ranking $A_{ij} v_{ij}$ predicted by \cref{prop:transfer} reaches $\tau\!=\!\mathbf{+0.996\!\pm\!0.002}$ (10 seeds) against brute-force N-1 damage, a near-perfect rank match across seeds. On heterophilic WebKB~\cite{pei2020geomgcn} GCN-4 attains $\tau{=}+0.21$--$+0.44$.
+\textbf{Cross-dataset transfer.} \Cref{fig:tau_heatmap} reports $\tau$ over 5 datasets and 7 architectures (330 runs); $29/33$ cells positive (one-sided sign test $p{<}10^{-5}$). Cold cells (GCN-2 on sparse citation graphs, IGNN on dense product graphs at 50 nodes) recover decisively at full-graph scale: on Amazon Photo ($N{=}7{,}650$, stratified top-$v_{ij}$ ground-truth sampling) the edge-weighted ranking $A_{ij} v_{ij}$ predicted by \cref{prop:transfer} reaches $\tau\!=\!\mathbf{+0.996\!\pm\!0.002}$ (10 seeds) against brute-force fixed-normalization N-1 damage, a near-perfect rank match across seeds. On heterophilic WebKB~\cite{pei2020geomgcn} GCN-4 attains $\tau{=}+0.21$--$+0.44$.
 
 \begin{figure}[t]
 \centering

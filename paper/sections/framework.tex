@@ -24,7 +24,7 @@ and run a deterministic SVD in place of lines~2--11.}
 \STATE $\sigma_1 \leftarrow \Sigma_{1,1}$; $\delta\Ahat^\star \leftarrow \varepsilon \cdot \mathrm{sym}(P_c V_{:,1}) / \norm{\mathrm{sym}(P_c V_{:,1})}_2$.
 \STATE $v_{ij} \leftarrow \norm{\textsc{matvec}(e_{ij})}_2$ for each $(i,j) \in E$ \COMMENT{per-edge spectrum}
 \IF{$h, Y, y$ supplied}
-  \STATE $r_v \leftarrow m_v / (\norm{W_{y_v}-W_{c^\star}}_2 \norm{S_{c,v}}_2)$ for each $v$ via 10 power iters \COMMENT{Prop.~\ref{prop:radius}}
+  \STATE $r_v \leftarrow \min_{c\neq y_v} m_v^{(c)} / \norm{(W_{y_v}-W_c)\,S_{c,v}}_2$ for each $v$ \COMMENT{Prop.~\ref{prop:radius}}
 \ENDIF
 \STATE \textbf{if} $\norm{W}_2$ extractable \textbf{then} $\ecrit \leftarrow (1-\kappa)/\norm{W}_2$ \COMMENT{Thm.~\ref{thm:phase_transition}}
 \STATE \textbf{return} $(\sigma_1, \delta\Ahat^\star, \{v_{ij}\}, \{r_v\}, \ecrit)$.
