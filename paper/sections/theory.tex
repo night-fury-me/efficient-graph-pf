@@ -3,7 +3,9 @@
 \label{sec:theory}
 %% ===================================================================
 
-Building on the threat model of \cref{sec:background}, we derive the analytical machinery behind the three diagnostics promised in \cref{sec:intro}: per-edge rankings, the SVD-optimal direction, and per-node radii. The main result (\cref{thm:phase_transition}) characterizes how vulnerability evolves with perturbation magnitude, and the constrained sensitivity matrix $S_c$ provides the unified object from which the three diagnostics follow.
+Building on the threat model of \cref{sec:background}, we derive the analytical machinery behind the three diagnostics promised in \cref{sec:intro}: per-edge rankings, the SVD-optimal direction, and per-node radii. The constrained sensitivity matrix $S_c$ is the unified object from which all three follow.
+
+The governing picture is a phase transition in the perturbation budget $\varepsilon$. While $\varepsilon$ stays small, the perturbed model remains contractive and its prediction moves smoothly and boundedly with the graph; as $\varepsilon$ approaches a critical budget $\ecrit$, the equilibrium grows arbitrarily sensitive; past $\ecrit$, contraction is no longer guaranteed and the prediction can break. \Cref{thm:phase_transition} makes this precise and puts $\ecrit$ in closed form.
 
 \begin{theorem}[Vulnerability Characterization for Contractive Implicit GNNs]
 \label{thm:phase_transition}
@@ -55,12 +57,14 @@ For $J_z = \mathrm{diag}(\phi')(\Ahat \otimes W)$ with symmetric $\Ahat$ and all
 The proof above requires $\phi'\equiv 1$; for general ReLU patterns, $\eta\in[1.19,2.47]$ on our suite (\cref{sec:convergence}), tracking $\kappa(V_W)$ closely. Graph structure does not amplify nonnormality; the moderate $\eta$ traces to spectral-norm regularisation of $W$.
 \end{remark}
 
+With the resolvent's amplification characterised, we now read the three diagnostics off $S_c$, beginning with the single most damaging perturbation direction.
+
 \begin{proposition}[Maximally Sensitive First-Order Structural Perturbation]
 \label{prop:attack}
 The perturbation $\delta A^*$ maximizing $\norm{\Delta \zstar}$ to first order subject to $\norm{\delta A}_F \leq \varepsilon$ is $\delta A^* = \varepsilon \cdot \mathrm{reshape}(v_1, N \times N)$, where $v_1$ is the leading right singular vector of $S$. The maximum first-order equilibrium shift is $\varepsilon \cdot \sigma_1(S)$.
 \end{proposition}
 
-By the variational characterisation of $\sigma_1$, the direction (\cref{prop:attack}) is optimal for hidden-state damage within the pseudospectral envelope of \cref{obs:eta_bound,rem:eta_relu}, and empirically aligns with classification damage (\cref{sec:adaptive}). The \emph{constrained sensitivity matrix} $S_c \in \R^{Nd \times |E|}$ has columns $[S_c]_{:,k} = S_{:,iN+j} + S_{:,jN+i}$ paired with edge basis $b_k{=}(e_i e_j^\top + e_j e_i^\top)/\sqrt{2}$ ($\norm{b_k}_F{=}1$, so $\sigma_1(S_c)$ is consistent with $\norm{\delta\Ahat}_F{=}\varepsilon$). The $N^2 \to |E|$ projection $P_c$ is the standard duplication-matrix reduction~\cite{magnus2019matrix} on the edge-supported symmetric subspace; the operational contribution is the matrix-free $S_c v$ in \cref{alg:aegis}. The first-order envelope identifies the dangerous direction rather than a global safety margin (\cref{tab:tightness_eps}).
+By the variational characterisation of $\sigma_1$, the direction (\cref{prop:attack}) is optimal for hidden-state damage within the pseudospectral envelope of \cref{obs:eta_bound,rem:eta_relu}, and empirically aligns with classification damage (\cref{sec:adaptive}). The \emph{constrained sensitivity matrix} $S_c \in \R^{Nd \times |E|}$ has columns $[S_c]_{:,k} = S_{:,iN+j} + S_{:,jN+i}$ paired with edge basis $b_k{=}(e_i e_j^\top + e_j e_i^\top)/\sqrt{2}$ ($\norm{b_k}_F{=}1$, so $\sigma_1(S_c)$ is consistent with $\norm{\delta\Ahat}_F{=}\varepsilon$). The $N^2 \to |E|$ projection $P_c$ is the standard duplication-matrix reduction~\cite{magnus2019matrix} on the edge-supported symmetric subspace; the operational contribution is the matrix-free $S_c v$ in \cref{alg:aegis}. The first-order envelope identifies the dangerous direction rather than a global safety margin (\cref{sec:cross_domain}).
 
 \begin{proposition}[Per-Node First-Order Sensitivity Radius]
 \label{prop:radius}

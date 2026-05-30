@@ -10,7 +10,7 @@ Our evaluation tests four claims in turn: the contractivity assumptions hold on 
 \subsection{Cross-Domain Adversarial Analysis}
 \label{sec:cross_domain}
 
-\Cref{tab:cross_domain} verifies the contractivity assumption (A3) on every benchmark ($\kappa{<}1$) and reports the per-dataset closed-form $\ecrit$ alongside an attack advantage of $3.2$--$4.1\times$ over random perturbations. Unless otherwise stated, IGNN experiments in \cref{sec:cross_domain}--\cref{sec:defense_ablation} use 50-node BFS ego-subgraphs centred on the highest-degree node and report \emph{local vulnerability}; graph-level assessment uses the matrix-free pipeline of \cref{sec:scalability}. All bounds use the operator-norm $\kappa{=}\norm{J_z}_2$.
+Two things must hold before the rest of the evaluation means anything: the trained models should sit in the contractive regime the theory assumes, and \AEGIS's perturbations should be genuinely more damaging than chance. \Cref{tab:cross_domain} confirms both, verifying (A3) on every benchmark ($\kappa{<}1$) and reporting the per-dataset closed-form $\ecrit$ alongside an attack advantage of $3.2$--$4.1\times$ over random perturbations. Unless otherwise stated, IGNN experiments in \cref{sec:cross_domain}--\cref{sec:defense_ablation} use 50-node BFS ego-subgraphs centred on the highest-degree node and report \emph{local vulnerability}; graph-level assessment uses the matrix-free pipeline of \cref{sec:scalability}. All bounds use the operator-norm $\kappa{=}\norm{J_z}_2$.
 
 \begin{table}[t]
 \centering
@@ -31,23 +31,7 @@ WikiCS   & $\ms{77.9}{0.4}$ & $\ms{.34}{.04}$ & $\ms{.66}{.04}$ & $\ms{3.8}{.4}$
 \end{tabular*}
 \end{table}
 
-\begin{table}[t]
-\centering
-\caption{First-order envelope ratio (actual / first-order-predicted equilibrium shift) with increasing $\varepsilon$ (10 seeds, $S_c$-optimal constrained perturbation). Tight at $\varepsilon{=}0.01$ ($\approx 1.00$); under-predicts by up to $39\%$ at $\varepsilon{=}0.20$.}
-\label{tab:tightness_eps}
-\small
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrrr@{}}
-\toprule
-Dataset & $\varepsilon{=}.01$ & $\varepsilon{=}.05$ & $\varepsilon{=}.10$ & $\varepsilon{=}.20$ \\
-\midrule
-Cora     & $\ms{1.01}{.00}$ & $\ms{1.07}{.01}$ & $\ms{1.15}{.03}$ & $\ms{1.36}{.08}$ \\
-Citeseer & $\ms{1.01}{.00}$ & $\ms{1.07}{.01}$ & $\ms{1.16}{.03}$ & $\ms{1.39}{.07}$ \\
-Pubmed   & $\ms{1.01}{.00}$ & $\ms{1.07}{.01}$ & $\ms{1.15}{.02}$ & $\ms{1.38}{.06}$ \\
-WikiCS   & $\ms{1.00}{.01}$ & $\ms{1.01}{.01}$ & $\ms{1.02}{.01}$ & $\ms{1.05}{.01}$ \\
-Amazon   & $\ms{1.00}{.00}$ & $\ms{1.01}{.00}$ & $\ms{1.03}{.01}$ & $\ms{1.07}{.01}$ \\
-\bottomrule
-\end{tabular*}
-\end{table} The envelope ratio is measured on equilibrium shift $\norm{\Delta\zstar}_F$ (\cref{tab:tightness_eps}), distinct from the prediction-flip (breach) rate of \cref{fig:breach}.
+\AEGIS's shift bounds are first-order, so a natural question is how far they hold as the budget grows. Predicted and actual equilibrium shifts agree to within $1\%$ at the small budgets that matter for early warning, and loosen to at most $39\%$ on the citation graphs (within $7\%$ on WikiCS and Amazon) even at $\varepsilon{=}0.20$. This envelope ratio is measured on the equilibrium shift $\norm{\Delta\zstar}_F$, distinct from the prediction-flip (breach) rate of \cref{fig:breach}.
 
 \textbf{Heuristic and surrogate baselines.} \AEGIS beats degree-proportional, edge-betweenness, and spectral rankings at $\varepsilon{=}0.01$ ($+6$--$148\%$ AtkAdv, Wilcoxon $p{<}0.001$) and inflicts $3$--$10\times$ more equilibrium damage than Mettack~\cite{zugner2019adversarial} at the early-warning regime $k\!\in\!\{1,\ldots,5\}$ ($\mathbf{149/150}$ paired wins, $p{<}10^{-43}$); GR-BCD/PR-BCD~\cite{geisler2021robustness} and the discrete-removal curves are in \cref{tab:baselines,fig:greedy_topk}.
 
@@ -158,7 +142,7 @@ GR-BCD~\cite{geisler2021robustness} aligns with $S_c$ on Pubmed ($\tau{=}{+}0.69
 \subsection{Extension to Explicit GNNs}
 \label{sec:explicit_extension}
 
-For $K$-layer explicit GNNs (GCN, SAGE, GIN, APPNP, GAT$^\dagger$~\cite{kipf2017semi,hamilton2017inductive,xu2019how,klicpera2019predict,velickovic2018graph}) we form $S_K{=}\partial \mathrm{vec}(Z_K)/\partial \mathrm{vec}(A)$ via finite differences and construct $S_c$ from $S_K$ identically (\cref{prop:explicit}). \Cref{tab:explicit} reports the per-architecture characterisation on Cora: IGNN carries \cref{thm:phase_transition}; the explicit models receive the computational tool without the regime characterisation.
+The construction is not tied to implicit models. For $K$-layer explicit GNNs (GCN, SAGE, GIN, APPNP, GAT$^\dagger$~\cite{kipf2017semi,hamilton2017inductive,xu2019how,klicpera2019predict,velickovic2018graph}) we form $S_K{=}\partial \mathrm{vec}(Z_K)/\partial \mathrm{vec}(A)$ via finite differences and build $S_c$ from $S_K$ identically (\cref{prop:explicit}). \Cref{tab:explicit} reports the per-architecture characterisation on Cora: IGNN carries \cref{thm:phase_transition}; the explicit models receive the computational tool without the regime characterisation.
 
 \begin{table}[t]
 \centering
@@ -185,7 +169,7 @@ APPNP         & $\ms{1.02}{.00}$ & $\ms{3.4}{0.3}\times$ & $\ms{+.35}{.01}$ & $\
 
 \textbf{Robust backbones.} Under the $\sigma_1(W){\leq}0.9$ cap, RobustGCN-lite~\cite{zhu2019robust} ($\tau{=}+0.37/+0.54$, Cora/Citeseer) and GNNGuard-lite~\cite{zhang2020gnnguard} ($+0.10/+0.53$) match or exceed IGNN; the cap is a precondition (without it $\kappa{>}1$ voids \cref{thm:phase_transition}).
 
-\textbf{Cross-dataset transfer.} \Cref{fig:tau_heatmap} reports $\tau$ over 5 datasets and 7 architectures (330 runs); $29/33$ cells positive (one-sided sign test $p{<}10^{-5}$). Cold cells (GCN-2 on sparse citation graphs, IGNN on dense product graphs at 50 nodes) recover decisively at full-graph scale: on Amazon Photo ($N{=}7{,}650$, stratified top-$v_{ij}$ ground-truth sampling) the edge-weighted ranking $A_{ij} v_{ij}$ predicted by \cref{prop:transfer} reaches $\tau\!=\!\mathbf{+0.996\!\pm\!0.002}$ (10 seeds) against brute-force fixed-normalization N-1 damage, a near-perfect rank match across seeds. On heterophilic WebKB~\cite{pei2020geomgcn} GCN-4 attains $\tau{=}+0.21$--$+0.44$.
+\textbf{Cross-dataset transfer.} The continuous $S_c$ ranking predicts discrete N-1 damage broadly across architectures, and almost perfectly at full-graph scale. \Cref{fig:tau_heatmap} reports $\tau$ over 5 datasets and 7 architectures (330 runs); $29/33$ cells are positive (one-sided sign test $p{<}10^{-5}$). Cold cells (GCN-2 on sparse citation graphs, IGNN on dense product graphs at 50 nodes) recover decisively at full-graph scale: on Amazon Photo ($N{=}7{,}650$, stratified top-$v_{ij}$ ground-truth sampling) the edge-weighted ranking $A_{ij} v_{ij}$ predicted by \cref{prop:transfer} reaches $\tau\!=\!\mathbf{+0.996\!\pm\!0.002}$ (10 seeds) against brute-force fixed-normalization N-1 damage, a near-perfect rank match across seeds. On heterophilic WebKB~\cite{pei2020geomgcn} GCN-4 attains $\tau{=}+0.21$--$+0.44$.
 
 \begin{figure}[t]
 \centering

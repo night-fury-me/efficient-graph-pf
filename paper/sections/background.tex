@@ -5,17 +5,17 @@
 
 Let $G = (V, E, A)$ be an undirected graph with $N = |V|$ nodes and adjacency $A \in \R^{N \times N}$, node features $X \in \R^{N \times d_{\mathrm{in}}}$, and symmetric normalized adjacency $\Ahat = D^{-1/2}(A + I)D^{-1/2}$ (self-loops included). Throughout, $\phi$ is the activation, $\sigma_i(\cdot)$ the $i$-th singular value, and $\mathrm{vec}(\cdot)$ the column-major vectorization. The sensitivity matrices ($S$, the constrained $S_c$, the unrolled $S_K$, and the per-node block $S_v$) and the scalars that govern them (contractivity $\kappa{=}\norm{J_z}_2$, spectral radius $\rho(J_z)$, pseudospectral index $\eta\geq1$, critical budget $\ecrit$, per-node radius $r_v$) are each defined where they first appear.
 
-\textbf{IGNN and IFT.} A DEQ-GNN~\cite{bai2019deep,bai2020multiscale} iterates a weight-tied $F_\theta$ to a fixed point; the IGNN instantiation~\cite{gu2020implicit} uses
+\textbf{IGNN and IFT.} \AEGIS analyses models that settle to an equilibrium, because that fixed point is what exposes structural sensitivity in closed form. A DEQ-GNN~\cite{bai2019deep,bai2020multiscale} iterates a weight-tied $F_\theta$ to a fixed point; the IGNN instantiation~\cite{gu2020implicit} uses
 \begin{equation}
 F(Z, A) = \phi(\Ahat Z W^\top + X_{\mathrm{proj}}),
 \label{eq:ignn_operator}
 \end{equation}
 with $W \in \R^{d \times d}$ spectral-normalized~\cite{miyato2018spectral} so $\kappa \leq \norm{\Ahat}_2 \norm{W}_2 < 1$, ReLU $\phi$, and a learned projection $X_\mathrm{proj}$. Training uses implicit differentiation through the fixed point~\cite{gould2021deep,fung2022jfb} with optional Jacobian regularization~\cite{bai2021stabilizing}, and a linear head $f(\zstar) = W_\mathrm{cls}\zstar + b$ produces class predictions. At equilibrium, $G(\zstar,A){=}\zstar{-}F(\zstar,A){=}0$ defines $\zstar$ as an implicit function of $A$, with IFT sensitivity
 \begin{equation}
-\frac{\partial \zstar}{\partial p} = (I - J_z)^{-1} \frac{\partial F}{\partial p}\bigg|_{\zstar},
+\frac{\partial \zstar}{\partial p} = (I - J_z)^{-1} \frac{\partial F}{\partial p}\bigg|_{\zstar}.
 \label{eq:ift}
 \end{equation}
-where $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\kappa)$ via the convergent Neumann series, and the pseudospectral index $\eta{=}\norm{(I-J_z)^{-1}}_2(1-\rho) \geq 1$~\cite{trefethen2005spectra} measures the gap to the spectral-radius bound (with $\eta{=}1$ for normal $J_z$). The IFT has been used for hyperparameter optimization~\cite{lorraine2020optimizing} and implicit differentiation~\cite{gould2021deep}, but not for adversarial structural analysis.
+Equation~\eqref{eq:ift} is the lever \AEGIS pulls: it gives, in closed form, the first-order change in the equilibrium $\zstar$ under any parameter $p$, with the resolvent $(I-J_z)^{-1}$ amplifying a perturbation by at most $1/(1-\kappa)$ through its convergent Neumann series. The pseudospectral index $\eta{=}\norm{(I-J_z)^{-1}}_2(1-\rho) \geq 1$~\cite{trefethen2005spectra} measures the gap to the spectral-radius bound, equalling $1$ for normal $J_z$. The IFT has been used for hyperparameter optimization~\cite{lorraine2020optimizing} and implicit differentiation~\cite{gould2021deep}, but not for adversarial structural analysis.
 
 \textbf{Threat model.} A white-box attacker with full access to the trained IGNN perturbs the normalized adjacency
 \begin{equation}
