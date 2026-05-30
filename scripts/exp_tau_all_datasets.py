@@ -8,7 +8,7 @@ For each (dataset, architecture, seed):
   5. Compute Kendall tau between continuous scores and discrete damage
   6. Compute precision@k (k=5, 10, 20)
 
-Datasets:  Cora, Citeseer, Pubmed (subgraph only), WikiCS, Amazon Photo
+Datasets:  Cora, Citeseer, Pubmed (subgraph only), WikiCS, Amazon Photo, Amazon Fraud
 Architectures: IGNN, GCN-2, GCN-4, GIN-2, GAT-2, SAGE-2, APPNP
 Seeds: 10
 
@@ -243,6 +243,7 @@ def load_all_datasets():
     from iem.examples.ignn_citeseer_pubmed import _load_planetoid
     from iem.examples.ignn_wikics import _load_wikics
     from iem.examples.ignn_amazon import _load_amazon
+    from iem.examples.ignn_amazon_fraud import _load_amazon_fraud
 
     datasets = {}
     print("Loading datasets...", flush=True)
@@ -261,6 +262,9 @@ def load_all_datasets():
 
     print("  Amazon Photo...", flush=True)
     datasets["Amazon Photo"] = _load_amazon(Path("datasets/amazon_photo"))
+
+    print("  Amazon Fraud...", flush=True)
+    datasets["Amazon Fraud"] = _load_amazon_fraud(Path("datasets/amazon_fraud"))
 
     for name, d in datasets.items():
         print(f"    {name}: N={d['N']}, feat={d['n_features']}, classes={d['n_classes']}", flush=True)
@@ -478,6 +482,10 @@ def _run_ignn(data, X, A_hat, y, seed, device):
     disc_scores = np.array(brute_force_edge_removal(
         model, None, A_sub, edge_list, is_ignn=True, ctx_sub=ctx_sub, Z_sub=Z_sub
     ))
+    # Edge weights w_k = normalized-adjacency entry A_hat[i,j] for each edge k,
+    # in the SAME order as edge_list / cont_scores / disc_scores (see
+    # constrained_sensitivity_matrix: column k <-> edge_list[k] = (i, j)).
+    weights = np.array([float(A_sub[i, j]) for (i, j) in edge_list])
     del model, A_sub, ctx_sub, Z_sub
     gc.collect()
 
@@ -485,11 +493,15 @@ def _run_ignn(data, X, A_hat, y, seed, device):
         return None
 
     tau, _ = kendalltau(cont_scores, disc_scores)
+    tau_weighted, _ = kendalltau(weights * cont_scores, disc_scores)
+    tau_weight_only, _ = kendalltau(weights, disc_scores)
     p5 = precision_at_k(cont_scores, disc_scores, 5)
     p10 = precision_at_k(cont_scores, disc_scores, 10)
     p20 = precision_at_k(cont_scores, disc_scores, 20)
 
-    return {"tau": tau, "p_at_5": p5, "p_at_10": p10, "p_at_20": p20,
+    return {"tau": tau, "tau_weighted": tau_weighted,
+            "tau_weight_only": tau_weight_only,
+            "p_at_5": p5, "p_at_10": p10, "p_at_20": p20,
             "n_edges": len(edge_list)}
 
 
@@ -539,6 +551,10 @@ def _run_explicit(arch_name, data, X, A_hat, y, nf, nc, seed, device):
     disc_scores = np.array(brute_force_edge_removal(
         model, X_sub, A_sub, edge_list, is_ignn=False
     ))
+    # Edge weights w_k = normalized-adjacency entry A_hat[i,j] for each edge k,
+    # in the SAME order as edge_list / cont_scores / disc_scores (see
+    # constrained_sensitivity_matrix: column k <-> edge_list[k] = (i, j)).
+    weights = np.array([float(A_sub[i, j]) for (i, j) in edge_list])
     del model, X_sub, A_sub
     gc.collect()
 
@@ -546,11 +562,15 @@ def _run_explicit(arch_name, data, X, A_hat, y, nf, nc, seed, device):
         return None
 
     tau, _ = kendalltau(cont_scores, disc_scores)
+    tau_weighted, _ = kendalltau(weights * cont_scores, disc_scores)
+    tau_weight_only, _ = kendalltau(weights, disc_scores)
     p5 = precision_at_k(cont_scores, disc_scores, 5)
     p10 = precision_at_k(cont_scores, disc_scores, 10)
     p20 = precision_at_k(cont_scores, disc_scores, 20)
 
-    return {"tau": tau, "p_at_5": p5, "p_at_10": p10, "p_at_20": p20,
+    return {"tau": tau, "tau_weighted": tau_weighted,
+            "tau_weight_only": tau_weight_only,
+            "p_at_5": p5, "p_at_10": p10, "p_at_20": p20,
             "n_edges": len(edge_list)}
 
 
@@ -566,7 +586,7 @@ def main():
     datasets = load_all_datasets()
 
     ARCHITECTURES = ["IGNN", "GCN-2", "GCN-4", "GIN-2", "GAT-2", "SAGE-2", "APPNP"]
-    DATASET_NAMES = ["Cora", "Citeseer", "Pubmed", "WikiCS", "Amazon Photo"]
+    DATASET_NAMES = ["Cora", "Citeseer", "Pubmed", "WikiCS", "Amazon Photo", "Amazon Fraud"]
 
     results_dir = Path("results")
     results_dir.mkdir(exist_ok=True)
@@ -590,21 +610,23 @@ def main():
                         "architecture": arch,
                         "seed": seed,
                         "tau": r["tau"],
+                        "tau_weighted": r["tau_weighted"],
+                        "tau_weight_only": r["tau_weight_only"],
                         "p_at_5": r["p_at_5"],
                         "p_at_10": r["p_at_10"],
                         "p_at_20": r["p_at_20"],
                         "n_edges": r["n_edges"],
                     }
                     rows.append(row)
-                    print(f"    tau={r['tau']:+.3f}  p@5={r['p_at_5']:.2f}  "
+                    print(f"    tau={r['tau']:+.3f}  tauW={r['tau_weighted']:+.3f}  tauWo={r['tau_weight_only']:+.3f}  p@5={r['p_at_5']:.2f}  "
                           f"p@10={r['p_at_10']:.2f}  p@20={r['p_at_20']:.2f}  "
                           f"edges={r['n_edges']}", flush=True)
                 else:
                     print(f"    SKIP", flush=True)
 
     # Write CSV
-    fieldnames = ["dataset", "architecture", "seed", "tau", "p_at_5", "p_at_10",
-                  "p_at_20", "n_edges"]
+    fieldnames = ["dataset", "architecture", "seed", "tau", "tau_weighted",
+                  "tau_weight_only", "p_at_5", "p_at_10", "p_at_20", "n_edges"]
     with open(csv_path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
