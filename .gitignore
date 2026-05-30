@@ -19,3 +19,18 @@ mlflow.db
 .github
 .vscode
 backup
+
+# Node/V8 build caches and local Claude state
+node-compile-cache/
+.claude/
+
+# Stray root artifacts
+/image.png
+/texput.log
+
+# Inspection rasters and PDF backups under docs/
+docs/*-inspection-*.png
+docs/*__backup.pdf
+
+# Downloaded example datasets (not source)
+iem/examples/data/

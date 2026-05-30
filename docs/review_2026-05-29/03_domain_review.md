@@ -1,114 +1,54 @@
-# Reviewer 2 — Domain Review (GNN theory)
+# Reviewer 3 — Domain (GNN adversarial robustness)
 
-**Role.** GNN-theory researcher; deep familiarity with implicit / equilibrium GNNs, graph signal processing, Lipschitz GNNs, spectral methods.
-**Mode.** Independent.
-**Page-budget calibration.** 10-page IEEEtran cap binding.
+## Summary
 
----
+AEGIS is positioned against four threads: structural attackers (Nettack, Mettack, PR-BCD), certified robustness (smoothing, IBP / AGNNCert), implicit networks (DEQ, IGNN), and influence-function sensitivity (Lorraine). The framework is the first to unify per-edge rankings + global SVD direction + per-node radii in a single closed-form computation. Empirical study spans 9 datasets including 3 heterophilic ones (Texas, Cornell, Wisconsin) — a deliberate stress test that the framework largely passes.
 
-## 1. Summary as I read it
+## Positioning against attackers
 
-The paper introduces a sensitivity object $S = \partial \mathrm{vec}(z^*) / \partial \mathrm{vec}(\hat{A})$ for a contractive implicit GNN, computed via the implicit function theorem as $(I - J_z)^{-1} J_A$ at the equilibrium. It then constructs a symmetric edge-supported projection $S_c = S P_c$ and identifies three outputs (SVD direction, column norms, per-node Jacobian-norm ratio). Theorem 1 characterises three regimes (subcritical, critical, supercritical) for the contraction certificate, and Observation 1 bounds the pseudospectral index $\eta$ by the eigenvector conditioning of $W$ (graph-independent under symmetric $\hat{A}$). Proposition 5 (Observation in the text) extends the construction to $K$-layer explicit GNNs via the unrolled Jacobian.
+The four-quadrant framing (gradient-based × gradient-free, equilibrium-shift × classification-loss) is sensible but used asymmetrically: two of the four quadrants are AEGIS-internal (SVD-optimal closed-form vs. Shift-PGD IFT-gradient — same objective, different optimiser) and only Cls-PGD probes the classification quadrant.
 
-## 2. Strengths
+**Concern D.1 (must address).** The head-to-head with GR-BCD shows $\tau = +0.69$ on Pubmed $k=10$ but $\tau = +0.16$ on Cora $k=5$. The Cora result is the dangerous number and is not explained. Two interpretations: (a) AEGIS's equilibrium-sensitivity ranking diverges from GR-BCD's classification-loss ranking on sparse graphs, consistent with §Discrete edge removal where $\tau$ with Cls-PGD is +0.19 to −0.06; (b) GR-BCD finds a different vulnerability mode that AEGIS misses. Add a per-dataset $k$-vs-$\tau$ curve and a one-paragraph diagnosis.
 
-**S1. The IFT-resolvent + symmetrized edge projection is a clean object.** Stating it as $S_c$, computing it matrix-free via Neumann + randomized SVD, and using it for three downstream tasks is genuinely tidy. The unification language ("from one object") is justified at the formal level: rankings = column norms, direction = leading right singular vector, radius = block-row norms.
+**Concern D.2 (must address).** PR-BCD~\cite{geisler2021robustness} is the strongest scalable baseline and is mentioned only in passing. Run PR-BCD on at least Pubmed and Amazon Photo at the same budget; report $\tau$ to AEGIS rankings.
 
-**S2. Observation 1 (graph-independent η).** This is a non-trivial result. The fact that $\eta \leq \kappa(V_W)$ — eigenvector conditioning of the weight matrix alone, no dependence on $\hat{A}$ — is a useful structural statement about why $\eta$ stays near 1 in practice. The proof sketch via $J_z = \mathrm{diag}(\phi') \cdot (\hat{A} \otimes W)$ + Kronecker eigendecomposition is correct.
+## Ranking semantics
 
-**S3. Honest distinction between $\kappa$ and $\rho$.** The paper does not use spectral radius (which would tighten bounds for normal $J_z$) but uses the operator norm (required by Neumann convergence). This is the right choice and is justified explicitly. The "1.02–1.28" empirical $\eta$ shows the gap is small in practice.
+$v_{ij} = \|[S_c]_{:,k}\|_2$ ranks edges by their effect on the equilibrium $z^*$, not on the final classification. The current abstract reads as if $v_{ij}$ is a classification-vulnerability ranker.
 
-**S4. The conservative-IFT extension for ReLU.** Citing Bolte-Pauwels 2021 for the piecewise-affine case is the correct way to handle nonsmoothness. The measure-zero exceptional set argument is standard but underappreciated in GNN-robustness papers, so its inclusion is welcome.
+**Concern D.3 (must address).** Rephrase the abstract claim "per-edge vulnerability rankings" to "per-edge equilibrium-sensitivity rankings (which transfer to classification damage in 29/33 architecture–dataset cells)." This is a small wording fix but it prevents downstream confusion in citing work.
 
-**S5. Position vs Lipschitz-GNN stability bounds.** The Related Work distinguishes between scalar Lipschitz bounds (Gama 2020) and directional Jacobian information (this work). This is a real and underused distinction.
+## AGNNCert comparison
 
-## 3. Weaknesses (numbered)
+The footnote in Table 1 ("AGNNCert is a sound IBP certificate; AEGIS $r_v$ is a first-order sensitivity threshold") is correct but buried.
 
-### W1. **The "constrained sensitivity matrix" $S_c$ is presented as the novel construction, but the symmetrization is a standard matrix-calculus reduction.** [Moderate]
+**Concern D.4 (must address).** Move the sound-vs-first-order distinction into the abstract or introduction. Reviewers who skim Table 1 will read $r_v = 0.187$ vs $r_v = 1.414$ as a 7.6× loss to AGNNCert without context. The current Remark 3.4 (in §3) is good; cross-reference it from the table caption.
 
-The construction $[S_c]_{:,k} = S_{:, iN+j} + S_{:, jN+i}$ with edge basis $b_k = (e_i e_j^\top + e_j e_i^\top)/\sqrt 2$ is the natural restriction of $\partial / \partial A$ to the symmetric-edge subspace. This is what every careful derivative-w.r.t.-symmetric-matrix calculation does (cf. Magnus & Neudecker, Matrix Differential Calculus, ch. 3; the duplication-matrix formalism). The paper does not cite this literature.
+## Threat model — the insertion gap
 
-The novelty is then *operational* (using $P_c$ to enforce the symmetry constraint inside the matrix-free pipeline, so $S_c v$ never materialises $S$) rather than *mathematical*. This is a real contribution — but the abstract's "we introduce the constrained sensitivity matrix" reads as a mathematical innovation, not an engineering one.
+The threat model restricts perturbations to edge-supported entries: $[\delta \hat A]_{ij} = 0$ for $(i,j) \notin E$. Continuous-to-discrete transfer (Prop 3.5) bridges to *removal* of existing edges.
 
-**Concretely:** add one sentence in §Theory acknowledging $P_c$ as the standard duplication-matrix-style reduction, and credit Magnus–Neudecker or similar. The intellectual contribution is the matrix-free $S_c v$ implementation; that should be made the explicit claim.
+**Concern D.5 (must address).** The graph-adversarial literature treats edge *insertion* as the dominant threat (Nettack inserts edges into a target node's neighborhood). AEGIS as stated does not address insertion. Two options:
 
-**Fix fits the budget:** ≤ 1 sentence + 1 citation.
+1. Extend $S_c$'s edge basis from $E$ to a candidate set $\bar E \supseteq E$ (the full $N(N-1)/2$ for small graphs, a $k$-hop candidate set for large graphs). The computation remains matrix-free; $|E|$ in the cost table becomes $|\bar E|$.
+2. State explicitly in §II (Threat model) and §VIII (Limitations) that AEGIS targets edge-deletion / edge-weight-perturbation attacks and does not address insertion. Currently the limitation paragraph mentions "binary adjacency masks" but not "no insertion."
 
-### W2. **Theorem 1 part (b) "Critical divergence" is worst-case, not typical-case; the abstract's "three-regime characterisation" elides this.** [Major]
+## Defense ablation
 
-The paper states the critical-regime divergence $\|(I-J_z')^{-1}\|_2 = \Omega(1/(\varepsilon_\text{crit} - \varepsilon))$ holds *"along worst-case directions (aligned with the top singular vector of $\hat A$); generic directions diverge more slowly since $\|J_z'\|_2$ need not approach 1."*
+The defense-informed-masking ablation (Cora IGNN, $N=50$, paired Wilcoxon $p < 0.002$) is solid in isolation: 42 ± 8 % damage reduction at $k=5$ vs 11 ± 6 % random. But the test is against a *non-adaptive* attacker who does not re-optimise after masking.
 
-This is technically correct, but the abstract advertises "a three-regime characterisation" without specifying that the critical-regime statement binds only in a worst-case slice. A reader expecting three regimes of *behaviour* (analogous to subcritical / critical / supercritical phase transitions in statistical mechanics) will be disappointed: there is no claim of a generic-direction critical regime, no empirical demonstration of the three regimes as ε crosses $\varepsilon_\text{crit}$.
+**Concern D.6 (must address).** Add an *adaptive-attacker* column: recompute $S_c$ on the masked graph and re-run the SVD attack. Either (a) the defense still beats random, in which case the headline strengthens, or (b) the adaptive attacker eats most of the gain, in which case scope the claim to "non-adaptive AEGIS attackers." Without this column the result is consistent with the "sober look" critique cited in §Related Work — exactly the trap the paper means to avoid.
 
-**Concretely:**
-- Either (a) qualify the abstract to "a three-regime *worst-case* characterisation" or "three-regime characterisation along the top sensitivity direction"; or
-- (b) Add a small empirical demonstration (e.g., 1 plot, 6 lines: $\|\Delta z^*\|_F$ vs ε swept across [0, 2 × $\varepsilon_\text{crit}$] for 3 datasets, showing the transition.) The repository already has `exp_phase_transition.py` — this should be one figure, fits the budget if a smaller existing figure is shrunk.
+## Subgraph evaluation
 
-The (b) option would substantially strengthen the theorem's claim; (a) is the minimum.
+50-node BFS subgraphs are the default (tightness 1.013 ± 0.003, 66× faster than $N=200$). The 50-node-vs-full-graph Kendall $\tau$ on Cora is 0.16 (§Limitations).
 
-### W3. **Observation 1 hypothesis: "all activations positive" is restrictive.** [Moderate]
+**Concern D.7 (must address).** Subgraph evaluation is the dominant regime for citation graphs. $\tau = 0.16$ between subgraph and full-graph rankings means the subgraph rankings approximate the full-graph rankings *weakly*. Report at least the Amazon Photo full-graph $\tau$ (computable with the matrix-free path) and recommend a default subgraph size on citation-scale graphs.
 
-Observation 1(a) requires $\phi'_i = 1$ for all $i$, i.e., all activations in the linear region of ReLU. This holds in *some* network states but not in trained networks at typical inputs (ReLU networks rely on the masking for representation). Part (b) extends to general activation patterns via $\kappa(V_{J_z})$, but the bound now depends on the eigenvector conditioning of the *masked* Jacobian, which can depend on the graph structure indirectly (via which nodes have which activation patterns).
+## Heterophilic datasets
 
-The "graph-independent" framing in the headline is exact under (a) but degraded under (b). The paper should make clear that the headline "graph-independent nonnormality bound" applies in the all-positive regime, not in general operation.
+Texas / Cornell / Wisconsin results — $\tau$ comparable to homophilic (Cornell $+0.44$, Wisconsin $+0.21$). Good faith effort. IGNN's Texas $\tau = -0.13$ with high variance is the warning sign; GCN-4 dominates on all three. Reportage is honest.
 
-**Concretely:** add half a sentence in the Observation discussion stating that the strict graph-independence is the (a) bound, and (b) introduces an indirect graph dependence via the activation mask.
+## Decision lean
 
-### W4. **The umbrella claim "any GNN with continuous edge-weight-modulated message passing" hides per-architecture variability.** [Major]
-
-The explicit-GNN extension (Observation 2 / Proposition 4) defines $S_K$ as a sum of products of layer Jacobians. The bound $\sigma_1(S_K) \leq \sum_l (\prod_{k>l} \|J_z^{(k)}\|_2) \|J_A^{(l)}\|_2$ can be vacuous: with $K=4$ and per-layer Jacobian norm $> 1$, the product term dominates and the bound is uninformative.
-
-The Table on explicit-GNN tightness shows IGNN tight=1.01, GCN-2 to GIN-2 ranging 0.99–1.02 — empirically tight despite the a priori bound being potentially loose. The text says "the empirical tightness 0.99–1.02 validates the approximation regardless of the a priori bound" — fair, but this means the *useful* claim is empirical, not formal: the bound does not certify why the framework works on explicit GNNs.
-
-Additionally, the cross-architecture $\tau$ in Table tau_cross varies wildly: IGNN $-0.15$ on Amazon Photo, GCN-2 $-0.03$ to $+0.04$ on Cora/Citeseer, GCN-4 $+0.45$ to $+0.83$. The "any GNN" umbrella is true at the construction level but false at the predictive level — the framework's per-edge ranking transfers well on deeper-than-2 layers, badly on shallow ones.
-
-**Concretely:**
-- Replace "any GNN with continuous edge-weight-modulated message passing" with "the construction applies to any such GNN; predictive transfer of the per-edge ranking is architecture-dependent (Table tau_cross), with deeper-than-2-layer models showing the strongest transfer."
-- This is more accurate and gives the practitioner a usable guideline.
-
-**Fix fits the budget:** Abstract + introduction rewording.
-
-### W5. **Missing recent literature on graph adversarial robustness.** [Major]
-
-The Related Work cites Zügner 2018/2019, Geisler 2021, Wu 2019, Bojchevski 2020, Schuchardt 2023, Li 2025 — but the field has moved. The following are notable absences for a paper claiming a unification:
-
-- **Gosch et al. 2024** ("Adversarial Training for Graph Neural Networks: Pitfalls, Solutions, and New Directions", NeurIPS 2024) — challenges prior defense benchmarks; relevant to the §Defense ablation.
-- **Mujkanovic et al. 2022** ("Are Defenses for Graph Neural Networks Robust?", NeurIPS 2022) — methodology for honest defense evaluation; the defense-informed-masking experiment should engage with this protocol.
-- **Bojchevski & Günnemann 2019** ("Certifiable Robustness to Graph Perturbations", NeurIPS) — earlier than the cited Bojchevski 2020 smoothing paper; relevant to the certification thread.
-- **Schuchardt et al. 2021** ("Collective Robustness Certificates") — collective vs per-node certification; relevant to the radius claim.
-- **PRBCD** (Geisler 2021, NeurIPS) — cited only as the smaller GR-BCD variant. PRBCD is the actual scalable structural attack baseline.
-- **El-Hamri et al. 2021** (cited) but **Revay et al. 2020** (Lipschitz networks) is only in the background — a single line in Related Work tying the input-Lipschitz vs structural-Lipschitz distinction would help.
-
-In 10 pages this is a real constraint. My recommendation: PRBCD must appear (this is R1's W3 too); the other four can be cited briefly in Related Work without dedicated discussion.
-
-### W6. **The "structural Lipschitz" framing is implicit but not named.** [Minor]
-
-The paper computes $\sigma_1(S_c)$, the structural Lipschitz constant under symmetric edge perturbations. This is a meaningful quantity — it is the GNN-robustness analogue of the Lipschitz constant for input-feature perturbations. The paper does not name it as such. Doing so would clarify the contribution: AEGIS is computing a structural Lipschitz constant *and* its leading eigenvector *and* its per-edge norms, in a single pass.
-
-**Concretely:** add the phrase "structural Lipschitz constant $\sigma_1(S_c)$" somewhere in §Theory; this gives the contribution a clean name. Optional.
-
-### W7. **Theorem 1 (c) supercritical regime is descriptive, not constructive.** [Minor]
-
-Part (c) says "the contraction certificate is void, Banach no longer guarantees uniqueness, and the part-(a) first-order guarantees lapse." This is true and important to flag, but the theorem makes no positive statement about what happens. The empirical demonstration (W2) would resolve this if it included the supercritical regime; otherwise (c) reads as a disclaimer.
-
-## 4. Specific corrections / clarifications
-
-- §Theory: "the joint eigenvector matrix has condition number $\kappa(V_W)$" — verify this carefully. $J_z = \mathrm{diag}(\phi') \cdot (\hat A \otimes W)$. Under all-positive activations, $\mathrm{diag}(\phi')=I$, so $J_z = \hat A \otimes W$. The eigenvector matrix of $\hat A \otimes W$ is $U_{\hat A} \otimes V_W$ with condition number $\kappa(U_{\hat A}) \cdot \kappa(V_W) = 1 \cdot \kappa(V_W) = \kappa(V_W)$ since $\hat A$ is symmetric (orthonormal eigenvectors). The text is correct; the algebra is fine. **No change needed**, but consider adding the Kronecker eigendecomposition identity in one line for the reader.
-- §Background eq:ift: $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\kappa)$ via Neumann — standard; would benefit from a parenthetical "(Neumann series convergence requires $\kappa < 1$, i.e., (A3))".
-- §Theory eq:radius: the radius is $m_v / (\|W_{y_v} - W_{c^*}\|_2 \cdot \|S_v\|_2)$ — please confirm the $\|S_v\|_2$ is the **operator** norm of the block-rows (not the Frobenius); the conservative bound uses operator norm.
-- Theorem 1 (a) statement / proof: "Taylor remainder exact, $R_k = 0$" for ReLU on each linear region — verify this carefully across the activation boundaries. The conservative IFT handles boundary crossings, but the within-region Taylor remainder is exact only because the operator is piecewise *affine*, not piecewise smooth. The phrasing is fine, but please make sure the proof is unambiguous on this point.
-
-## 5. Recommendation
-
-**Major Revision.** The theoretical core is sound and the unification is real, but W2 (worst-case framing of three regimes), W4 (per-architecture transfer variability hidden under the umbrella claim), and W5 (missing recent literature, especially PRBCD and Mujkanovic 2022) need substantive response. W1 (Magnus-Neudecker positioning) is a minor framing fix. The paper would benefit from a small empirical phase-transition figure (W2 option (b)).
-
-## 6. Scores
-
-| Dimension | Score (0–100) |
-|---|---|
-| Theoretical correctness | 75 |
-| Literature coverage | 60 |
-| Framework generality (as advertised) | 62 |
-| Framework generality (as actually demonstrated) | 70 |
-| Position vs prior work | 68 |
-| **Domain overall** | **66** |
+**Major Revision.** The framework is publishable but needs (a) PR-BCD head-to-head, (b) adaptive-attacker column for the defense ablation, (c) explicit insertion-attack scoping in the threat model, and (d) ranking-semantics precision in the abstract.

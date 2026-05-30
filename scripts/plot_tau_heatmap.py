@@ -58,7 +58,7 @@ sns.heatmap(
 
 for i, j in zip(*np.where(mask)):
     ax.text(j + 0.5, i + 0.5, "OOM", ha="center", va="center",
-            fontsize=8, color="0.45", style="italic")
+            fontsize=11, color="0.45", style="italic")
 
 ax.set_xticklabels(ax.get_xticklabels(), rotation=35, ha="right")
 ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
