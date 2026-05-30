@@ -111,7 +111,7 @@ LODF~\cite{wood2014power}               & case118 P@10       & $0.81$  & $\leq 0
 \end{tabular*}
 \end{table}
 
-GR-BCD~\cite{geisler2021robustness} aligns with $S_c$ on Pubmed ($\tau{=}{+}0.69$) but decorrelates on Cora ($\tau{=}{+}0.16$); as a label-free one-pass diagnostic rather than a budget-optimal attacker, \AEGIS is competitive rather than dominant under direct attack damage (\cref{tab:baselines}). AGNNCert~\cite{li2025agnncert} is complementary: a sound IBP certificate, against which \AEGIS's first-order radii run $4.4$--$15.0\times$ tighter while also exposing the dominant direction (decision rule: \cref{tab:baselines}). Power-grid LODF/PI comparisons are in \cref{sec:power_flow}.
+GR-BCD~\cite{geisler2021robustness} aligns with $S_c$ on Pubmed ($\tau{=}{+}0.69$) but decorrelates on Cora ($\tau{=}{+}0.16$); the budgets shown ($k{\leq}10$) are \AEGIS's early-warning regime, where its one-pass diagnostic is competitive, while GR-BCD/PR-BCD dominate raw damage at the high budgets they target (\cref{tab:baselines}). AGNNCert~\cite{li2025agnncert} is complementary, not redundant: it and $r_v$ flag \emph{different} nodes (near-zero $\tau$, \cref{tab:baselines}), while $r_v$ is itself a sound first-order screen (no node breaches below it, \cref{sec:adaptive}) running $4.4$--$15.0\times$ tighter than the certificate. Power-grid LODF/PI comparisons are in \cref{sec:power_flow}.
 
 \subsection{Phase Transition and Scalability}
 \label{sec:phase_transition}\label{sec:scalability}
