@@ -6,32 +6,23 @@
 The pipeline makes the theory of \cref{sec:theory} practical: it queries $S_c$ matrix-free, never materialising $S \in \R^{Nd \times N^2}$ or forming the resolvent. One $S_c$ computation returns the per-edge spectrum $\{v_{ij}\}$, the SVD-optimal direction $\delta\Ahat^\star$, and per-node radii $\{r_v\}$, plus $\ecrit$ and the regime characterisation of \cref{thm:phase_transition} for IGNN-class operators. A dense path ($N \leq 200$) computes an exact SVD; a matrix-free path ($N > 200$, validated to $N{=}7{,}650$) uses JVP/VJP queries and randomized SVD. \Cref{fig:pipeline} illustrates the four stages; \cref{alg:aegis} summarises the matrix-free routing.
 
 \begin{algorithm}[t]
-\caption{\AEGIS Vulnerability Analysis (matrix-free). Assumes the
-equilibrium $\zstar$ is pre-computed on the analysis (sub)graph.
-Dense fallback ($N\!\leq\!200$): form $S\!=\!(I\!-\!J_z)^{-1}J_A$
-and run a deterministic SVD in place of lines~2--11.}
+\caption{\AEGIS matrix-free vulnerability analysis. $S_c$ is queried but never formed; the dense fallback ($N\!\leq\!200$) builds $S_c$ and runs an exact SVD.}
 \label{alg:aegis}
 \begin{algorithmic}[1]
-\REQUIRE $F$, $\zstar$, $\Ahat$, budget $\varepsilon$; SVD rank $k$, oversampling $p$, power iters $n_\mathrm{iter}$; Neumann tol.\ $\tau$; edge set $E$; (opt.) head $h$, logits $Y$, labels $y$.
-\ENSURE $\sigma_1(S_c),\,\delta\Ahat^{\star},\,\{v_{ij}\},\,\{r_v\},\,\ecrit$.
-\STATE $\kappa \leftarrow \norm{J_z}_2$ via power iteration; $K \leftarrow \lceil \log(1/\tau)/\log(1/\kappa)\rceil$.
-\STATE $\textsc{matvec}(v) := \sum_{j=0}^K J_z^j \mathrm{JVP}_F^{\Ahat}(P_c v)|_{\zstar}$; $\textsc{rmatvec}(u) := P_c^\top \mathrm{VJP}_F^{\Ahat}(\sum_{j=0}^K (J_z^\top)^j u)|_{\zstar}$.
-\STATE Draw $\Omega \sim \mathcal{N}(0,I) \in \R^{|E|\times(k+p)}$; $Y \leftarrow \textsc{matvec}(\Omega)$ column-wise.
-\FOR{$j = 1, \ldots, n_\mathrm{iter}$}
-  \STATE $Y \leftarrow \mathrm{QR}(\textsc{matvec}(\textsc{rmatvec}(Y)))$
-\ENDFOR
-\STATE $Q \leftarrow \mathrm{QR}(Y)$; $B^\top \leftarrow \textsc{rmatvec}(Q)$; $(\widetilde U, \Sigma, V^\top) \leftarrow \mathrm{SVD}(B)$; $U \leftarrow Q\widetilde U$ \COMMENT{rSVD~\cite{halko2011finding}}
-\STATE $\sigma_1 \leftarrow \Sigma_{1,1}$; $\delta\Ahat^\star \leftarrow \varepsilon \cdot \mathrm{sym}(P_c V_{:,1}) / \norm{\mathrm{sym}(P_c V_{:,1})}_2$.
-\STATE $v_{ij} \leftarrow \norm{\textsc{matvec}(e_{ij})}_2$ for each $(i,j) \in E$ \COMMENT{per-edge spectrum}
-\IF{$h, Y, y$ supplied}
-  \STATE $r_v \leftarrow \min_{c\neq y_v} m_v^{(c)} / \norm{(W_{y_v}-W_c)\,S_{c,v}}_2$ for each $v$ \COMMENT{Prop.~\ref{prop:radius}}
-\ENDIF
-\STATE \textbf{if} $\norm{W}_2$ extractable \textbf{then} $\ecrit \leftarrow (1-\kappa)/\norm{W}_2$ \COMMENT{Thm.~\ref{thm:phase_transition}}
-\STATE \textbf{return} $(\sigma_1, \delta\Ahat^\star, \{v_{ij}\}, \{r_v\}, \ecrit)$.
+\REQUIRE $F$, fixed point $\zstar$, $\Ahat$, edge set $E$, budget $\varepsilon$, rank $k$, Neumann tolerance $\mathrm{tol}$; (opt.)\ head $W$, margins $m_v^{(c)}$.
+\ENSURE $\sigma_1(S_c),\ \delta\Ahat^{\star},\ \{v_{ij}\},\ \{r_v\},\ \ecrit$.
+\STATE $\kappa \leftarrow \norm{J_z}_2$;\quad $K \leftarrow \lceil \log(1/\mathrm{tol})/\log(1/\kappa)\rceil$
+\STATE $S_c\,v := \big(\textstyle\sum_{j=0}^{K} J_z^{j}\big)\,J_A\,P_c\,v$ \COMMENT{matrix-free}
+\STATE $(\sigma_1, v_1) \leftarrow \mathrm{rSVD}(S_c,\,k)$~\cite{halko2011finding}
+\STATE $\delta\Ahat^{\star} \leftarrow \varepsilon\,\mathrm{sym}(P_c v_1)\,/\,\norm{\mathrm{sym}(P_c v_1)}_2$
+\STATE $v_{ij} \leftarrow \norm{S_c\,e_{ij}}_2$\ \ for each $(i,j)\in E$
+\STATE $r_v \leftarrow \min_{c\neq y_v} m_v^{(c)} / \norm{(W_{y_v}{-}W_c)\,S_{c,v}}_2$ \COMMENT{head only}
+\STATE $\ecrit \leftarrow (1-\kappa)/\norm{W}_2$ \COMMENT{Thm.~\ref{thm:phase_transition}}
+\STATE \textbf{return} $(\sigma_1,\ \delta\Ahat^{\star},\ \{v_{ij}\},\ \{r_v\},\ \ecrit)$
 \end{algorithmic}
 \end{algorithm}
 
-\textbf{Matrix-free operator.} $S_c v = (I{-}J_z)^{-1}J_A P_c v$ is evaluated via the truncated Neumann series $\sum_{k=0}^K J_z^k b$ with depth $K$ adaptive in $\kappa$ (early stop at $\norm{J_z^k b}<10^{-6}\norm{b}$); each Neumann term and $J_A\,\mathrm{vec}(\delta A)$ are forward-mode JVPs in $O(Nd)$ time. $P_c$ is applied implicitly, so neither $S_c$ nor $S$ is formed; the dense path ($N\leq 200$) materialises $J_z, J_A$ and applies a direct linear solve. The rSVD~\cite{halko2011finding} ($k{=}p{=}10$, $n_\mathrm{iter}{=}2$) returns $(u_1,\sigma_1,v_1)$ for the direction $\delta\Ahat^\star{=}\varepsilon\cdot\mathrm{sym}(P_c v_1)$ (\cref{prop:attack}); column norms give $\{v_{ij}\}$, and per-node radii follow \cref{prop:radius} via the node-restricted $\textsc{rmatvec}$. The well-separated singular spectrum (gap $(\sigma_1{-}\sigma_2)/\sigma_1{=}0.39$--$0.50$; \cref{fig:sc_heatmap}) is why one rSVD query matches iterative attackers (\cref{sec:adaptive}).
+\textbf{Matrix-free operator.} $S_c v = (I{-}J_z)^{-1}J_A P_c v$ is evaluated via the truncated Neumann series $\sum_{k=0}^K J_z^k b$ with depth $K$ adaptive in $\kappa$ (early stop at $\norm{J_z^k b}<10^{-6}\norm{b}$); each Neumann term and $J_A\,\mathrm{vec}(\delta A)$ are forward-mode JVPs in $O(Nd)$ time. $P_c$ is applied implicitly, so neither $S_c$ nor $S$ is formed; the dense path ($N\leq 200$) materialises $J_z, J_A$ and applies a direct linear solve. The rSVD~\cite{halko2011finding} ($k{=}p{=}10$, $n_\mathrm{iter}{=}2$) returns $(u_1,\sigma_1,v_1)$ for the direction $\delta\Ahat^\star{=}\varepsilon\cdot\mathrm{sym}(P_c v_1)$ (\cref{prop:attack}), where $\mathrm{sym}(M){=}(M{+}M^\top)/2$ keeps $\delta\Ahat^\star$ symmetric (\cref{sec:background}); column norms give $\{v_{ij}\}$, and per-node radii follow \cref{prop:radius} via the node-restricted $\textsc{rmatvec}$. The well-separated singular spectrum (gap $(\sigma_1{-}\sigma_2)/\sigma_1{=}0.39$--$0.50$; \cref{fig:sc_heatmap}) is why one rSVD query matches iterative attackers (\cref{sec:adaptive}).
 
 \begin{figure}[t]
 \centering

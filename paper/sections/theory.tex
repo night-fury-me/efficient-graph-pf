@@ -79,6 +79,13 @@ preserves the classification of $v$ for any $\norm{\delta\Ahat}_F < r_v$, where 
 $r_v$ is a first-order sensitivity threshold, not a probabilistic certificate: it indicates the perturbation scale at which the linearization predicts a classification change for node $v$, and is locally tight for small $\varepsilon$ but can be violated at larger magnitudes where higher-order terms dominate. The two approaches are complementary: randomized smoothing~\cite{bojchevski2020efficient} certifies which nodes are guaranteed safe, while \AEGIS differentiates which edges and nodes are most sensitive and in which direction (\cref{sec:certificates}). Empirically, breach rate is $0\%$ at $\varepsilon{=}0.01$ and rises with $\varepsilon$ as expected for first-order approximations (\cref{sec:adaptive}).
 \end{remark}
 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.90\textwidth]{figures/aegis--overview--diagram.pdf}
+\caption{The four-stage \AEGIS pipeline: (1) graph processing (BFS subgraph or full-graph forward / fixed-point pass); (2) sensitivity computation (dense Jacobian for $N \leq 200$, matrix-free Neumann/JVP otherwise); (3) constrained projection $N^2 \to |E|$ via $P_c$; (4) vulnerability analysis (randomised SVD, $S_c$ column norms, per-node radii). The matrix-free path queries $S_c$ via JVPs/VJPs without materialising it, scaling to $N{=}7{,}650$.}
+\label{fig:pipeline}
+\end{figure*}
+
 \subsection{Continuous-to-Discrete Transfer}
 
 \begin{proposition}[Continuous-to-Discrete Ranking Transfer]
@@ -106,13 +113,6 @@ Under uniform weights ($w_k = w$ for all $k$), $v_{k_1} > v_{k_2}$ implies $d_{k
 \end{proof}
 
 Empirically $|R_k|$ is $2$--$10\times$ smaller than $L_J w_k^2$; the constrained projection $S_c$ turns the $0.31$ vacuous bound into a tight one ($1.00$; \cref{sec:cross_domain})~\cite{stewart1990matrix,trefethen2005spectra}. The edge-weighted score $w_k v_k$ predicted by (a) reaches $\tau\!=\!\mathbf{+0.996}$ against brute-force N-1 on full-graph Amazon Photo (10 seeds, \cref{sec:explicit_extension}), corroborating the first-order bridge at scale.
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.90\textwidth]{figures/aegis--overview--diagram.pdf}
-\caption{The four-stage \AEGIS pipeline: (1) graph processing (BFS subgraph or full-graph forward / fixed-point pass); (2) sensitivity computation (dense Jacobian for $N \leq 200$, matrix-free Neumann/JVP otherwise); (3) constrained projection $N^2 \to |E|$ via $P_c$; (4) vulnerability analysis (randomised SVD, $S_c$ column norms, per-node radii). The matrix-free path queries $S_c$ via JVPs/VJPs without materialising it, scaling to $N{=}7{,}650$.}
-\label{fig:pipeline}
-\end{figure*}
 
 \subsection{Generalization to Explicit GNNs}
 
