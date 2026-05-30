@@ -11,48 +11,46 @@ Database file #1: aegis.bib
 -- IEEEtran.bst version 1.14 (2015/08/26) by Michael Shell.
 -- http://www.michaelshell.org/tex/ieeetran/bibtex/
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
-Warning--empty booktitle in lai2025auditvotes
 
 Done.
-You've used 56 entries,
+You've used 55 entries,
             4087 wiz_defined-function locations,
-            1071 strings with 17202 characters,
-and the built_in function-call counts, 41992 in all, are:
-= -- 3091
-> -- 1167
+            1067 strings with 16945 characters,
+and the built_in function-call counts, 41371 in all, are:
+= -- 3059
+> -- 1134
 < -- 293
-+ -- 628
-- -- 230
-* -- 1981
-:= -- 5904
-add.period$ -- 113
-call.type$ -- 56
-change.case$ -- 55
++ -- 612
+- -- 222
+* -- 1952
+:= -- 5822
+add.period$ -- 111
+call.type$ -- 55
+change.case$ -- 54
 chr.to.int$ -- 726
-cite$ -- 57
-duplicate$ -- 3051
-empty$ -- 3836
-format.name$ -- 273
-if$ -- 9958
+cite$ -- 55
+duplicate$ -- 3002
+empty$ -- 3772
+format.name$ -- 264
+if$ -- 9812
 int.to.chr$ -- 0
-int.to.str$ -- 56
-missing$ -- 577
-newline$ -- 191
-num.names$ -- 56
-pop$ -- 1514
+int.to.str$ -- 55
+missing$ -- 564
+newline$ -- 188
+num.names$ -- 55
+pop$ -- 1471
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 3290
+skip$ -- 3244
 stack$ -- 0
-substring$ -- 1754
-swap$ -- 2282
+substring$ -- 1753
+swap$ -- 2254
 text.length$ -- 51
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 56
-warning$ -- 1
-while$ -- 162
-width$ -- 58
-write$ -- 517
-(There was 1 warning)
+type$ -- 55
+warning$ -- 0
+while$ -- 161
+width$ -- 57
+write$ -- 510

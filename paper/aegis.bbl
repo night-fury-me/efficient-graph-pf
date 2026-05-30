@@ -296,11 +296,6 @@ G.~C. Ejebe and B.~F. Wollenberg, ``Automatic contingency selection,''
   \emph{IEEE Transactions on Power Apparatus and Systems}, no.~1, pp. 97--109,
   1979.
 
-\bibitem{lai2025auditvotes}
-Y.~Lai, Y.~Zhu, Y.~Sun, Y.~Wu, B.~Xiao, G.~Li, J.~Li, and K.~Zhou,
-  ``{AuditVotes}: A framework towards more deployable certified robustness for
-  graph neural networks,'' 2025.
-
 \bibitem{winston2020monotone}
 E.~Winston and J.~Z. Kolter, ``Monotone operator equilibrium networks,'' in
   \emph{Advances in Neural Information Processing Systems}, vol.~33, 2020, pp.
