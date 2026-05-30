@@ -5,6 +5,13 @@
 
 Beyond classification, \AEGIS extends to AC power-flow contingency analysis. Applied to a learned ContractiveGCN-PF surrogate, the $S_c$ ranking recovers brute-force N-1 critical-line severity on IEEE case14--118 ($\tau{=}{+}0.37$ to ${+}0.62$, $\mathbf{P@10}{=}\mathbf{0.66}$--$\mathbf{0.81}$), competitive with industry LODF screening. The ranking is label-free and one-query: $v_{ij}$ comes purely from the surrogate's learned IFT-resolvent $(I{-}J_z)^{-1}$, and its agreement with PTDF/LODF~\cite{wood2014power} is consistent with the topology-driven flow concentration those DC measures encode. Recent GNN-PF work targets fidelity~\cite{donon2019graph,bolz2019power,kim2025physicsinformed,nakiganda2023graph} and contingency screening~\cite{varbella2024contingency}; \AEGIS adds a label-free vulnerability-attribution layer over any such surrogate, without contingency labels or retraining.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.92\columnwidth]{figures/fig_ieee14_case.pdf}
+\caption{\AEGIS vulnerability ranking on the IEEE 14-bus benchmark (10-seed mean; P@10 $= 0.70$ for this run, consistent with the $0.74 \pm 0.12$ in \cref{tab:ieee}). Bus markers encode physical bus type (slack / generator / load); green edges are the top-10 by $v_{ij}$ with rank tags ($\#1$--$\#3$); yellow midpoint dots mark edges that also appear in the brute-force N-1 top-10 ($7$ of $10$). Top-ranked edges concentrate on the high-flow inter-area tie lines (1--2, 1--5, 7--8), recovering the single-contingency severity pattern from one matrix-free SVD pass.}
+\label{fig:ieee14_case}
+\end{figure}
+
 \textbf{Setup.} ContractiveGCN-PF is an IGNN-class operator $F(Z,A){=}\phi(\Ahat ZW^\top + X_\mathrm{proj})$ with spectral-norm-constrained $W$, trained on five IEEE test cases~\cite{ieee2024testcases} with a 2-head readout ($\Delta|V|,\Delta\theta$). Training data are 2{,}000 load samples per case ($70$--$130\%$ of nominal, \emph{uniform load scaling only}, a narrow envelope that does not cover seasonal peaks, dispatch shifts, or renewable ramps) from PandaPower's~\cite{thurner2018pandapower} AC Newton-Raphson solver; inputs are binary adjacency and 5 bus features (slack/PV indicators, $P$, $Q$, $|V|$). Ground truth: $\ell_2$ voltage-angle deviation per AC contingency. We use full-graph dense analysis on case14--118. LODF's native metric is DC line-flow change; we benchmark its rank-order against AC voltage-angle truth, where the comparison stays informative within LODF's scope.
 
 \cref{tab:ieee} reports the envelope ratio and Kendall $\tau$ between $S_c$ rankings and brute-force N-1; \cref{fig:ieee14_case} visualises case14. The envelope is tight in the PF domain ($\approx 1.00$), and on case14--118 the ranking correlation $\tau{=}+0.37$ to $+0.62$ ($\mathrm{P@10}{=}0.66$--$0.81$) identifies $7$--$8$ of the top-$10$ critical lines. The matrix-free $S_c$ pipeline scales to $N{=}7{,}650$ (\cref{fig:scalability}); richer PF surrogates trained on broader operating envelopes are the path to operational-grade screening.
@@ -29,12 +36,5 @@ case118 & 118 & 179 & .014 & .076 & $\ms{+.62}{.11}$ & $\ms{.81}{.10}$ \\
 \end{tabular}%
 }
 \end{table}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.92\columnwidth]{figures/fig_ieee14_case.pdf}
-\caption{\AEGIS vulnerability ranking on the IEEE 14-bus benchmark (10-seed mean; P@10 $= 0.70$ for this run, consistent with the $0.74 \pm 0.12$ in \cref{tab:ieee}). Bus markers encode physical bus type (slack / generator / load); green edges are the top-10 by $v_{ij}$ with rank tags ($\#1$--$\#3$); yellow midpoint dots mark edges that also appear in the brute-force N-1 top-10 ($7$ of $10$). Top-ranked edges concentrate on the high-flow inter-area tie lines (1--2, 1--5, 7--8), recovering the single-contingency severity pattern from one matrix-free SVD pass.}
-\label{fig:ieee14_case}
-\end{figure}
 
 \textbf{Baselines.} Against the AC voltage-angle truth, LODF (industry DC screening) attains $\tau{=}0.44$--$0.58$ on the credible cases; \AEGIS matches or leads it ($0.62$--$0.67$ on case57/118, Wilcoxon $p{<}0.01$; overlapping on case14/30), and on LODF's fairer thermal-overload target reaches $\mathrm{P@10}{=}0.60$ (case57), competitive but not dominant. \emph{Binary adjacency beats admittance-weighting} ($\mathrm{P@10}{=}0.81$ vs.\ $0.27$, case118): a single-line trip removes the line regardless of impedance.\footnote{Other baselines (case57/118): Ejebe--Wollenberg PI~\cite{ejebe1979automatic} $\tau{=}{+}0.335/{+}0.101$ ($\mathrm{P@10}{=}0.50/0.30$); standalone PTDF without outage correction is anti-correlated/near-zero ($\tau{=}{-}0.14/{+}0.06$), confirming outage redistribution is the operative effect. Runtime: LODF ${<}0.13$\,s, N-1 $0.1$--$2$\,s, \AEGIS $2$--$23$\,s.}
