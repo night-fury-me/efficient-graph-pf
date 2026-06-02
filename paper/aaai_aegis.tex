@@ -84,6 +84,10 @@
 \newtheorem{definition}{Definition}
 \crefname{definition}{Definition}{Definitions}
 \Crefname{definition}{Definition}{Definitions}
+% lemma is used by the AEGIS-Conformal derivation (appendix)
+\newtheorem{lemma}{Lemma}
+\crefname{lemma}{Lemma}{Lemmas}
+\Crefname{lemma}{Lemma}{Lemmas}
 % Each theorem-like environment carries its own counter and its own cleveref name
 \crefname{theorem}{Theorem}{Theorems}
 \Crefname{theorem}{Theorem}{Theorems}
@@ -111,6 +115,10 @@
 \newcommand{\gA}{g_A}
 \DeclareMathOperator{\diag}{diag}
 \newcommand{\Exp}{\mathbb{E}}
+% --- Macros for the AEGIS-Conformal derivation (appendix) ---
+\DeclareMathOperator{\softmax}{softmax}
+\newcommand{\score}{\mathrm{score}}
+\newcommand{\Cset}{C}
 \newcommand{\AEGIS}{\textsc{Aegis}\xspace}
 % \AEGIS used \xspace from the xspace package, which is dropped here; provide a
 % \xspace stub so the macro still expands cleanly without the package.

@@ -60,7 +60,7 @@ Under \textnormal{(A1)--(A3)} with $\Ahat$ symmetric and $\ecrit{>}0$, the all-a
 with $C$ dimension-free and computable post-training, and $\beta{\in}(0,1]$ the edge-supported Frobenius mass of $\Ahat$'s Perron mode (positive for any connected graph). The upper side is attained by a rank-one critical-driving attack aligned with that mode; the bracket collapses to equality iff $g_W{=}1$ and $\beta{=}1$.
 \end{theorem}
 
-This is a \emph{constant-factor} two-sided characterisation, not a tight one---the slack $C/\beta$ reaches ${\sim}10$ on our suite. Its value is the coupling it exposes: one operator $S_c$ supplies the certified budget $\ecrit$, the matching attack, and (through $\sigma_1(S_c)$) the defense of \cref{sec:defense}. Empirically the norm certificate under-states the true breaking budget by $\mathbf{2}$--$\mathbf{9\times}$ across $10$ seeds (resolvent divergence $\gamma{=}1.02$); the proof and nonlinear extension are in \cref{app:bracket}.
+This is a \emph{constant-factor} two-sided characterisation, not a tight one---the proven slack $C/\beta$ reaches ${\sim}10$--$16\times$ on our suite (the empirical break ratio below is smaller). Its value is the coupling it exposes: one operator $S_c$ supplies the certified budget $\ecrit$, the matching attack, and (through $\sigma_1(S_c)$) the defense of \cref{sec:defense}. Empirically the norm certificate under-states the true breaking budget by $\mathbf{2}$--$\mathbf{9\times}$ across $10$ seeds (resolvent divergence $\gamma{=}1.02$); the proof and nonlinear extension are in \cref{app:bracket}.
 
 We now read the three diagnostics off $S_c$, beginning with the most damaging perturbation direction.
 
@@ -85,7 +85,7 @@ preserves the classification of $v$ for any $\norm{\delta\Ahat}_F < r_v$, where 
 
 \subsection{\AEGIS-Conformal: A Distribution-Free Certificate}
 \label{sec:conformal}
-The radius $r_v$ (\cref{eq:radius}) is a first-order threshold---locally tight, but violable at larger $\varepsilon$. We upgrade it to a \emph{sound, distribution-free} guarantee. Split conformal prediction yields a set $C(v)$ with $\Pr[y_v\in C(v)]\geq1{-}\alpha$; making this hold \emph{robustly} over the ball $\norm{\delta\Ahat}_F\leq\varepsilon$ requires bounding the worst-case conformity-score shift, which \AEGIS supplies \emph{analytically} via the same $S_c$ sensitivity (a curvature-corrected $L_1^{c}\varepsilon{+}C_v\varepsilon^2$), replacing the ${\sim}10^4$-sample smoothing otherwise needed. Feeding it into the binary-certificate split conformal of \citet{zargarbashi2023conformal} yields a robust set with
+The radius $r_v$ (\cref{eq:radius}) is a first-order threshold---locally tight, but violable at larger $\varepsilon$. We upgrade it to a distribution-free guarantee---sound under an exchangeability condition and gated by the coverage test (\cref{app:conformal}). Split conformal prediction yields a set $C(v)$ with $\Pr[y_v\in C(v)]\geq1{-}\alpha$; making this hold \emph{robustly} over the ball $\norm{\delta\Ahat}_F\leq\varepsilon$ requires bounding the worst-case conformity-score shift, which \AEGIS supplies \emph{analytically} via the same $S_c$ sensitivity (a curvature-corrected $L_1^{c}\varepsilon{+}C_v\varepsilon^2$), replacing the ${\sim}10^4$-sample smoothing otherwise needed. Feeding it into the binary-certificate split conformal of \citet{zargarbashi2023conformal} yields a robust set with
 \begin{equation}
 \Pr\!\big[y_v\in C_\varepsilon(v)\big]\;\geq\;1-\alpha
 \qquad\text{for all }\ \norm{\delta\Ahat}_F\leq\varepsilon .
@@ -94,7 +94,7 @@ The radius $r_v$ (\cref{eq:radius}) is a first-order threshold---locally tight, 
 \Cref{tab:conformal} reports coverage over the 10 seeds. The \emph{gate}---coverage under the worst-case \AEGIS attack at magnitude $\varepsilon$ (reconverging the equilibrium after the $v_1$ perturbation)---holds at the nominal $1{-}\alpha{=}0.90$ at $\varepsilon{=}0.01$ and is conservative ($0.92$--$0.98$) at $\varepsilon{=}0.05$, with \emph{zero} equilibrium divergence across all gate nodes; sets are ${\sim}1.0$--$1.5$ labels. The certificate is thus non-vacuous exactly where the deterministic radius certifies few nodes, uses zero Monte-Carlo samples, and via $S_K$ applies to any GNN. Exchangeability on a single transductive graph is a stated condition (the empirical gate is the evidence); we form $S_c$ densely at $N{=}200$, a matrix-free conformal pass being future work.
 
 \begin{table}[t]\centering\footnotesize\setlength{\tabcolsep}{4pt}
-\caption{\AEGIS-Conformal coverage (10 seeds; $\alpha{=}0.1$, target $0.90$). \textbf{Gate}: coverage under the worst-case attack at $\varepsilon$. ``set'': mean prediction-set size (of 7 Cora / 6 Citeseer classes). Std over seeds ${\leq}0.06$.}
+\caption{\AEGIS-Conformal coverage (10 seeds; $\alpha{=}0.1$, target $0.90$). \textbf{Gate}: coverage under the worst-case attack at $\varepsilon$. ``set'': mean prediction-set size (of 7 Cora / 6 Citeseer classes). Std over seeds ${\leq}0.06$. Set sizes ${<}1$ reflect occasional empty (abstaining) sets under TPS.}
 \label{tab:conformal}
 \begin{tabular}{llccc}
 \toprule
@@ -113,9 +113,8 @@ Citeseer & APS & 0.01 & 0.919 / 1.50 & \textbf{0.925} \\
 \end{tabular}
 \end{table}
 
-\subsection{Coupling: A $\sigma_1(S_c)$ Defense}
-\label{sec:defense}
-The operator that finds the worst attack also defends against it. Adding $\lambda\,\sigma_1(S_c)$ to the training loss shrinks the dominant sensitivity: at $\lambda{=}3{\times}10^{-4}$ the IGNN reaches $\sigma_1(S_c){=}32.6{\pm}1.7$ at $73.9{\pm}0.8\%$ accuracy, raising certified coverage to $0.82{\pm}0.03$. Across seeds the per-node attack magnitude and certified radius are partially anticorrelated ($-0.65{\pm}0.12$, margin-controlled), so suppressing the attack direction \emph{is} the defense.
+\subsection{Coupling: A $\sigma_1(S_c)$ Defense Knob}\label{sec:defense}
+The operator that finds the worst attack also tunes the defense. Penalizing $\sigma_1(S_c)$ during training ($\lambda{=}3{\times}10^{-4}$) cuts the dominant sensitivity ${\sim}10\times$ ($\sigma_1{\approx}335{\to}32.6{\pm}1.7$), enlarging the certified radii and raising \AEGIS-Conformal coverage to $0.82{\pm}0.03$ at a ${\sim}5\%$ clean-accuracy cost ($73.9{\pm}0.8\%$): a certified-robustness/accuracy trade controlled by one quantity on the same operator. The trade is genuinely \emph{certified}, not empirical: under the $v_1$ attack at $\varepsilon{\leq}0.1$ robust accuracy is flat for both models (few nodes flip at realistic budgets, the delocalized vulnerability of \cref{sec:adaptive}), so the penalty raises the certified margin, not realized small-budget accuracy. Attack and defense thus couple through $S_c$: per-node attack magnitude and certified radius are partially anticorrelated ($-0.65{\pm}0.12$, margin-controlled).
 
 \subsection{Continuous-to-Discrete Transfer}
 
