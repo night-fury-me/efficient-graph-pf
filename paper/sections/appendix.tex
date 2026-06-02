@@ -236,7 +236,7 @@ and consequently the worst-case drop of the conformity score of label $r$ obeys
 \Delta_r(\varepsilon):=\Psi_r\!\Big(\big\{L_{1,v}^{(c)}\varepsilon+C_v\varepsilon^2\big\}_{c\ne r}\Big),
 \label{eq:score-drop}
 \end{equation}
-where $\Psi_r$ is the (monotone, $1$-Lipschitz in each argument) map that sends a vector of
+where $\Psi_r$ is the (monotone) map that sends a vector of
 margin-decrements to the induced conformity-score decrement: $\Psi_r=\mathrm{id}$-dominated for
 APS and $\Psi_r$ realised by the worst-case softmax for TPS (both computed in closed form by
 \texttt{worst\_case\_softmax\_for\_ref}). In particular, taking the competitor-worst constants gives
@@ -300,8 +300,7 @@ of the drop), with no softmax-Lipschitz constant needed.
 above $r$ in rank, adding $\pi_c$ to $\rho_r$ (lowering $\score_r$). The adversarial direction is the
 latter; the worst-case $\rho_r$ uses the same lowered-margin softmax $\pi^{\mathrm{wc}}$, so
 $\Delta_r=\big(\rho^{\mathrm{wc}}_r+u_v\pi^{\mathrm{wc}}_r\big)-\big(\rho_r+u_v\pi_r\big)$, again
-computed exactly by the worst-case softmax. $\Psi_r$ is monotone and $1$-Lipschitz in each margin
-decrement because $\rho_r,\pi_r\in[0,1]$ and $u_v\le1$.
+computed exactly by the worst-case softmax. $\Psi_r$ is monotone with $\rho_r,\pi_r\in[0,1]$ and $u_v\le1$, so this worst-case drop is exact, not a Lipschitz bound.
 \end{itemize}
 Either way the per-competitor decrement caps the per-label score drop, giving \eqref{eq:score-drop};
 replacing each $L_{1,v}^{(c)}$ by the competitor-worst $L_1^{c}$ yields the stated headline form.
