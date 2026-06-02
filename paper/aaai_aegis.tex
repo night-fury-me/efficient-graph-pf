@@ -1,0 +1,172 @@
+%File: aaai_aegis.tex
+%
+% AAAI-2026-format build of the AEGIS paper.
+% Ported as-is from the IEEEtran source (aegis.tex). Content is unchanged;
+% only the document class / preamble are converted to the required AAAI setup.
+%
+% ============================ AAAI REQUIRED PREAMBLE ============================
+% The following block is taken verbatim from anonymous-submission-latex-2026.tex
+% (the official AAAI 2026 anonymous-submission sample). DO NOT CHANGE THESE LINES.
+\documentclass[letterpaper]{article} % DO NOT CHANGE THIS
+\usepackage[submission]{aaai2026}  % DO NOT CHANGE THIS
+\usepackage{times}  % DO NOT CHANGE THIS
+\usepackage{helvet}  % DO NOT CHANGE THIS
+\usepackage{courier}  % DO NOT CHANGE THIS
+\usepackage[hyphens]{url}  % DO NOT CHANGE THIS
+\usepackage{graphicx} % DO NOT CHANGE THIS
+\urlstyle{rm} % DO NOT CHANGE THIS
+\def\UrlFont{\rm}  % DO NOT CHANGE THIS
+\usepackage{natbib}  % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\usepackage{caption} % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\frenchspacing  % DO NOT CHANGE THIS
+\setlength{\pdfpagewidth}{8.5in} % DO NOT CHANGE THIS
+\setlength{\pdfpageheight}{11in} % DO NOT CHANGE THIS
+%
+% These are recommended to typeset algorithms but not required. See the subsubsection on algorithms.
+\usepackage{algorithm}
+\usepackage{algorithmic}
+%
+% These are recommended to typeset listings but not required.
+\usepackage{newfloat}
+\usepackage{listings}
+\DeclareCaptionStyle{ruled}{labelfont=normalfont,labelsep=colon,strut=off} % DO NOT CHANGE THIS
+\lstset{%
+	basicstyle={\footnotesize\ttfamily},% footnotesize acceptable for monospace
+	numbers=left,numberstyle=\footnotesize,xleftmargin=2em,% show line numbers, remove this entire line if you don't want the numbers.
+	aboveskip=0pt,belowskip=0pt,%
+	showstringspaces=false,tabsize=2,breaklines=true}
+\floatstyle{ruled}
+\newfloat{listing}{tb}{lst}{}
+\floatname{listing}{Listing}
+%
+% Keep the \pdfinfo as shown here. There's no need
+% for you to add the /Title and /Author tags.
+\pdfinfo{
+/TemplateVersion (2026.1)
+}
+% ========================== END AAAI REQUIRED PREAMBLE =========================
+
+% AAAI defaults to \setcounter{secnumdepth}{0} (unnumbered sections). The ported
+% paper uses \cref{sec:...} for 44 section cross-references, which require
+% NUMBERED sections (cleveref errors with "Missing number" on an unnumbered
+% target). The AAAI sample explicitly sanctions raising this to 1 or 2; we use 2
+% so sections and subsections are numbered, matching the IEEEtran source.
+\setcounter{secnumdepth}{2}
+
+% ===================== PORTED FROM aegis.tex (IEEEtran) PREAMBLE ================
+% Math setup carried over from the IEEEtran source.
+% NOTE on dropped packages (AAAI aaai2026.sty forbids several; see report):
+%   * hyperref  -> FORBIDDEN by aaai2026.sty. Dropped. cleveref still works
+%                  (it falls back to no links and uses our \crefname definitions).
+%   * caption   -> already loaded by the AAAI required preamble above; we must
+%                  NOT reload it with options, so the IEEEtran
+%                  "\usepackage[font=footnotesize]{caption}" line is dropped.
+%   * subcaption / xcolor / bm / microtype / silence / textcomp / tikz ->
+%                  not used anywhere in the ported section bodies, so dropped to
+%                  keep the build minimal and AAAI-clean.
+%   * IEEEtran float/display spacing tweaks -> dropped (AAAI forbids altering
+%                  float/section spacing; the 10pp compaction is irrelevant here).
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+% cleveref must be loaded AFTER hyperref; since hyperref is forbidden here,
+% cleveref is simply loaded last among the cross-reference machinery.
+\usepackage{cleveref}
+
+% --- Theorem-like environments used by the sections (theory.tex etc.) ---
+% (sections use: theorem, proposition, observation, remark)
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{observation}{Observation}
+\newtheorem{remark}{Remark}
+% definition is used by the relocated bracket theorem (appendix)
+\newtheorem{definition}{Definition}
+\crefname{definition}{Definition}{Definitions}
+\Crefname{definition}{Definition}{Definitions}
+% Each theorem-like environment carries its own counter and its own cleveref name
+\crefname{theorem}{Theorem}{Theorems}
+\Crefname{theorem}{Theorem}{Theorems}
+\crefname{proposition}{Proposition}{Propositions}
+\Crefname{proposition}{Proposition}{Propositions}
+\crefname{observation}{Observation}{Observations}
+\Crefname{observation}{Observation}{Observations}
+\crefname{remark}{Remark}{Remarks}
+\Crefname{remark}{Remark}{Remarks}
+
+% --- Custom macros carried over verbatim from aegis.tex ---
+\newcommand{\ms}[2]{#1_{\pm #2}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\norm}[1]{\left\|#1\right\|}
+\newcommand{\abs}[1]{\left|#1\right|}
+\newcommand{\zstar}{z^{*}}
+\newcommand{\Ahat}{\hat{A}}
+\newcommand{\ecrit}{\varepsilon_{\mathrm{crit}}}
+% --- Macros for the bracket theorem (Thm cf2s) relocated to the appendix ---
+\newcommand{\espec}{\varepsilon_{\mathrm{spec}}}
+\newcommand{\ebreakall}{\varepsilon_{\mathrm{br}}^{\mathrm{all}}}
+\newcommand{\ebreak}{\varepsilon_{\mathrm{br}}}
+\newcommand{\ereach}{\varepsilon_{\mathrm{reach}}}
+\newcommand{\gW}{g_W}
+\newcommand{\gA}{g_A}
+\DeclareMathOperator{\diag}{diag}
+\newcommand{\Exp}{\mathbb{E}}
+\newcommand{\AEGIS}{\textsc{Aegis}\xspace}
+% \AEGIS used \xspace from the xspace package, which is dropped here; provide a
+% \xspace stub so the macro still expands cleanly without the package.
+\providecommand{\xspace}{\relax}
+
+% --- Compatibility shim: the ported abstract.tex still contains an
+% \begin{IEEEkeywords}...\end{IEEEkeywords} block. AAAI papers carry no keyword
+% list, so we define IEEEkeywords as an environment that silently discards its
+% body. This lets us port abstract.tex byte-for-byte without editing it.
+\newenvironment{IEEEkeywords}{\setbox0\vbox\bgroup}{\egroup}
+% =================== END PORTED PREAMBLE FROM aegis.tex =========================
+
+% Title (mixed case, from the current paper). \AEGIS expands to \textsc{Aegis}.
+\title{\AEGIS: Matrix-Free Diagnostics for the Adversarial Fault Lines of Graph Neural Networks}
+
+% AAAI anonymous (double-blind) author block: per the official sample, write
+% "Anonymous Submission" as the sole author and leave the affiliations empty.
+\author{
+    Anonymous Submission
+}
+\affiliations{
+    %
+}
+
+\begin{document}
+\maketitle
+
+% Sections \input in the SAME order as aegis.tex.
+\input{sections/abstract}
+\input{sections/introduction}
+\input{sections/background}
+\input{sections/theory}
+\input{sections/framework}
+\input{sections/experiments}
+\input{sections/case_study}
+\input{sections/related_work}
+\input{sections/conclusion}
+
+% Marker for the last page of technical content (before the bibliography).
+% AAAI-27: content must fit in <=7 pages; references and the appendix are unlimited.
+% Read its page number from aaai_aegis.aux: \newlabel{endofcontent}{{..}{<PAGE>}..}.
+\label{endofcontent}
+
+% NOTE: aaai2026.sty automatically issues \bibliographystyle{aaai2026} when
+% natbib is loaded (sty line ~235), so an explicit \bibliographystyle here would
+% create a duplicate \bibstyle in the .aux and make bibtex abort. We therefore
+% only provide \bibliography, exactly like the official AAAI sample.
+\bibliography{aegis}
+
+% ============================ TECHNICAL APPENDIX ===============================
+% Per the AAAI sample (anonymous-submission-latex-2026.tex): appendices appear
+% AFTER the main content; with numbered main sections, \appendix relabels
+% appendix sections with letters. All proof bodies, the full bracket theorem,
+% the detailed experiment tables, the algorithm listing, and the fraud-detector
+% walk-through are relocated here (relocated, not deleted).
+\appendix
+\input{sections/appendix}
+
+\end{document}

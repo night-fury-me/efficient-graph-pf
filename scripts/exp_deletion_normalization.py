@@ -43,6 +43,12 @@ KAPPA = 0.90
 SUBGRAPH_NODES = 50
 RECONVERGE_ITERS = 400
 ALL_SEEDS = [42, 137, 271, 314, 1729]
+try:
+    import os as _aegis_os
+    _aegis_s = _aegis_os.environ.get('AEGIS_SEEDS')
+    if _aegis_s: ALL_SEEDS = [int(_x) for _x in _aegis_s.split(',') if _x.strip()]
+except Exception:
+    pass
 DATASETS = [
     ("Cora",         lambda: _load_cora(Path("datasets/cora")),          3),
     ("Amazon Photo", lambda: _load_amazon(Path("datasets/amazon_photo")), 2),

@@ -35,6 +35,12 @@ from iem.examples.ignn_wikics import _load_wikics
 
 RHO = 0.05
 SEEDS = [42, 137, 271, 314, 1729, 2718, 3141, 5772, 6561, 9999]
+try:
+    import os as _aegis_os
+    _aegis_s = _aegis_os.environ.get('AEGIS_SEEDS')
+    if _aegis_s: SEEDS = [int(_x) for _x in _aegis_s.split(',') if _x.strip()]
+except Exception:
+    pass
 DATASETS = [
     ("Cora",     lambda: _load_cora(Path("datasets/cora"))),
     ("Citeseer", lambda: _load_planetoid("citeseer", Path("datasets/citeseer"))),

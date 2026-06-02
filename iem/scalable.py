@@ -61,16 +61,18 @@ class ScalableSensitivity:
         self.device = z_star.device
         self.dtype = z_star.dtype
 
-        self.edge_list: List[Tuple[int, int]] = []
-        for i in range(self.N):
-            for j in range(i + 1, self.N):
-                if self.A[i, j].abs() > 1e-10:
-                    self.edge_list.append((i, j))
+        # Vectorized upper-triangular edge extraction. Identical to the nested
+        # `for i: for j in range(i+1, N)` row-major scan (triu_indices yields the
+        # same i<j order) but avoids ~N^2 GPU scalar syncs (156 s -> <1 s on Cora).
+        iu = torch.triu_indices(self.N, self.N, offset=1, device=self.device)
+        active = self.A[iu[0], iu[1]].abs() > 1e-10
+        self._edge_idx = iu[:, active].t().contiguous().to(torch.long)
+        self.edge_list: List[Tuple[int, int]] = [
+            (int(i), int(j)) for i, j in self._edge_idx.tolist()
+        ]
         self.num_edges = len(self.edge_list)
-
-        self._edge_idx = torch.tensor(
-            self.edge_list, device=self.device, dtype=torch.long
-        ) if self.edge_list else torch.zeros(0, 2, device=self.device, dtype=torch.long)
+        if self.num_edges == 0:
+            self._edge_idx = torch.zeros(0, 2, device=self.device, dtype=torch.long)
 
         self._f_base: Optional[Tensor] = None
 
@@ -81,27 +83,41 @@ class ScalableSensitivity:
             self.neumann_K = self._adaptive_neumann_depth(self.rho, neumann_tol)
 
     @staticmethod
-    def _adaptive_neumann_depth(rho: float, tol: float, cap: int = 500) -> int:
-        """K such that rho^K < tol, capped at `cap`."""
+    def _adaptive_neumann_depth(rho: float, tol: float, cap: int = 3000) -> int:
+        """K such that rho^K < tol, capped at `cap`.
+
+        Cap raised to 3000 (was 500): at rho=0.99, K=500 leaves a ~e^{-5}~0.7%
+        tail-term but the geometric resolvent error is ~rho^K/(1-rho) ~ 0.7%/0.01
+        ~ 70% relative -> badly under-truncated. K=3000 drives rho^K/(1-rho) below
+        the tol regime even at rho ~ 0.99 (Amazon Photo, rho ~ 1). Adaptive depth
+        selection is unchanged; only the ceiling is raised.
+        """
         if rho <= 0 or rho >= 1.0:
             return cap
         return min(cap, max(20, math.ceil(-math.log(tol) / math.log(1.0 / rho))))
 
-    def _estimate_rho(self, n_iter: int = 30) -> float:
-        """Quick spectral-radius estimate via power iteration on J_z."""
+    def _estimate_rho(self, n_iter: int = 150) -> float:
+        """Spectral-radius estimate via power iteration + Rayleigh quotient on J_z.
+
+        J_z is the fixed (linearised-at-z*) operator Jacobian. Power iteration
+        converges to the dominant eigenvector v; the Rayleigh quotient <v, J_z v>
+        is the dominant eigenvalue (sign-aware), so |<v, J_z v>| is the spectral
+        radius rho. This replaces the previous estimate that returned the operator
+        2-norm ||J_z v|| after only ~30 iters: ||J_z v|| upper-bounds rho and could
+        OVERSHOOT a true rho ~ 0.96/0.99 to >= 1, which then silently pinned the
+        Neumann depth at the cap (under-truncating). Mirrors `rho_rayleigh` in
+        scripts/exp_fullgraph_attack_table.py.
+        """
         v = torch.randn(self.D, device=self.device, dtype=self.dtype)
         v = v / v.norm()
-        sigma = 0.0
         for _ in range(n_iter):
             Jv = self._jvp_Jz(v)
-            sigma_new = float(Jv.norm().item())
-            if sigma_new < 1e-12:
+            nv = float(Jv.norm().item())
+            if nv < 1e-12:
                 return 0.0
-            v = Jv / sigma_new
-            if abs(sigma_new - sigma) < 1e-6:
-                break
-            sigma = sigma_new
-        return sigma
+            v = Jv / nv
+        # Rayleigh quotient <v, J_z v> -> dominant eigenvalue (sign-aware).
+        return abs(float((v * self._jvp_Jz(v)).sum().item()))
 
     # ------------------------------------------------------------------
     # Low-level JVP / VJP primitives

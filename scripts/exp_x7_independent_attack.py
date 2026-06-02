@@ -64,6 +64,12 @@ EPS = 0.05            # paper anchor budget (matches Cov@0.05, smoothing sigma, 
 M = 512               # black-box random-search query budget (strong independent baseline)
 SURR_OFFSET = 10007   # surrogate seed = seed + offset (independent parameters, same arch)
 SEEDS = [42, 137, 271, 314, 1729, 2718, 3141, 5772, 6561, 9999]
+try:
+    import os as _aegis_os
+    _aegis_s = _aegis_os.environ.get('AEGIS_SEEDS')
+    if _aegis_s: SEEDS = [int(_x) for _x in _aegis_s.split(',') if _x.strip()]
+except Exception:
+    pass
 
 
 def load_datasets():

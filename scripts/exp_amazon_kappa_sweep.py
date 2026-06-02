@@ -45,6 +45,12 @@ from iem.examples.ignn_amazon import _load_amazon
 from iem.certify import spectral_radius
 
 SEEDS = [42, 137, 271, 314, 1729]  # 5 seeds for speed
+try:
+    import os as _aegis_os
+    _aegis_s = _aegis_os.environ.get('AEGIS_SEEDS')
+    if _aegis_s: SEEDS = [int(_x) for _x in _aegis_s.split(',') if _x.strip()]
+except Exception:
+    pass
 KAPPA_VALUES = [0.50, 0.70, 0.90, 0.99]
 
 

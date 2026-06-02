@@ -119,27 +119,72 @@ class IGNN(nn.Module):
     """Minimal IGNN: Z* = σ(A_hat @ Z* @ W + X @ U + b).
 
     Weight-tied iteration → DEQ fixed point. Contractive when ||W||_2 < 1/||A_hat||_2.
+
+    Default recipe (validated, AEGIS revision R2): a HARD spectral cap ``c`` on
+    ``||W||_2`` via an analytic, differentiable SVD rescale. With c<1 and
+    ||A_hat||_2 = 1, the operator Lipschitz constant kappa = ||J_z||_2 <= c < 1,
+    so assumption A3 holds strictly AND the Picard forward converges
+    geometrically. ``dropout`` (train only, on Z* before the head) and a
+    moderately tight forward solve (max_iter=100, tol=1e-6) complete the recipe.
+
+    The cap is applied INSIDE ``operator`` (the same callable the sensitivity
+    pipeline differentiates through), so it is fully transparent to
+    ``iem.scalable.ScalableSensitivity`` and
+    ``iem.adversarial.structural_sensitivity_matrix``: they build J_z / J_A from
+    the actual (capped) operator with no special-casing.
+
+    Args:
+        c: hard spectral cap on ||W||_2 (default 0.9). When ``c is None`` (or the
+           legacy ``spectral_norm=True`` with c=None), falls back to the old
+           torch ``spectral_norm`` parametrization (||W||_2 -> 1), reproducing
+           the original paper model. ``c=1.0`` caps at 1 without the
+           parametrization.
+        dropout: dropout prob applied to Z* before the head during training only
+                 (default 0.5).
     """
 
-    def __init__(self, n_features: int, hidden: int, n_classes: int, spectral_norm: bool = True):
+    def __init__(self, n_features: int, hidden: int, n_classes: int,
+                 c: float | None = 0.9, dropout: float = 0.5,
+                 spectral_norm: bool = True):
         super().__init__()
         self.hidden = hidden
+        self.c = c
+        self.dropout = dropout
         self.U = nn.Linear(n_features, hidden)      # input projection
         self.W = nn.Linear(hidden, hidden, bias=False)  # state propagation
         self.head = nn.Linear(hidden, n_classes)     # readout
 
         nn.init.xavier_normal_(self.W.weight, gain=0.5)
-        if spectral_norm:
+        # When a hard cap c is requested we rescale W analytically inside
+        # operator() and do NOT apply the spectral_norm parametrization (the two
+        # are mutually exclusive caps). c=None reproduces the legacy model.
+        if c is None and spectral_norm:
             from torch.nn.utils.parametrizations import spectral_norm as _sn
             self.W = _sn(self.W)
 
+    def _W_eff(self, Z: Tensor) -> Tensor:
+        """Apply W to Z; if a hard cap is set, rescale W to ||W_eff||_2 <= c.
+
+        Uses the analytic 2-norm of the small (hidden x hidden) W
+        (``torch.linalg.matrix_norm(..., ord=2)``, differentiable) and scales
+        DOWN only, so ``||W_eff||_2 <= c`` is guaranteed every forward while the
+        rescale stays in the autograd graph."""
+        if self.c is None:
+            return self.W(Z)
+        Wm = self.W.weight
+        sn = torch.linalg.matrix_norm(Wm, ord=2)
+        scale = torch.clamp(self.c / (sn + 1e-12), max=1.0)  # only scale DOWN
+        return Z @ (Wm * scale).t()
+
     def operator(self, Z: Tensor, ctx: dict) -> Tensor:
-        """F(Z) = ReLU(A_hat @ Z @ W^T + X_proj)."""
+        """F(Z) = ReLU(A_hat @ Z @ W_eff^T + X_proj).  Differentiable; the cap is
+        transparent to anything that differentiates this operator."""
         A_hat = ctx["A_hat"]
         X_proj = ctx["X_proj"]
-        return F_func.relu(A_hat @ self.W(Z) + X_proj)
+        return F_func.relu(A_hat @ self._W_eff(Z) + X_proj)
 
-    def forward(self, X: Tensor, A_hat: Tensor, max_iter: int = 50, tol: float = 1e-5):
+    def forward(self, X: Tensor, A_hat: Tensor, max_iter: int = 100,
+                tol: float = 1e-6, train_dropout: bool = False):
         N = X.shape[0]
         X_proj = self.U(X)  # (N, hidden)
         ctx = {"A_hat": A_hat, "X_proj": X_proj}
@@ -149,11 +194,15 @@ class IGNN(nn.Module):
         for k in range(max_iter):
             Z_new = self.operator(Z, ctx)
             if (Z_new - Z).norm() < tol * max(Z.norm(), 1.0):
+                Z = Z_new
                 break
             Z = Z_new
-        Z_star = Z_new
+        Z_star = Z
 
-        logits = self.head(Z_star)
+        H = Z_star
+        if train_dropout and self.dropout > 0:
+            H = F_func.dropout(H, p=self.dropout, training=True)
+        logits = self.head(H)
         return logits, Z_star, ctx
 
 

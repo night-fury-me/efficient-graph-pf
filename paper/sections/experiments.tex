@@ -3,18 +3,25 @@
 \label{sec:experiments}
 %% ===================================================================
 
-Our evaluation tests four claims in turn: the contractivity assumptions hold on trained models (\cref{sec:cross_domain}); the one-query SVD direction matches iterative attackers (\cref{sec:adaptive}); the continuous $S_c$ ranking transfers to discrete edge removal across architectures (\cref{sec:explicit_extension}); and the same object screens power-grid contingencies (\cref{sec:power_flow}).
+Our evaluation tests four claims in turn: the contractivity assumptions hold on trained models (\cref{sec:cross_domain}); the one-query SVD direction matches iterative attackers (\cref{sec:adaptive}); the continuous $S_c$ ranking transfers to discrete edge removal across architectures (\cref{sec:explicit_extension}); and the same object audits a deployed fraud detector (\cref{sec:fraud_case}).
 
-\textbf{Setup.} We evaluate \AEGIS on 10 datasets across 5 domains with 10 random seeds each (PyTorch~\cite{paszke2019pytorch}); reported $\pm$ are standard deviations over seeds. IGNN~\cite{gu2020implicit} uses $F(Z){=}\mathrm{ReLU}(\Ahat ZW^\top{+}U(X))$ with $W\in\R^{64\times64}$ spectral-normalised~\cite{miyato2018spectral} and Adam (lr $0.01$); ContractiveGCN-PF mirrors this for power flow. The spectral-norm constraint costs ${\sim}6\%$ Cora accuracy. Datasets: Cora, Citeseer, Pubmed~\cite{sen2008collective}, Amazon Photo~\cite{shchur2018pitfalls}, WikiCS~\cite{mernyei2020wiki}, Amazon Fraud~\cite{dou2020enhancing}, IEEE 14/30/57/118~\cite{ieee2024testcases,thurner2018pandapower}. Baselines: smoothing (Gaussian $\sigma{=}0.01$), Mettack (Meta-Self GCN surrogate), LODF as $\mathrm{PTDF}_{ij}/(1{-}\mathrm{PTDF}_{jj})$ from the DC $B$-matrix~\cite[Ch.~11]{wood2014power}. Coverage is not uniform across studies: all seven architectures appear only in \cref{tab:explicit} and \cref{fig:tau_heatmap} (39 cells), while the other classification studies use IGNN and the power-flow study uses the four IEEE cases.
+\textbf{Setup.} We evaluate \AEGIS on 6 datasets across 4 domains with 10 seeds each (PyTorch~\cite{paszke2019pytorch}); $\pm$ are standard deviations over seeds. IGNN~\cite{gu2020implicit} uses $F(Z){=}\mathrm{ReLU}(\Ahat ZW^\top{+}U(X))$, $W\in\R^{64\times64}$ spectral-normalised~\cite{miyato2018spectral}, Adam (lr $0.01$); the constraint costs ${\sim}6\%$ Cora accuracy. Datasets: Cora, Citeseer, Pubmed~\cite{sen2008collective}, Amazon Photo~\cite{shchur2018pitfalls}, WikiCS~\cite{mernyei2020wiki}, Amazon Fraud~\cite{dou2020enhancing}. Baselines: smoothing (Gaussian $\sigma{=}0.01$), Mettack, and GR-BCD/PR-BCD~\cite{geisler2021robustness}. All seven architectures appear only in \cref{fig:tau_heatmap} and \cref{tab:explicit}; the rest use IGNN. Full tables, ablations, and timing are in \cref{app:experiments}; reproducibility in \cref{app:repro}.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.90\textwidth]{figures/aegis--overview--diagram.pdf}
+\caption{The four-stage \AEGIS pipeline (\cref{sec:framework}): (1) graph processing (BFS subgraph or full-graph fixed-point pass); (2) sensitivity (dense Jacobian for $N \leq 200$, matrix-free Neumann/JVP otherwise); (3) constrained projection $N^2 \to |E|$ via $P_c$; (4) analysis (randomised SVD, $S_c$ column norms, per-node radii). The matrix-free path queries $S_c$ via JVPs/VJPs without materialising it, scaling to $N{=}7{,}650$.}
+\label{fig:pipeline}
+\end{figure*}
 
 \subsection{Cross-Domain Adversarial Analysis}
 \label{sec:cross_domain}
 
-Two things must hold before the rest of the evaluation means anything: the trained models should sit in the contractive regime the theory assumes, and \AEGIS's perturbations should be genuinely more damaging than chance. \Cref{tab:cross_domain} confirms both, verifying (A3) on every benchmark ($\kappa{<}1$) and reporting the per-dataset closed-form $\ecrit$ alongside an attack advantage of $3.2$--$4.1\times$ over random perturbations. Unless otherwise stated, IGNN experiments in \cref{sec:cross_domain}--\cref{sec:defense_ablation} use 50-node BFS ego-subgraphs centred on the highest-degree node and report \emph{local vulnerability}; graph-level assessment uses the matrix-free pipeline of \cref{sec:scalability}. All bounds use the operator-norm $\kappa{=}\norm{J_z}_2$.
+Two prerequisites must hold: the trained models sit in the contractive regime, and \AEGIS's perturbations beat chance. \Cref{tab:cross_domain} confirms both, verifying (A3) on every benchmark ($\kappa{<}1$) and reporting per-dataset $\ecrit$ alongside a $3.2$--$4.1\times$ attack advantage over random. Unless stated otherwise, IGNN experiments use 50-node BFS ego-subgraphs (highest-degree centre) reporting \emph{local vulnerability}, graph-level assessment using the matrix-free pipeline (\cref{app:phase_scal}); all bounds use $\kappa{=}\norm{J_z}_2$.
 
 \begin{table}[t]
 \centering
-\caption{Per-dataset IGNN characterisation (10 seeds). $\kappa{=}\norm{J_z}_2$ verifies (A3); $\ecrit{=}(1{-}\kappa)/\norm{W}_2$ is the theoretical critical budget. AtkAdv: \AEGIS damage / random damage. Cov\%: fraction of subgraph nodes certified first-order-safe at budget $\varepsilon{=}0.05$ (i.e.\ corrected radius $r_v{>}0.05$).}
+\caption{Per-dataset IGNN characterisation (10 seeds). $\kappa{=}\norm{J_z}_2$ verifies (A3); $\ecrit{=}(1{-}\kappa)/\norm{W}_2$ is the local critical budget. AtkAdv: \AEGIS/random damage. Cov\%: subgraph nodes certified first-order-safe at $\varepsilon{=}0.05$ ($r_v{>}0.05$).}
 \label{tab:cross_domain}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -31,152 +38,35 @@ WikiCS   & $\ms{77.9}{0.4}$ & $\ms{.34}{.04}$ & $\ms{.66}{.04}$ & $\ms{3.8}{.4}$
 \end{tabular*}
 \end{table}
 
-\AEGIS's shift bounds are first-order, so a natural question is how far they hold as the budget grows. Predicted and actual equilibrium shifts agree to within $1\%$ at the small budgets that matter for early warning, and loosen to at most $39\%$ on the citation graphs (within $7\%$ on WikiCS and Amazon) even at $\varepsilon{=}0.20$. This envelope ratio is measured on the equilibrium shift $\norm{\Delta\zstar}_F$, distinct from the prediction-flip (breach) rate of \cref{fig:breach}.
+The first-order shift bounds agree with actual equilibrium shifts within $1\%$ at the small budgets that matter for early warning, loosening to at most $39\%$ on citation graphs (within $7\%$ on WikiCS and Amazon) even at $\varepsilon{=}0.20$; this envelope ratio on $\norm{\Delta\zstar}_F$ is distinct from the breach rate of \cref{fig:breach}. \AEGIS beats degree-proportional, edge-betweenness, and spectral rankings at $\varepsilon{=}0.01$ ($+6$--$148\%$ AtkAdv) and inflicts $3$--$10\times$ more equilibrium damage than Mettack~\cite{zugner2019adversarial} in the early-warning regime ($\mathbf{149/150}$ paired wins, $p{<}10^{-43}$); GR-BCD/PR-BCD and discrete-removal curves are in \cref{app:baselines}.
 
-\textbf{Heuristic and surrogate baselines.} \AEGIS beats degree-proportional, edge-betweenness, and spectral rankings at $\varepsilon{=}0.01$ ($+6$--$148\%$ AtkAdv, Wilcoxon $p{<}0.001$) and inflicts $3$--$10\times$ more equilibrium damage than Mettack~\cite{zugner2019adversarial} at the early-warning regime $k\!\in\!\{1,\ldots,5\}$ ($\mathbf{149/150}$ paired wins, $p{<}10^{-43}$); GR-BCD/PR-BCD~\cite{geisler2021robustness} and the discrete-removal curves are in \cref{tab:baselines,fig:greedy_topk}.
-
-\subsection{Four-Quadrant Attack Comparison}
+\subsection{Attack Efficiency and the One-Query Direction}
 \label{sec:adaptive}\label{sec:certificates}
 
-\textbf{Radius vs.\ smoothing.} Randomized smoothing~\cite{bojchevski2020efficient} gives constant-per-node base radii ($0.123$ vs.\ \AEGIS's $0.078$ at $\sigma{=}0.05$), and localized smoothing~\cite{schuchardt2023localized} needs $10^3$--$10^4$ MC/node; both lack edge structure. \AEGIS radii are instead structurally informative ($r_v{\approx}0.10$ in dense regions, $0.01$ at boundaries), a complementary point on the certificate-versus-diagnostic frontier.
+\AEGIS is a one-query \emph{diagnostic}, not a peak attacker. The SVD direction maximises first-order equilibrium shift by construction (\cref{prop:attack}); what matters is non-circularity and cost. A transfer direction from a \emph{separately trained} surrogate (zero shared gradients) recovers $99\%$ of the one-query damage ($\cos{=}0.99$), versus $44{\pm}4\%$ for a $512$-query black-box search, so it is model-intrinsic, not a gradient artifact. Per query it delivers $\mathbf{74}$--$\mathbf{156\times}$ the equilibrium damage of a $50$-step PGD~\cite{madry2018towards}; classification-loss PGD inflicts $15$--$70\%$ less at $50\times$ the cost. \Cref{tab:attack_full} (\cref{app:attack_full}) gives the full four-quadrant comparison and contrasts $r_v$ with randomized/localized smoothing radii; budget-heavy attackers (GR-BCD) exceed \AEGIS only at the larger budgets they target (\cref{app:baselines}). Per-edge finite differences reproduce the $S_c$ column-norm ranking ($\tau{=}0.999$), and iterative recomputation closes $\leq3$\,pp of the static-vs-greedy gap at $k{\times}$ compute, so the static ranking is the headline.
 
-\Cref{tab:attack_full} evaluates \AEGIS across the four quadrants of (gradient-based, gradient-free) $\times$ (equilibrium-shift, classification-loss). The SVD direction maximises first-order equilibrium shift \emph{by construction} (\cref{prop:attack}); what matters is non-circularity and cost. A transfer direction from a separately trained surrogate (zero shared gradients) recovers $99\%$ of the one-query damage ($\cos{=}0.99$), versus $44{\pm}4\%$ for a $512$-query black-box search: model-intrinsic, not a gradient artifact. Per query it delivers $74$--$156\times$ the damage of a $50$-step PGD~\cite{madry2018towards}; classification-loss PGD inflicts $15$--$70\%$ less at $50\times$ the cost, IFT-gradient PGD (solver validation, not independent) $72$--$92\%$, and prediction \emph{flips} stay $0$--$1.8\%$ for all methods. \AEGIS is a one-query \emph{diagnostic}, not a peak attacker: budget-heavy attackers (GR-BCD, \cref{tab:baselines}) exceed it at larger budgets.
-
-\begin{table}[t]
-\centering
-\caption{Equilibrium damage at $\varepsilon{=}0.10$ across attack methods (IGNN, 50-node subgraph, 10 seeds). SVD: \AEGIS. Cls-PGD: classification-loss PGD. Shift-PGD: IFT-gradient PGD (solver validation, not an independent baseline).}
-\label{tab:attack_full}
-\small
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l rrrr@{}}
-\toprule
-Dataset & SVD & Cls-PGD & Shift-PGD & Random \\
-\midrule
-Cora     & $\ms{3.70}{.79}$ & $\ms{2.51}{.48}$ & $\ms{3.05}{.70}$ & $\ms{0.97}{.25}$ \\
-Citeseer & $\ms{4.63}{.71}$ & $\ms{2.97}{.42}$ & $\ms{3.35}{.57}$ & $\ms{1.01}{.15}$ \\
-WikiCS   & $\ms{2.10}{.22}$ & $\ms{0.67}{.11}$ & $\ms{1.93}{.20}$ & $\ms{0.53}{.09}$ \\
-\bottomrule
-\end{tabular*}
-\end{table}
-
-\textbf{Classification-gradient edges differ.} Per-edge classification gradients anti-correlate with discrete ground truth on Cora ($\tau{=}\ms{-0.20}{0.05}$ vs.\ \AEGIS's $\ms{+0.32}{0.04}$) and stay near zero elsewhere; \AEGIS achieves $2$--$6\times$ higher P@10, confirming that equilibrium and classification sensitivities are distinct vulnerability surfaces.
-
-\begin{figure*}[!t]
-\centering
-\includegraphics[width=0.75\textwidth]{figures/fig_greedy_curves.pdf}
-\caption{Cumulative damage from sequential discrete edge removal vs.\ $k$ (IGNN, 50-node subgraph, 10 seeds, $\pm 1$\,sd). \AEGIS \emph{matches} the ground-truth-aware Greedy attacker on Citeseer/WikiCS and recovers $\mathbf{54}$--$\mathbf{67\%}$ of Greedy's damage on Cora at $k{=}5$--$10$ \emph{without any access to discrete ground truth}; degree-ranked stays below random on Cora at every $k$.}
-\label{fig:greedy_topk}
-\end{figure*}
-
-Per-edge finite differences reproduce the $S_c$ column-norm ranking ($\tau{=}0.999$); iterative $S_c$ recomputation closes $\leq 3$\,pp of the static-vs-greedy gap at $k{\times}$ compute, so the static ranking is the headline.
-
-\textbf{Breach rates.} Every breached node satisfies $\varepsilon > r_v$ across all datasets and budgets, validating $r_v$ as a reliable first-order screening threshold (\cref{rem:certificates}). \Cref{fig:breach} reports prediction-flip fractions across $\varepsilon$ (bands are $95\%$ CIs): Citeseer and WikiCS stay below $2\%$ throughout; Cora reaches $7.6\%$ (CI $[2.2,13.0]$) at $\varepsilon{=}0.20$; Pubmed is the right-skewed outlier (median $7.8\%$, mean $10.3\%$ at $\varepsilon{=}0.10$; $27.4\%$, CI $[12.3,42.5]$, at $\varepsilon{=}0.20$).
-
-\begin{figure*}[t]
-\centering
-\begin{minipage}[t]{0.32\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{figures/fig_breach_rate.pdf}
-  \captionof{figure}{Breach rate (\% of nodes flipped under $S_c$-optimal perturbation) vs.\ $\varepsilon$ (10 seeds; mean, $95\%$ CI bands).}
-  \label{fig:breach}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.65\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{figures/fig_scalability.pdf}
-  \captionof{figure}{Dense vs.\ matrix-free \AEGIS pipeline (RTX 4090). Dense scales as $O((Nd)^3)$, exceeding $24$\,GB beyond $N{=}200$; matrix-free is roughly $O(N\log N)$ in time, sub-linear in memory, reaching Amazon Photo ($N{=}7{,}650$) at $365$\,s/$5.5$\,GB.}
-  \label{fig:scalability}
-\end{minipage}
-\end{figure*}
-
-\subsection{Comparison with Prior Structural Baselines}
-\label{sec:prior_comparison}
-
-\Cref{tab:baselines} reports head-to-head numbers against GR-BCD and PR-BCD~\cite{geisler2021robustness}, AGNNCert~\cite{li2025agnncert}, and LODF~\cite{wood2014power}. \AEGIS is a label-free one-query proxy; the question is how much of each gold-standard signal it retains.
-
-\begin{table}[t]
-\centering
-\caption{\AEGIS vs.\ external baselines (10 seeds). GR-BCD~\cite{geisler2021robustness} is the BCD-family scalable structural attacker (PR-BCD is the same paper's larger-budget variant, see text); AGNNCert~\cite{li2025agnncert} is a sound IBP certifier (semantics differ from \AEGIS $r_v$); LODF~\cite{wood2014power} is the industry DC-PF screener.}
-\label{tab:baselines}
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l l c c r@{}}
-\toprule
-Baseline & Setting & \AEGIS & Baseline & $\tau$ \\
-\midrule
-GR-BCD~\cite{geisler2021robustness}     & Pubmed $k{=}10$    & $0.356$ & $0.350$ & $\mathbf{+0.69}$ \\
-GR-BCD~\cite{geisler2021robustness}     & Cora $k{=}5$       & $0.643$ & $1.207$ & $+0.16$ \\
-AGNNCert$^{\dagger}$~\cite{li2025agnncert}  & Cora med.\ $r_v$ & $0.163$ & $1.414$ & $+0.08$ \\
-LODF~\cite{wood2014power}               & case118 P@10       & $0.81$  & $\leq 0.20$ & $+0.14$ \\
-\bottomrule
-\multicolumn{5}{@{}p{0.95\columnwidth}}{\scriptsize $^{\dagger}$AGNNCert is a \emph{sound} IBP certificate; \AEGIS $r_v$ is a first-order sensitivity threshold (\cref{rem:certificates}). Per-dataset mean tightness ratio $r_{\mathrm{cert}}/r_v\!\in\![4.4, 15.0]$ (per-cell across 30 seeds $[2.1, 39.0]\times$); per-seed Kendall $\tau\!\in\![{-}0.11, 0.24]$. \textbf{Decision rule:} if AGNNCert certifies node $v$ safe at budget $\rho$, trust it; if $r_v\!<\!\rho$ and AGNNCert does \emph{not} certify, $v$ is first-order unsafe and warrants attention. The methods are complementary in this prescribed sense, not interchangeable.}
-\end{tabular*}
-\end{table}
-
-GR-BCD~\cite{geisler2021robustness} aligns with $S_c$ on Pubmed ($\tau{=}{+}0.69$) but decorrelates on Cora ($\tau{=}{+}0.16$); the budgets shown ($k{\leq}10$) are \AEGIS's early-warning regime, where its one-pass diagnostic is competitive, while GR-BCD/PR-BCD dominate raw damage at the high budgets they target (\cref{tab:baselines}). AGNNCert~\cite{li2025agnncert} is complementary, not redundant: it and $r_v$ flag \emph{different} nodes (near-zero $\tau$, \cref{tab:baselines}), while $r_v$ is itself a sound first-order screen (no node breaches below it, \cref{sec:adaptive}) running $4.4$--$15.0\times$ tighter than the certificate. Power-grid LODF/PI comparisons are in \cref{sec:power_flow}.
-
-\subsection{Phase Transition and Scalability}
-\label{sec:phase_transition}\label{sec:scalability}
-
-\textbf{Phase transition.} \Cref{fig:phase_transition} sweeps $\kappa_{\max}{\in}[0.30,0.99]$ on Cora (10 seeds). Even when the spectral-normalisation cap is pushed to $0.99$, driving the theoretical $\ecrit$ down $230\times$, the trained ReLU pattern keeps $\rho(J_z)\!\leq\!0.42$, so the resolvent grows only $\mathbf{1.17{\to}1.80}$. This \emph{validates} $\ecrit$ as a closed-form sufficient safety boundary, one that holds with $\mathbf{2{-}4\times}$ empirical margin across the sweep. Training converges throughout, and the matrix-free pipeline reaches its 50-step fixed-point budget at $\kappa_{\max}{\geq}0.85$.
+\textbf{Breach rates.} Every breached node satisfies $\varepsilon > r_v$ across all datasets and budgets, validating $r_v$ as a reliable first-order screen (\cref{sec:conformal}). \Cref{fig:breach} reports prediction-flip fractions vs.\ $\varepsilon$ ($95\%$ CI bands): Citeseer and WikiCS stay below $2\%$ throughout; Cora reaches $7.6\%$ at $\varepsilon{=}0.20$; Pubmed is the right-skewed outlier (median $7.8\%$, mean $10.3\%$ at $\varepsilon{=}0.10$; $27.4\%$ at $\varepsilon{=}0.20$).
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/fig_phase_transition.pdf}
-\caption{Three-regime characterisation of \cref{thm:phase_transition}. The empirical $\kappa$ band (grey) saturates well below the spectral-normalisation ceiling, so the empirical resolvent growth is far milder than the worst-case $1/(1-\kappa)$ divergence at $\varepsilon \to \ecrit$.}
-\label{fig:phase_transition}
+\includegraphics[width=\columnwidth]{figures/fig_breach_rate.pdf}
+\caption{Breach rate (\% of nodes flipped under $S_c$-optimal perturbation) vs.\ $\varepsilon$ (10 seeds; mean, $95\%$ CI bands).}
+\label{fig:breach}
 \end{figure}
 
-\textbf{Scalability and matrix-free self-consistency.} \Cref{fig:scalability} compares dense and matrix-free pipelines. The matrix-free $S_c v$ implements the dense $S_c$ up to Neumann truncation; $\sigma_1$ agrees within $0.03\%$ at $N{=}200$ (per-edge $\tau{=}0.999$), and the analytical truncation residual $\kappa^{200}\!\in\![10^{-105},10^{-48}]$ across the suite (consistent with the trained-IGNN range $\kappa\!\in\![0.14,0.59]$ of \cref{tab:cross_domain}). For larger $N$ the rSVD error~\cite{halko2011finding} is bounded by the spectral gap; Pubmed ($N{=}19{,}717$) exceeds $24$\,GB.
-
-
-\subsection{Ablations and Defense}
-\label{sec:subgraph_ablation}\label{sec:hyperparams}\label{sec:convergence}\label{sec:defense_ablation}
-
-\textbf{Subgraph size.} Varying $N{\in}\{30,50,100,200\}$ on Cora (10 seeds): tightness is stable at $1.01$--$1.02$ for $N{\leq}100$ and degrades to $1.031$ at $N{=}200$; we use $N{=}50$ as default ($66\times$ faster). Subgraph-vs-full-graph agreement is high on dense grids (case14 $\tau{=}0.80$--$0.86$).
-
-\textbf{Full-graph scale.} A 50-node BFS covers only ${\sim}1.8\%$ of a citation graph's edges (Cora $\tau{=}0.16$), so at this scale we run \AEGIS on the full graph. There its edge advantage over degree-proportional ranking \emph{amplifies} to $\mathbf{9.82\times}$ (Citeseer) and $\mathbf{3.25\times}$ (Cora) at $k{=}10$, against ${\approx}1.1\times$ on subgraphs.
-
-\textbf{Hyperparameters.} Tightness is stable across $d{\in}\{16,32,64,128\}$; the spectral-norm ceiling $c{\in}\{0.5,0.9\}$ traces the accuracy--robustness frontier ($r_v{=}0.147$@$72.1\%$ vs.\ $0.089$@$80.6\%$).
-
-\textbf{Defense-informed edge protection: gains survive adaptive attack.} Masking the top-$k$ edges by $v_{ij}$ (Cora IGNN, $N{=}50$, 10 seeds) cuts $\sigma_1(S_c)$-damage by $\mathbf{42{\pm}8\%}$ at $k{=}5$ and $\mathbf{61{\pm}7\%}$ at $k{=}10$, vs.\ $11{\pm}6\%$/$18{\pm}9\%$ for random masking (paired Wilcoxon $p{<}0.002$). An \emph{adaptive} attacker that recomputes $S_c$ on the masked graph matches the non-adaptive attacker within $0.1$\,pp (10 seeds, $\varepsilon{=}0.10$): the $43\%$ spectral gap of $S_c$ (\cref{fig:sc_heatmap}) keeps the dominant direction robust, so the defense \emph{does not erode under recomputation}, the failure mode that sober-look critiques~\cite{mujkanovic2022defenses} flag.
-
-\subsection{Extension to Explicit GNNs}
+\subsection{Continuous-to-Discrete Transfer Across Architectures}
 \label{sec:explicit_extension}
 
-The construction is not tied to implicit models. For $K$-layer explicit GNNs (GCN, SAGE, GIN, APPNP, GAT$^\dagger$~\cite{kipf2017semi,hamilton2017inductive,xu2019how,klicpera2019predict,velickovic2018graph}) we form $S_K{=}\partial \mathrm{vec}(Z_K)/\partial \mathrm{vec}(A)$ via finite differences and build $S_c$ from $S_K$ identically (\cref{prop:explicit}). \Cref{tab:explicit} reports the per-architecture characterisation on Cora: IGNN carries \cref{thm:phase_transition}; the explicit models receive the computational tool without the regime characterisation.
+The construction is not tied to implicit models: for $K$-layer explicit GNNs (GCN, SAGE, GIN, APPNP, GAT$^\dagger$~\cite{kipf2017semi,hamilton2017inductive,xu2019how,klicpera2019predict,velickovic2018graph}) we form $S_K{=}\partial \mathrm{vec}(Z_K)/\partial \mathrm{vec}(A)$ via finite differences and build $S_c$ identically (\cref{prop:explicit}); IGNN additionally carries \cref{thm:phase_transition}, the explicit models getting the tool without the regime characterisation (per-architecture detail in \cref{tab:explicit}, \cref{app:explicit}).
 
-\begin{table}[t]
-\centering
-\caption{$S_c$ framework on 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: \AEGIS/random damage. $\tau$: Kendall of the \emph{unweighted} $v_{ij}$ ranking vs.\ single-edge removal; the edge-weighted $A_{ij}v_{ij}$ ranking of \cref{prop:transfer} (\cref{fig:tau_heatmap}) is the higher headline score. Acc: full-graph test accuracy.}
-\label{tab:explicit}
-\small
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l rrrr@{}}
-\toprule
-Model & Tight. & AtkAdv & $\tau$ & Acc \\
-\midrule
-IGNN (eq.)    & $\ms{1.01}{.00}$ & $\ms{7.6}{0.5}\times$ & $\ms{+.32}{.04}$ & $\ms{77.5}{1.7}\%$ \\
-\midrule
-GCN-2         & $\ms{1.00}{.00}$ & $\ms{3.6}{0.6}\times$ & $\ms{-.04}{.03}$ & $\ms{78.9}{0.9}\%$ \\
-GCN-4         & $\ms{1.02}{.00}$ & $\ms{3.4}{0.4}\times$ & $\ms{+.49}{.02}$ & $\ms{78.3}{1.8}\%$ \\
-GIN-2         & $\ms{1.01}{.00}$ & $\ms{2.6}{0.1}\times$ & $\ms{+.33}{.03}$ & $\ms{76.6}{1.9}\%$ \\
-GAT$^\dagger$ & $\ms{1.01}{.01}$ & $\ms{2.1}{0.1}\times$ & $\ms{\mathbf{+.54}}{.06}$ & $\ms{77.8}{1.2}\%$ \\
-SAGE-2        & $\ms{1.00}{.00}$ & $\ms{1.9}{0.2}\times$ & $\ms{+.22}{.10}$ & $\ms{77.5}{1.5}\%$ \\
-APPNP         & $\ms{1.02}{.00}$ & $\ms{3.4}{0.3}\times$ & $\ms{+.35}{.01}$ & $\ms{\mathbf{82.2}}{0.6}\%$ \\
-\bottomrule
-\end{tabular*}
-\end{table}
-
-\textbf{GAT$^\dagger$ scope.} Standard GAT uses $A$ as a binary mask, so $\partial Z/\partial A_{ij}{=}0$ on existing edges and $S_c$ is undefined; our GAT$^\dagger$ modulates attention by the edge weight ($h_i' = \sum_{j} \Ahat_{ij} \alpha_{ij} W h_j$), restoring differentiability and yielding tightness $0.99$, AtkAdv $4.4\times$, $\tau{=}+0.36$. Binary-mask architectures (hard attention, max/min aggregation, GATv2~\cite{brody2022how}-style dynamic-attention masking) fall outside the framework.
-
-\textbf{Robust backbones.} Under the $\sigma_1(W){\leq}0.9$ cap, RobustGCN-lite~\cite{zhu2019robust} and GNNGuard-lite~\cite{zhang2020gnnguard} match or exceed IGNN; the cap is a precondition (without it $\kappa{>}1$ voids \cref{thm:phase_transition}).
-
-\textbf{Cross-dataset transfer.} We rank edges by the score \cref{prop:transfer} predicts, the edge-weighted $A_{ij}v_{ij}$. \Cref{fig:tau_heatmap} reports its $\tau$ over 6 datasets and 7 architectures (390 runs): \emph{all $39/39$ cells positive}, median $\tau{=}\mathbf{+0.99}$ (sign test $p{<}10^{-5}$), vs.\ $34/39$ for unweighted $v_{ij}$. It beats a pure edge-weight baseline by $\Delta\tau{\approx}\mathbf{+0.25}$, rising to $\mathbf{+0.65}$ on the fraud graph where uniform weights are uninformative, so $v_{ij}$ adds rank information beyond the weight. Weighting matters most at full-graph scale: on Amazon Photo ($N{=}7{,}650$; full-graph $\kappa{\approx}1.00$, marginally non-contractive, so empirical) it reaches $\tau\!=\!\mathbf{+0.996\!\pm\!0.002}$ (stratified top-$v_{ij}$ N-1). GAT-2$^\dagger$ is the exception: attention reweights edges, so the unweighted $v_{ij}$ transfers better there ($+0.47$ vs.\ $+0.35$).
+The headline test is whether the continuous $S_c$ ranking predicts discrete N-1 removal. Ranking edges by the edge-weighted $A_{ij}v_{ij}$ of \cref{prop:transfer}, \cref{fig:tau_heatmap} reports its Kendall $\tau$ over 6 datasets and 7 architectures (390 runs): \emph{all $\mathbf{39/39}$ cells positive}, median $\tau{=}\mathbf{+0.99}$ ($p{<}10^{-5}$), vs.\ $34/39$ unweighted. Weighting matters most at full-graph scale: on Amazon Photo ($N{=}7{,}650$, $\kappa{\approx}1.00$) it reaches $\tau\!=\!\mathbf{+0.996\!\pm\!0.002}$. The score adds rank information beyond the weight (beating a pure-weight baseline by $\Delta\tau{\approx}{+}0.25$, up to $+0.65$ on the fraud graph), and \cref{prop:transfer}'s pairwise condition holds for only $47$--$62\%$ of pairs, so the global $\tau$ is empirical. Per-architecture detail, GAT$^\dagger$ scope, robust backbones, and the cross-dataset breakdown are in \cref{app:explicit}.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig_tau_heatmap.pdf}
-\caption{Continuous-to-discrete transfer $\tau$ (10-seed means, 390 runs; per-cell sd $0.0003$--$0.041$), ranking edges by the edge-weighted $A_{ij}v_{ij}$ of \cref{prop:transfer}. All $39/39$ cells positive (median $+0.99$); cross-hatch: GPU OOM. GAT-2$^\dagger$ is lower under weighting (it transfers better unweighted; see text).}
+\caption{Continuous-to-discrete transfer $\tau$ (10-seed means, 390 runs; per-cell sd $0.0003$--$0.041$), ranking edges by the edge-weighted $A_{ij}v_{ij}$ of \cref{prop:transfer}. All $39/39$ cells positive (median $+0.99$); cross-hatch: GPU OOM. GAT-2$^\dagger$ is lower under weighting (it transfers better unweighted; see \cref{app:explicit}).}
 \label{fig:tau_heatmap}
 \end{figure}
 
+The phase-transition sweep (a $2$--$4\times$ spectral-radius margin to criticality holding even as $\ecrit$ falls $230\times$) and the scalability study (matrix-free reaching $N{=}7{,}650$ at $365$\,s/$5.5$\,GB, $\sigma_1$ within $0.03\%$ at $N{=}200$) are in \cref{app:phase_scal}; subgraph-size, hyperparameter, and edge-protection ablations (vulnerability is \emph{delocalized}, so risk is localised for triage rather than removed by masking a few edges) are in \cref{app:ablations}.
 
-\Cref{prop:transfer}'s sufficient pairwise condition holds for $\mathbf{47}$--$\mathbf{62\%}$ of edge pairs, so the global $\tau$ is empirical, not implied. Where unweighted $v_{ij}$ is uninformative (GCN-2's near-uniform 2-hop shifts), the weighted ranking recovers the order via the edge weight ($-0.28{\to}{+}0.99$, Citeseer).

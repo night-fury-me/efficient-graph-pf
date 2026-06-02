@@ -33,6 +33,12 @@ from iem.adversarial import extract_ego_subgraph
 from iem.scalable import ScalableSensitivity
 
 SEEDS = [42, 137, 271, 314, 1729, 2718, 3141, 5772, 6561, 9999]  # 10 seeds
+try:
+    import os as _aegis_os
+    _aegis_s = _aegis_os.environ.get('AEGIS_SEEDS')
+    if _aegis_s: SEEDS = [int(_x) for _x in _aegis_s.split(',') if _x.strip()]
+except Exception:
+    pass
 N_SAMPLE_EDGES = 200
 N_TOP_STRATA = 100   # stratified top-K AEGIS edges
 N_RANDOM_STRATA = 100  # plus random fill
@@ -237,6 +243,7 @@ def main():
     # Write the stratified-sample tau values to a dedicated CSV
     import csv as _csv
     out = Path("results/revision_R2/amazon_fullgraph_stratified.csv")
+    out.parent.mkdir(parents=True, exist_ok=True)  # ensure output dir exists (missing in isolated job dirs)
     new_rows = []
     for r in rows:
         new_rows.append({

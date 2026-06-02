@@ -246,16 +246,29 @@ def optimal_structural_attack(
 ) -> dict:
     """Proposition 1: Compute the optimal first-order adversarial perturbation.
 
-    dA* = eps * reshape(v_1) where v_1 is the leading right singular
-    vector of S. The resulting first-order shift is eps * sigma_1(S).
+    The attack is supported on existing edges and SYMMETRIC, so the relevant
+    sensitivity operator is the constrained S_c (one column per unique edge,
+    column_k = S_{:,iN+j} + S_{:,jN+i}, the natural edge-weight parametrization),
+    NOT the unconstrained S. The returned direction is the symmetric edge-supported
+    leading right singular vector. We therefore report the CONSTRAINED first-order
+    shift bound consistent with that direction:
+
+        sigma_1 = sigma_1(S_c)              (max shift per unit edge-weight ||c||)
+        max_first_order_shift = eps * sigma_1(S_c)
+
+    Because a symmetric edge perturbation has ||dA||_F = sqrt(2) ||c||, the
+    budget-correct shift per unit Frobenius norm is sigma_1(S_c)/sqrt(2); we expose
+    it as `sigma_1_per_fro` / `max_shift_per_fro` so figures/callers can report the
+    threat-model (||dA||_F-budgeted) bound. The unconstrained sigma_1(S) is kept as
+    `sigma_1_unconstrained` for reference. The attack DIRECTION is unchanged.
 
     Also computes per-edge vulnerability spectrum.
     """
     N = A_hat.shape[0]
     U, sigma, Vh = torch.linalg.svd(S, full_matrices=False)
+    sigma_1_unconstr = float(sigma[0])
 
-    max_shift = float(sigma[0]) * epsilon
-    attack_vec = Vh[0]  # leading right singular vector
+    attack_vec = Vh[0]  # leading right singular vector (unconstrained)
 
     # Reshape to adjacency perturbation
     if attack_vec.shape[0] == N * N:
@@ -269,24 +282,40 @@ def optimal_structural_attack(
         if sym_norm > 1e-10:
             attack_direction = attack_direction / sym_norm
 
-    # Per-edge vulnerability spectrum
+    # Constrained sensitivity S_c (symmetric, edge-supported): this is the operator
+    # whose leading singular value bounds the first-order shift of the returned
+    # (symmetric, edge-supported) direction. Per-edge vulnerabilities are its
+    # column norms.
+    sqrt2 = 2.0 ** 0.5
     edges = []
     if S.shape[1] == N * N:
-        for i in range(N):
-            for j in range(i + 1, N):
-                if A_hat[i, j].abs() > 1e-10:
-                    col_ij = S[:, i * N + j]
-                    col_ji = S[:, j * N + i]
-                    v_ij = float((col_ij + col_ji).norm())
-                    edges.append((i, j, v_ij))
+        S_c, edge_list = constrained_sensitivity_matrix(S, A_hat)
+        if S_c.shape[1] > 0:
+            sigma_c = torch.linalg.svdvals(S_c)
+            sigma_1 = float(sigma_c[0])
+        else:
+            sigma_1 = 0.0
+        for k, (i, j) in enumerate(edge_list):
+            edges.append((i, j, float(S_c[:, k].norm())))
         edges.sort(key=lambda x: x[2], reverse=True)
+    else:
+        # edges_only / already-constrained S: treat S itself as S_c.
+        sigma_1 = sigma_1_unconstr
 
-    # Effective adversarial dimensionality
+    max_shift = sigma_1 * epsilon
+
+    # Effective adversarial dimensionality (from the unconstrained spectrum)
     eff_dim = int((sigma > sigma[0] * 0.01).sum())
 
     return {
-        "max_first_order_shift": max_shift,
-        "sigma_1": float(sigma[0]),
+        # CONSTRAINED bound, consistent with the returned symmetric edge direction:
+        "max_first_order_shift": max_shift,          # eps * sigma_1(S_c)
+        "sigma_1": sigma_1,                          # sigma_1(S_c)
+        # Per-Frobenius (||dA||_F-budgeted) bound for the threat model:
+        "sigma_1_per_fro": sigma_1 / sqrt2,          # sigma_1(S_c)/sqrt(2)
+        "max_shift_per_fro": (sigma_1 / sqrt2) * epsilon,
+        # Reference: unconstrained operator norm (over all R^{N x N} perturbations):
+        "sigma_1_unconstrained": sigma_1_unconstr,
         "sigma_spectrum": sigma[:min(20, len(sigma))].detach().cpu(),
         "attack_direction": attack_direction.detach(),
         "vulnerability_spectrum": edges[:top_k],

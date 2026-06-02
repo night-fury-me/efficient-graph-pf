@@ -27,6 +27,12 @@ from iem.examples.ignn_cora import _load_cora
 from exp_phase_transition import set_seed, train_ignn_kappa  # noqa: E402
 
 SEEDS = [42, 137]
+try:
+    import os as _aegis_os
+    _aegis_s = _aegis_os.environ.get('AEGIS_SEEDS')
+    if _aegis_s: SEEDS = [int(_x) for _x in _aegis_s.split(',') if _x.strip()]
+except Exception:
+    pass
 KAPPA = 0.90
 BINS = [(1, 2), (3, 4), (5, 8), (9, 16), (17, 10 ** 9)]
 PER_BIN = 40

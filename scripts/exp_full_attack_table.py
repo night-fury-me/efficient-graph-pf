@@ -45,6 +45,12 @@ from iem.adversarial import (
 from iem.examples.ignn_cora import IGNN, _load_cora
 
 SEEDS = [42, 137, 271, 314, 1729, 2718, 3141, 5772, 6561, 9999]
+try:
+    import os as _aegis_os
+    _aegis_s = _aegis_os.environ.get('AEGIS_SEEDS')
+    if _aegis_s: SEEDS = [int(_x) for _x in _aegis_s.split(',') if _x.strip()]
+except Exception:
+    pass
 EPS_VALUES = [0.01, 0.05, 0.10]
 
 

@@ -10,6 +10,13 @@ To add a new model:
      registration for every model bundled with the project.
 """
 
-from . import edge_selfattn  # noqa: F401  -- side-effect: registers GNSMsg_EdgeSelfAttn
-from . import pe_deq_pf  # noqa: F401  -- side-effect: registers PE_DEQ_PF
-from . import hyperdeq_pf_pilot  # noqa: F401  -- side-effect: registers HyperDEQ_PF_Pilot
+# Optional side-effect imports (model registration). Some bundled power-flow
+# models depend on heavy/optional libs (e.g. torch_scatter); skip any that can't
+# import so `import models` works in environments without them. The GNN
+# experiments do not use these models.
+import importlib as _il
+for _m in ("edge_selfattn", "pe_deq_pf", "hyperdeq_pf_pilot"):
+    try:
+        _il.import_module(f".{_m}", __name__)  # noqa: F401 -- registers the model
+    except Exception:
+        pass

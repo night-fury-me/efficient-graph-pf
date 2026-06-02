@@ -42,6 +42,12 @@ from iem.adversarial import (
 from iem.examples.ignn_cora import IGNN, _download_cora, _load_cora
 
 SEEDS = [42, 137, 271, 314, 1729]
+try:
+    import os as _aegis_os
+    _aegis_s = _aegis_os.environ.get('AEGIS_SEEDS')
+    if _aegis_s: SEEDS = [int(_x) for _x in _aegis_s.split(',') if _x.strip()]
+except Exception:
+    pass
 MAX_NODES = 50
 TRAIN_EPOCHS = 50
 OUTFILE = Path(__file__).resolve().parents[1] / "results" / "bfs_center_sensitivity.txt"

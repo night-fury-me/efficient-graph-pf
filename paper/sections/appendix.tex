@@ -1,0 +1,380 @@
+%% ===================================================================
+%% TECHNICAL APPENDIX
+%% Relocated material: proof bodies, the full constant-factor bracket
+%% theorem (statement + proof + nonlinear Observation O1), the detailed
+%% experiment tables, the matrix-free algorithm listing, the fraud-detector
+%% walk-through, and a reproducibility note. Every claim and result here is
+%% referenced from the main text; nothing is dropped.
+%% ===================================================================
+
+\section{Proofs for the Adversarial Equilibrium Theory}
+\label{app:proofs}
+
+This appendix collects the proof bodies for the results stated in
+\cref{sec:theory}. We restate each result in brief for self-containment.
+
+\subsection{Proof of Theorem~\ref{thm:phase_transition}}
+\label{app:proof_phase}
+Recall \cref{thm:phase_transition} characterises three regimes of the
+perturbation budget $\varepsilon$ for an IGNN-class operator under (A1)--(A3),
+with critical budget $\ecrit=(1-\kappa)/\norm{W}_2$.
+
+\begin{proof}
+\textbf{(a).} Under (A1), $F_\theta$ is piecewise-affine on each ReLU linear region; the activation pattern at $\zstar$ is generically stable for sufficiently small $\norm{\delta\Ahat}$ (the boundary set $\{\Ahat : \zstar(\Ahat)$ lies on a region face$\}$ has Lebesgue measure zero), so the conservative-gradient calculus of Bolte--Pauwels~\cite{bolte2021conservative} yields a conservative IFT on each region. With $J_z = \mathrm{diag}(\phi')(\Ahat \otimes W)$ and $\kappa{\leq}\norm{\Ahat}_2\norm{W}_2$, applying IFT to $G(z,\Ahat){=}z{-}F(z,\Ahat){=}0$ at $(\zstar,\Ahat)$ gives
+\begin{equation}
+\Delta \zstar = (I - J_z)^{-1} J_A \cdot \mathrm{vec}(\delta \Ahat) + O(\norm{\delta \Ahat}^2),
+\end{equation}
+with $J_A = \partial F/\partial \mathrm{vec}(A)$ and Neumann $\norm{(I-J_z)^{-1}}_2 \leq 1/(1-\kappa)$ yielding~\eqref{eq:shift_bound}. For contractivity preservation, $\norm{J_z'}_2 \leq (\norm{\Ahat}_2 + \varepsilon) \norm{W}_2$, so $\varepsilon < \ecrit$ guarantees $\norm{J_z'}_2 < 1$.
+
+\textbf{(b)--(c).} For any $M$, $(I{-}M)^{-1}$ has eigenvalues $(1{-}\lambda_i(M))^{-1}$, hence $\norm{(I{-}M)^{-1}}_2 \geq \rho((I{-}M)^{-1}) = 1/\min_i|1{-}\lambda_i(M)|$ \emph{unconditionally}. Along the worst-case direction $\norm{J_z'}_2 \leq (\norm{\Ahat}_2{+}\varepsilon)\norm{W}_2$, so $1{-}\norm{J_z'}_2 \geq \norm{W}_2(\ecrit{-}\varepsilon)$ and, since $\rho{\leq}\norm{\cdot}_2$, $\varepsilon{<}\ecrit$ certifies $\norm{J_z'}_2{<}1$. The certificate is one-sided: $\norm{J_z'}_2{\to}1$ need not drive $\min_i|1{-}\lambda_i|{\to}0$ (e.g.\ $M{=}\mathrm{diag}(-s,0)$ has $\norm{M}_2{=}s$ yet $\norm{(I{-}M)^{-1}}_2{=}1$). When $J_z'$ is normal with dominant real-positive eigenvalue $\lambda^\star{=}\norm{J_z'}_2$ (the Perron mode for symmetric $\Ahat,W$), $\min_i|1{-}\lambda_i|{=}1{-}\lambda^\star{=}\norm{W}_2(\ecrit{-}\varepsilon)$ yields the $\Omega(1/(\ecrit{-}\varepsilon))$ rate; a negative or complex dominant eigenvalue keeps $\min_i|1{-}\lambda_i|$ away from $0$ (the same $\mathrm{diag}(-s,0)$), so $\ecrit$ only lower-bounds the threshold, slack controlled by $\eta$ (\cref{obs:eta_bound}). For $\varepsilon \geq \ecrit$ Banach contraction fails and the iteration may converge elsewhere, oscillate, or diverge.
+\end{proof}
+
+\subsection{Proof of Observation~\ref{obs:eta_bound}}
+\label{app:proof_eta}
+\textit{Proof.} $J_z{=}\Ahat\otimes W$ has Kronecker eigenvalues $\lambda_i(\Ahat)\lambda_j(W)$~\cite{stewart1990matrix}; symmetric $\Ahat$ gives $\kappa(U_{\Ahat}){=}1$, so the joint eigenvector matrix has condition number $\kappa(V_W)$, and the diagonalisable bound $\norm{(I{-}M)^{-1}}_2 \leq \kappa(V)/(1{-}\rho(M))$ yields $\eta \leq \kappa(V_W)$. \qed
+
+\subsection{Proof of Proposition~\ref{prop:radius}}
+\label{app:proof_radius}
+\textit{Proof.} By \cref{thm:phase_transition}(a), $\Delta\zstar_v \approx S_v\,\mathrm{vec}(\delta A)$, so for each competitor $|\Delta(f_{y_v}{-}f_c)| \leq \norm{(W_{y_v}{-}W_c)S_v}_2 \norm{\delta A}_F$ by Cauchy--Schwarz; the prediction survives while every margin stays positive, i.e.\ $\norm{\delta A}_F < m_v^{(c)}/\norm{(W_{y_v}{-}W_c)S_v}_2$ for all $c$, whose minimum is $r_v$. Intuitively, $r_v$ is the smallest margin divided by two amplification factors (decision-boundary sensitivity to hidden-state change, and equilibrium sensitivity to structure); high-margin, low-sensitivity nodes get large radii. \qed
+
+\subsection{Proof of Proposition~\ref{prop:transfer}}
+\label{app:proof_transfer}
+\begin{proof}
+\textbf{(a).} We model deletion as \emph{fixed-normalization} masking, $[\delta\Ahat]_{ij}{=}[\delta\Ahat]_{ji}{=}{-}w_k$ with the degree matrix $D$ held fixed, matching the continuous edge-weight perturbation, so by the $S_c$ construction $\norm{\Delta \zstar} \approx w_k v_k$. (recompute-normalization adds an $O(d_i^{-1})$ incident-edge rescaling, negligible off low-degree nodes; agreement in \cref{sec:cross_domain}.) For the remainder, the IFT gives $\partial\zstar/\partial\mathrm{vec}(A){=}(I{-}J_z)^{-1}J_A$, and the dominant curvature term $(I{-}J_z)^{-1}(\partial J_z/\partial\mathrm{vec}(A))(I{-}J_z)^{-1}J_A$ carries two resolvents $(1{-}\kappa)^{-1}$, two factors $\norm{W}_2$, and the equilibrium norm $\norm{\zstar}$ (since $\partial J_z/\partial\mathrm{vec}(A)\!\propto\!W$ and $J_A\!\propto\!\zstar W^\top$), so $L_J \leq \norm{W}_2^2\norm{\zstar}$, finite since $\norm{\zstar}\leq\norm{X_{\mathrm{proj}}}/(1{-}\kappa)$ (the $\kappa$-contraction of $F$ at the fixed point, A3), giving $\norm{\partial^2\zstar/\partial\mathrm{vec}(A)^2}_2 \leq (1{-}\kappa)^{-2}L_J$. The path meets finitely many ReLU regions (simultaneous crossings non-generic, measure zero); summing the second-order remainder over these regions, with the conservative IFT~\cite{bolte2021conservative} on each, gives $|R_k| \leq L_J w_k^2/(2(1{-}\kappa)^2)$.
+\textbf{(b).} From (a), $d_{k_1}{-}d_{k_2} \geq w_{k_1}v_{k_1}{-}w_{k_2}v_{k_2}{-}C(w_{k_1}^2{+}w_{k_2}^2)$ with $C{=}L_J/(2(1-\kappa)^2)$; under $v_{k_1}{>}v_{k_2}$, $w_{k_1}{\geq}w_{k_2}$, the first term is positive and~\eqref{eq:ranking} ensures the first-order gap dominates.
+\end{proof}
+
+%% ===================================================================
+\section{Constant-Factor Two-Sided Boundary Theorem}
+\label{app:bracket}
+%% ===================================================================
+
+This appendix gives the full statement and proof of \cref{thm:cf2s} (the
+constant-factor two-sided boundary cited in \cref{sec:theory}), together with the
+empirical nonlinear extension (Observation~O1). The lower side (i) is the sound
+certificate sold by the paper; the upper side (ii)--(iii) is proved for the
+all-active operator (A4).
+
+\paragraph{Notation and standing assumptions.}
+$\Ahat = D^{-1/2}(A+I)D^{-1/2}$ is the symmetric normalized adjacency; $W$ the
+tied weight; $\phi$ the elementwise activation; $\zstar$ the equilibrium; the
+all-active Jacobian is $J_z = \diag(\phi')\,(\Ahat\otimes W)$, $\kappa := \norm{J_z}_2$,
+$\Ahat'=\Ahat+\delta\Ahat$, $J_z'=\diag(\phi')(\Ahat'\otimes W)$.
+
+\begin{definition}[Operator and certified regime]\label{ass:tight-v2}
+Let $F_\theta(Z,\Ahat)=\phi(\Ahat Z W^\top + X_{\mathrm{proj}})$ with:
+\begin{enumerate}
+\item[(A1)] $\phi$ is $1$-Lipschitz (ReLU or any such), so $\norm{\diag(\phi')}_2\le 1$ everywhere; nonsmoothness at $0$ is handled by the conservative IFT~\cite{bolte2021conservative}.
+\item[(A2)] $\norm{W}_2\le c$ via spectral normalization (controls the \emph{numerator} of $\gW$ only; see the a-posteriori remark below).
+\item[(A3)] The trained model is contractive: $\kappa=\norm{J_z}_2<1$, reported and audited post-training ($\kappa\in[0.14,0.59]$ across our suite). Equivalently $\norm{\Ahat}_2\norm{W}_2<1$.
+\item[(A4, all-active)] On the operating set $\phi'\equiv 1$, so $J_z=\Ahat\otimes W$. The \emph{upper} bound (ii)--(iii) of \cref{thm:cf2s} is proved \emph{for this operator}; the lower bound (i) does \emph{not} use (A4).
+\end{enumerate}
+\end{definition}
+
+\paragraph{Audited (a-posteriori) gap quantities.}
+Define $\gW := \norm{W}_2/\rho(W)\ge 1$ and $\gA := \norm{\Ahat}_2/\rho(\Ahat)=1$ ($\Ahat$ symmetric). $\gW$ is the \emph{nonnormality} of $W$, stated as an audited per-model constant, not a quantity controlled a priori by training: spectral normalization (A2) bounds $\norm{W}_2$ but not $\rho(W)$ away from $0$, so in principle $\rho(W)\to0$ at fixed $\norm{W}_2$ sends $\gW\to\infty$. We \emph{measure} $\gW$ on each trained model ($\gW\in[1.19,2.47]$ in our suite, with the a-posteriori certificate $\gW\le\kappa_2(V_W)$, the eigenvector conditioning of $W$) and report $C$ as a function of that value. Every constant in \cref{thm:cf2s} is computable post-training from $\rho(W),\norm{W}_2,\norm{\Ahat}_2$ and the edge set.
+
+\paragraph{Two budgets and the boundary.}
+\begin{align*}
+\ecrit &:= \frac{1-\kappa}{\norm{W}_2} = \frac{1}{\norm{W}_2}-\norm{\Ahat}_2
+\quad\text{(norm certificate)},\\
+\espec &:= \frac{1}{\rho(W)}-\rho(\Ahat)
+\quad\text{(all-active spectral break)}.
+\end{align*}
+$\ebreakall :=$ the infimal $\norm{\delta\Ahat}_F$ over feasible (symmetric, edge-supported) perturbations at which the \emph{all-active} operator loses contraction, $\rho(\Ahat'\otimes W)\ge 1$; the superscript marks that the upper-bounded object is the all-active linearization, not the deployed ReLU model's stability boundary.
+
+\paragraph{Edge-support alignment.}
+Let $P_E$ be the orthogonal projection onto the symmetric, edge-supported subspace $\mathcal{S}_E:=\{M=M^\top : M_{ij}=0\ \text{if}\ (i,j)\notin E\cup\{(i,i)\}\}$. With $u_1$ a unit top eigenvector of $\Ahat$, define $g_E:=P_E(u_1u_1^\top)$, $\sigma_E:=\norm{g_E}_F\in[0,1]$, and (when $\sigma_E>0$) the unit feasible direction $B:=g_E/\sigma_E$. Then $\beta:=\langle u_1, B u_1\rangle=\sigma_E^2/\sigma_E=\sigma_E\in(0,1]$, using $\langle u_1,P_E(u_1u_1^\top)u_1\rangle=\norm{g_E}_F^2=\sigma_E^2$ ($P_E$ an orthogonal projection, $u_1u_1^\top$ symmetric). Thus the alignment $\beta$ equals the edge-supported Frobenius mass $\sigma_E=\norm{P_E(u_1u_1^\top)}_F$ of the rank-one critical direction, strictly positive whenever the top Perron mode places mass on the edge set (always true for a connected graph, $u_1>0$ entrywise, $E\neq\emptyset$), making the hypothesis $\beta>0$ an observable rather than an assumption.
+
+\begin{theorem}[Constant-factor two-sided bracket for the all-active IGNN contraction boundary, full statement]
+\label{thm:cf2s_full}
+Let \cref{ass:tight-v2} hold with $\ecrit>0$ (certified regime) and $\Ahat$ symmetric, and let $\beta=\sigma_E\in(0,1]$ be the edge-supported mass of the critical mode. Then:
+\begin{enumerate}
+\item[\textnormal{(i)}] \textbf{Lower side --- sound certificate (any $1$-Lipschitz $\phi$; no (A4)).} For every feasible $\delta\Ahat$ with $\norm{\delta\Ahat}_F\le\varepsilon<\ecrit$, the perturbed operator $F_\theta(\cdot,\Ahat+\delta\Ahat)$ is an $\norm{\cdot}_2$-contraction ($\norm{J_z'}_2<1$) with a unique equilibrium and $\rho(J_z')<1$. Hence $\ebreak\ge\ecrit$; in particular $\ebreakall\ge\ecrit$.
+
+\item[\textnormal{(ii)}] \textbf{Upper side --- all-active matching attack (requires (A4)).} There is a feasible rank-one $\delta\Ahat^\star=(\espec/\beta)\,B\in\mathcal{S}_E$ with $\norm{\delta\Ahat^\star}_F=\espec/\beta$ that drives the \emph{all-active} spectral radius to $1$; hence $\ebreakall\le\espec/\beta$. In the unconstrained-symmetric threat model ($P_E=I$, $\beta=1$) the construction is \emph{exact}: $\ebreakall=\espec$ with extremizer $\espec\,u_1u_1^\top$.
+
+\item[\textnormal{(iii)}] \textbf{Constant-factor enclosure.} $\espec\le C\,\ecrit$ with the explicit, dimension-free, a-posteriori-computable constant
+\begin{equation*}
+C := \gW\,\frac{1+\kappa}{1-\kappa} = \frac{\norm{W}_2}{\rho(W)}\cdot\frac{1+\norm{\Ahat}_2\norm{W}_2}{1-\norm{\Ahat}_2\norm{W}_2}.
+\end{equation*}
+Combining with (i)--(ii), the all-active contraction boundary obeys
+\begin{equation}
+\boxed{\ \ecrit\ \le\ \ebreakall\ \le\ \frac{C}{\beta}\,\ecrit\ }.
+\label{eq:bracket_full}
+\end{equation}
+The bracket is non-vacuous whenever $\beta=\sigma_E>0$ (every connected graph); on the suite $\beta\approx0.62$, giving $C/\beta\lesssim 16$. The $\beta$-free form $\ecrit\le\ebreakall\le C\,\ecrit$ holds exactly for the unconstrained-symmetric model ($\beta=1$); we report $C/\beta$ as the certified edge-feasible constant and $C$ as the $\beta=1$ specialization.
+
+\item[\textnormal{(iv)}] \textbf{Exact boundary (rate-sharp regime), separated equality conditions.}
+(a) \emph{Endpoints coincide:} $\ecrit=\espec\iff \gW=1$ ($W$ normal); $\kappa,\beta$ irrelevant.
+(b) \emph{All three coincide:} $\ecrit=\ebreakall=\espec\iff \gW=1$ and $\beta=1$ (the exact extremizer $\espec\,u_1u_1^\top$ is edge-feasible).
+(c) \emph{Slack constant equals one:} $C/\beta=1\iff \gW=1$, $\beta=1$, and $\kappa\to0^+$ (kills the $\tfrac{1+\kappa}{1-\kappa}$ inflation).
+\end{enumerate}
+\end{theorem}
+
+This is a constant-factor (dimension-free, $O(1)$) two-sided characterisation, rate-sharp in the normal/edge-aligned regime, with enclosure constant $C/\beta$ reaching ${\sim}10$--$16\times$ on our suite (random-instance $\espec/\ecrit\in[1.02,18.2]$, median $2.25$); it is not ``tight'' in the matching-bound sense except in the corner (iv)(b). Two structural identities underlie it (both numerically exact over $4{,}000$--$6{,}000$ random certified-regime instances): the \emph{all-active spectral law} $\rho(J_z')=\rho(\Ahat')\rho(W)$, $\norm{J_z'}_2=\norm{\Ahat'}_2\norm{W}_2$ (A4 only); and the \emph{additive gap identity} $\espec-\ecrit=(\tfrac1{\rho(W)}-\tfrac1{\norm{W}_2})+(\norm{\Ahat}_2-\rho(\Ahat))\ge0$, the slack supplied entirely by $W$'s nonnormality when $\Ahat$ is symmetric (verified to $2.7\times10^{-15}$).
+
+\begin{proof}
+\textbf{Setup.} Feasible perturbations lie in $\mathcal{S}_E$ with $\norm{\delta\Ahat}_F=\varepsilon$. We use Weyl, $\rho(\Ahat')\le\rho(\Ahat)+\norm{\delta\Ahat}_2$, $\norm{\Ahat'}_2\le\norm{\Ahat}_2+\norm{\delta\Ahat}_2$, and $\norm{\delta\Ahat}_2\le\norm{\delta\Ahat}_F=\varepsilon$. Since $\Ahat$ and the extremal $\delta\Ahat$ are symmetric, $\rho(\Ahat')=\norm{\Ahat'}_2$ and Weyl holds with equality along an aligned rank-one mode.
+
+\textbf{(i) Lower side, fully nonlinear.} By (A1) $\norm{\diag(\phi')}_2\le1$; the spectral norm is sub-multiplicative and Kronecker-multiplicative, so $\norm{J_z'}_2 \le \norm{\diag(\phi')}_2\norm{\Ahat'\otimes W}_2 \le \norm{\Ahat'}_2\norm{W}_2 \le (\norm{\Ahat}_2+\varepsilon)\norm{W}_2$. For $\varepsilon<\ecrit=\tfrac1{\norm{W}_2}-\norm{\Ahat}_2$ this is $<1$. A spectral-norm contraction has a unique fixed point (Banach) and $\rho(J_z')\le\norm{J_z'}_2<1$, so no feasible $\varepsilon<\ecrit$ breaks contraction of the deployed model: $\ebreak\ge\ecrit$. No (A4) used.
+
+\textbf{Additive gap.} $\espec-\ecrit=(\tfrac1{\rho(W)}-\tfrac1{\norm{W}_2})+(\norm{\Ahat}_2-\rho(\Ahat))\ge 0$ using $\rho\le\norm{\cdot}_2$; with $\Ahat$ symmetric the second bracket is $0$, so $\ecrit\le\espec$.
+
+\textbf{(ii) Upper side, all-active matching attack (A4).} Let $u_1$ be a unit top eigenvector of symmetric $\Ahat$. With the rank-one symmetric direction $t\,u_1u_1^\top$ ($\norm{u_1u_1^\top}_F=1$), $\rho(\Ahat+t\,u_1u_1^\top)=\rho(\Ahat)+t$ exactly. Under (A4), $\rho(J_z')=(\rho(\Ahat)+t)\rho(W)$ reaches $1$ at $t=\espec=\tfrac1{\rho(W)}-\rho(\Ahat)$, so the unconstrained all-active break budget is exactly $\espec$ with extremizer $\espec\,u_1u_1^\top$. For edge feasibility, project to $\mathcal{S}_E$ via $B=P_E(u_1u_1^\top)/\sigma_E$, so $\beta=\sigma_E=u_1^\top B u_1>0$. The map $t\mapsto\lambda_{\max}(\Ahat+tB)=\max_{\norm{v}=1}v^\top(\Ahat+tB)v$ is a pointwise maximum of affine functions, hence \emph{convex}, so it lies above its tangent $\rho(\Ahat)+\beta t$ at $t=0$: $\rho(\Ahat+tB)\ge\rho(\Ahat)+\beta t$ for all $t\ge0$ (numerically: $0/42000$ violations of this lower bound, vs.\ $42000/42000$ for a concave version). Choosing $\delta\Ahat^\star=(\espec/\beta)B\in\mathcal{S}_E$ drives $\rho(\Ahat')\ge\rho(\Ahat)+\espec=\tfrac1{\rho(W)}$, so $\rho(J_z')\ge1$ and $\ebreakall\le\norm{\delta\Ahat^\star}_F=\espec/\beta$; exact when $\beta=1$.
+
+\textbf{(iii) Closing the bracket.} Dropping $-\rho(\Ahat)\le0$ and using $\rho(\Ahat)=\norm{\Ahat}_2$, $\espec\le\tfrac1{\rho(W)}=\gW\tfrac1{\norm{W}_2}=\gW(\ecrit+\norm{\Ahat}_2)$. Since $\norm{\Ahat}_2=\kappa/\norm{W}_2=\kappa(\ecrit+\norm{\Ahat}_2)$ gives $\norm{\Ahat}_2=\tfrac{\kappa}{1-\kappa}\ecrit$, we get $\espec\le\gW\tfrac1{1-\kappa}\ecrit\le\gW\tfrac{1+\kappa}{1-\kappa}\ecrit=C\,\ecrit$ (verified, zero violations over $6{,}000$ instances). With (i) and (ii) the boxed bracket~\eqref{eq:bracket_full} follows.
+
+\textbf{(iv) Equality conditions.} (a) The gap $(\tfrac1{\rho(W)}-\tfrac1{\norm{W}_2})\ge0$ is zero iff $\gW=1$; $\kappa,\beta$ do not appear. (b) Add edge-feasibility of $\espec\,u_1u_1^\top$, i.e.\ $\beta=1$; then $\ecrit=\ebreakall=\espec$. (c) Additionally $\tfrac{1+\kappa}{1-\kappa}=1$ requires $\kappa\to0^+$.
+\end{proof}
+
+This recovers and sharpens \cref{thm:phase_transition}: the old result is the lower side (i); (ii) supplies the matching all-active upper side; (iv) separates the three equality conditions.
+
+\begin{remark}[Observation~O1: nonlinear break budget and the active fraction; empirical / conjecture, not part of \cref{thm:cf2s}]
+\label{rem:obs_o1}
+The deployed model is ReLU, not all-active; its measured nonlinear break budget $\ereach$ exceeds the all-active $\espec$. Measured (seed-42 reachability, 50-node ego subgraph; $\norm{\Ahat}_F=1.77$): at $\kappa_0{=}0.5$, $(\ecrit,\espec,\ereach)=(1.000,1.518,2.273)$, $\ereach/\espec{=}1.50$, $\ereach/\ecrit{=}2.27$, resolvent $\gamma{=}1.02$; at $\kappa_0{=}0.9$, $(\ecrit,\espec,\ereach)=(0.111,0.629,1.060)$, $\ereach/\espec{=}1.69$, $\ereach/\ecrit{=}9.54$, $\gamma{=}1.02$. Empirically $\ereach\approx(1/a)\espec$ with $a$ the ReLU active fraction ($a:=\tfrac1{Nd}\Exp\norm{\diag(\phi')}_0\in(0,1]$); with $a\approx0.6$, $1/a\approx1.5$--$1.7$, matching $\ereach/\espec\in[1.5,1.7]$. Composing with the bracket gives the observed envelope $\ereach/\ecrit\lesssim C/a$, spanning roughly $[2.3,10]$ and matching the measured $\ereach/\ecrit\in[2.3,9.5]$.
+
+\emph{This is a conjecture; two independent proof gaps remain open.} (1) \emph{Masked-operator spectral scaling (unproved):} $\ereach\approx\espec/a$ assumes the dominant eigenvalue of the masked Jacobian $D_a(\Ahat'\otimes W)$ scales as $\approx a\,\rho(\Ahat')\rho(W)$, but no such lemma holds in general (the active set correlates with the equilibrium and with $u_1$); this is a mean-field heuristic calibrated to two operating points. (2) \emph{Linear-to-nonlinear bifurcation (empirical only):} the jump from ``a linearized-Jacobian eigenvalue reaches $1$'' to ``the true nonlinear fixed point destabilizes'' is supported here only by the seed-42 run (a clean simple-pole divergence, $\gamma{=}1.02$). We present $\ereach\approx(1/a)\espec$ as an empirical regularity organized by the same two knobs ($\gW$, $a$), not a proven extension. \emph{Practical caveat:} $\ereach$ is $60$--$128\%$ of $\norm{\Ahat}_F$, i.e.\ $5$--$11\times$ the largest realistic budget ($\varepsilon\le0.2$), so realistic-budget robustness is governed by the first-order $\sigma_1(S_c)$, not by proximity to criticality.
+\end{remark}
+
+%% ===================================================================
+\section{Matrix-Free Algorithm}
+\label{app:algorithm}
+%% ===================================================================
+
+\Cref{alg:aegis} summarises the matrix-free routing of the \AEGIS construction
+(\cref{sec:framework}). $S_c$ is queried via JVP/VJP but never materialised; the
+dense fallback ($N\le200$) builds $S_c$ and runs an exact SVD.
+
+\begin{algorithm}[t]
+\caption{\AEGIS matrix-free vulnerability analysis. $S_c$ is queried but never formed; the dense fallback ($N\!\leq\!200$) builds $S_c$ and runs an exact SVD.}
+\label{alg:aegis}
+\begin{algorithmic}[1]
+\REQUIRE $F$, fixed point $\zstar$, $\Ahat$, edge set $E$, budget $\varepsilon$, rank $k$, Neumann tolerance $\mathrm{tol}$; (opt.)\ head $W$, margins $m_v^{(c)}$.
+\ENSURE $\sigma_1(S_c),\ \delta\Ahat^{\star},\ \{v_{ij}\},\ \{r_v\},\ \ecrit$.
+\STATE $\kappa \leftarrow \norm{J_z}_2$;\quad $K \leftarrow \lceil \log(1/\mathrm{tol})/\log(1/\kappa)\rceil$
+\STATE $S_c\,v := \big(\textstyle\sum_{j=0}^{K} J_z^{j}\big)\,J_A\,P_c\,v$ \COMMENT{matrix-free}
+\STATE $(\sigma_1, v_1) \leftarrow \mathrm{rSVD}(S_c,\,k)$~\cite{halko2011finding}
+\STATE $\delta\Ahat^{\star} \leftarrow \varepsilon\,\mathrm{sym}(P_c v_1)\,/\,\norm{\mathrm{sym}(P_c v_1)}_2$
+\STATE $v_{ij} \leftarrow \norm{S_c\,e_{ij}}_2$\ \ for each $(i,j)\in E$
+\STATE $r_v \leftarrow \min_{c\neq y_v} m_v^{(c)} / \norm{(W_{y_v}{-}W_c)\,S_{c,v}}_2$ \COMMENT{head only}
+\STATE $\ecrit \leftarrow (1-\kappa)/\norm{W}_2$ \COMMENT{\cref{thm:phase_transition}}
+\STATE \textbf{return} $(\sigma_1,\ \delta\Ahat^{\star},\ \{v_{ij}\},\ \{r_v\},\ \ecrit)$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_sc_heatmap.pdf}
+\caption{$|S_c|$ on a 50-node Cora ego-graph (IGNN, $N{=}50$, $d{=}16$, $|E|{=}61$, seed~0). Vermilion lines: top-3 edges by $|v_1|$ (SVD-optimal direction, bar strip). Sidebar: singular spectrum, $\sigma_1{=}41.2$, $43\%$ gap to $\sigma_2$ (cross-benchmark $(\sigma_1{-}\sigma_2)/\sigma_1\in[0.39,0.50]$; \cref{sec:adaptive}). The well-separated leading mode is why one rSVD query matches iterative attackers.}
+\label{fig:sc_heatmap}
+\end{figure}
+
+%% ===================================================================
+\section{Detailed Experimental Results}
+\label{app:experiments}
+%% ===================================================================
+
+This appendix gives the detailed tables and per-dataset breakdowns whose
+headline numbers appear in \cref{sec:experiments}.
+
+\subsection{Four-Quadrant Attack Comparison}
+\label{app:attack_full}
+\Cref{tab:attack_full} evaluates \AEGIS across the four quadrants of
+(gradient-based, gradient-free) $\times$ (equilibrium-shift, classification-loss).
+The SVD direction maximises first-order equilibrium shift by construction
+(\cref{prop:attack}); what matters is non-circularity and cost. A transfer
+direction from a separately trained surrogate (zero shared gradients) recovers
+$99\%$ of the one-query damage ($\cos{=}0.99$), versus $44{\pm}4\%$ for a
+$512$-query black-box search: model-intrinsic, not a gradient artifact. Per query
+it delivers $74$--$156\times$ the damage of a $50$-step PGD~\cite{madry2018towards};
+classification-loss PGD inflicts $15$--$70\%$ less at $50\times$ the cost,
+IFT-gradient PGD (solver validation, not independent) $72$--$92\%$, and prediction
+flips stay $0$--$1.8\%$ for all methods.
+
+\textbf{Radius vs.\ smoothing.} Randomized smoothing~\cite{bojchevski2020efficient}
+gives constant-per-node base radii ($0.123$ vs.\ \AEGIS's $0.078$ at $\sigma{=}0.05$),
+and localized smoothing~\cite{schuchardt2023localized} needs $10^3$--$10^4$ MC/node;
+both lack edge structure. \AEGIS radii are instead structurally informative
+($r_v{\approx}0.10$ in dense regions, $0.01$ at boundaries), a complementary point
+on the certificate-versus-diagnostic frontier.
+
+\textbf{Classification-gradient edges differ.} Per-edge classification gradients
+anti-correlate with discrete ground truth on Cora ($\tau{=}\ms{-0.20}{0.05}$ vs.\
+\AEGIS's $\ms{+0.32}{0.04}$) and stay near zero elsewhere; \AEGIS achieves
+$2$--$6\times$ higher P@10, confirming that equilibrium and classification
+sensitivities are distinct vulnerability surfaces. Per-edge finite differences
+reproduce the $S_c$ column-norm ranking ($\tau{=}0.999$); iterative $S_c$
+recomputation closes $\leq 3$\,pp of the static-vs-greedy gap at $k{\times}$
+compute, so the static ranking is the headline.
+
+\begin{table}[t]
+\centering
+\caption{Equilibrium damage at $\varepsilon{=}0.10$ across attack methods (IGNN, 50-node subgraph, 10 seeds). SVD: \AEGIS. Cls-PGD: classification-loss PGD. Shift-PGD: IFT-gradient PGD (solver validation, not an independent baseline).}
+\label{tab:attack_full}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l rrrr@{}}
+\toprule
+Dataset & SVD & Cls-PGD & Shift-PGD & Random \\
+\midrule
+Cora     & $\ms{3.70}{.79}$ & $\ms{2.51}{.48}$ & $\ms{3.05}{.70}$ & $\ms{0.97}{.25}$ \\
+Citeseer & $\ms{4.63}{.71}$ & $\ms{2.97}{.42}$ & $\ms{3.35}{.57}$ & $\ms{1.01}{.15}$ \\
+WikiCS   & $\ms{2.10}{.22}$ & $\ms{0.67}{.11}$ & $\ms{1.93}{.20}$ & $\ms{0.53}{.09}$ \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\subsection{Comparison with Prior Structural Baselines}
+\label{app:baselines}
+\Cref{tab:baselines} reports head-to-head numbers against the GR-BCD and PR-BCD
+structural attackers~\cite{geisler2021robustness}. \AEGIS is a label-free
+one-query proxy; the question is how much of each gold-standard signal it retains.
+GR-BCD aligns with $S_c$ on Pubmed ($\tau{=}{+}0.69$) but decorrelates on Cora
+($\tau{=}{+}0.16$); the budgets shown ($k{\leq}10$) are \AEGIS's early-warning
+regime, where its one-pass diagnostic is competitive, while GR-BCD/PR-BCD dominate
+raw damage at the high budgets they target. AGNNCert~\cite{li2025agnncert} is a
+sound certificate against a bounded \emph{number} of discrete edge edits (a
+majority vote over hash-partitioned sub-graphs); \AEGIS $r_v$ instead bounds a
+\emph{continuous} edge-weight budget $\norm{\delta\Ahat}_F$. The two target
+different threat models and are complementary rather than comparable on one radius
+axis: $r_v$ is a sound first-order screen (no node breaches below it,
+\cref{sec:adaptive}) that flags which edges a discrete certifier should prioritise.
+\AEGIS also beats degree-proportional, edge-betweenness, and spectral rankings at
+$\varepsilon{=}0.01$ ($+6$--$148\%$ AtkAdv, Wilcoxon $p{<}0.001$) and inflicts
+$3$--$10\times$ more equilibrium damage than Mettack~\cite{zugner2019adversarial}
+at the early-warning regime $k\!\in\!\{1,\ldots,5\}$ ($\mathbf{149/150}$ paired
+wins, $p{<}10^{-43}$).
+
+\begin{table}[t]
+\centering
+\caption{\AEGIS vs.\ external baselines (10 seeds). GR-BCD~\cite{geisler2021robustness} is the BCD-family scalable structural attacker (PR-BCD is the same paper's larger-budget variant, see text).}
+\label{tab:baselines}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l l c c r@{}}
+\toprule
+Baseline & Setting & \AEGIS & Baseline & $\tau$ \\
+\midrule
+GR-BCD     & Pubmed $k{=}10$    & $0.356$ & $0.350$ & $\mathbf{+0.69}$ \\
+GR-BCD     & Cora $k{=}5$       & $0.643$ & $1.207$ & $+0.16$ \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_greedy_curves.pdf}
+\caption{Cumulative damage from sequential discrete edge removal vs.\ $k$ (IGNN, 50-node subgraph, 10 seeds, $\pm 1$\,sd). \AEGIS \emph{matches} the ground-truth-aware Greedy attacker on Citeseer/WikiCS and recovers $\mathbf{54}$--$\mathbf{67\%}$ of Greedy's damage on Cora at $k{=}5$--$10$ \emph{without any access to discrete ground truth}; degree-ranked stays below random on Cora at every $k$.}
+\label{fig:greedy_topk}
+\end{figure}
+
+\subsection{Phase Transition and Scalability}
+\label{app:phase_scal}
+\textbf{Phase transition.} \Cref{fig:phase_transition} sweeps $\kappa_{\max}{\in}[0.30,0.99]$ on Cora (10 seeds). Even when the spectral-normalisation cap is pushed to $0.99$, driving the theoretical $\ecrit$ down $230\times$, the trained ReLU pattern keeps $\rho(J_z)\!\leq\!0.42$, so the resolvent grows only $\mathbf{1.17{\to}1.80}$. This is a $\mathbf{2{-}4\times}$ spectral-radius margin to criticality ($\rho{=}1$), the operative quantity behind $\ecrit$, stable across the sweep. Training converges throughout, and the matrix-free pipeline reaches its 50-step fixed-point budget at $\kappa_{\max}{\geq}0.85$.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_phase_transition.pdf}
+\caption{Three-regime characterisation of \cref{thm:phase_transition}. The empirical $\kappa$ band (grey) saturates well below the spectral-normalisation ceiling, so the empirical resolvent growth is far milder than the worst-case $1/(1-\kappa)$ divergence at $\varepsilon \to \ecrit$.}
+\label{fig:phase_transition}
+\end{figure}
+
+\textbf{Scalability and matrix-free self-consistency.} \Cref{fig:scalability} compares dense and matrix-free pipelines. The matrix-free $S_c v$ implements the dense $S_c$ up to Neumann truncation; $\sigma_1$ agrees within $0.03\%$ at $N{=}200$ (per-edge $\tau{=}0.999$), and the analytical truncation residual $\kappa^{200}\!\in\![10^{-105},10^{-48}]$ across the suite (consistent with the trained-IGNN range $\kappa\!\in\![0.14,0.59]$ of \cref{tab:cross_domain}). For larger $N$ the rSVD error~\cite{halko2011finding} is bounded by the spectral gap; Pubmed ($N{=}19{,}717$) exceeds $24$\,GB.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_scalability.pdf}
+\caption{Dense vs.\ matrix-free \AEGIS pipeline (RTX 4090). Dense scales as $O((Nd)^3)$, exceeding $24$\,GB beyond $N{=}200$; matrix-free is roughly $O(N\log N)$ in time, sub-linear in memory, reaching Amazon Photo ($N{=}7{,}650$) at $365$\,s/$5.5$\,GB.}
+\label{fig:scalability}
+\end{figure}
+
+\subsection{Ablations and Defense}
+\label{app:ablations}
+\textbf{Subgraph size.} Varying $N{\in}\{30,50,100,200\}$ on Cora (10 seeds): tightness is stable at $1.01$--$1.02$ for $N{\leq}100$ and degrades to $1.031$ at $N{=}200$; we use $N{=}50$ as default ($66\times$ faster). \textbf{Full-graph scale.} A 50-node BFS covers only ${\sim}1.8\%$ of a citation graph's edges (Cora $\tau{=}0.16$), so at this scale we run \AEGIS on the full graph; there its edge advantage over degree-proportional ranking \emph{amplifies} to $\mathbf{9.82\times}$ (Citeseer) and $\mathbf{3.25\times}$ (Cora) at $k{=}10$, against ${\approx}1.1\times$ on subgraphs. \textbf{Hyperparameters.} Tightness is stable across $d{\in}\{16,32,64,128\}$; the spectral-norm ceiling $c{\in}\{0.5,0.9\}$ traces the accuracy--robustness frontier ($r_v{=}0.147$@$72.1\%$ vs.\ $0.089$@$80.6\%$).
+
+\textbf{Edge protection and the delocalization of vulnerability.} On the \emph{full} graph (Cora, $N{=}2{,}708$, 10 seeds), masking the top-$k$ edges by $v_{ij}$ cuts $\sigma_1(S_c)$ damage by $2.4{\pm}1.8\%$ at $k{=}5$ and $4.6{\pm}2.9\%$ at $k{=}10$ --- $\mathbf{12}$--$\mathbf{46\times}$ over random masking, but far below the $42$--$61\%$ a 50-node subgraph reports (where $k{=}5$ is already $10\%$ of its edges). The reason is structural: the leading attack mode is \emph{delocalized} (participation ratio $41$--$89$ edges), so removing a handful excises a negligible slice; reaching subgraph-scale reduction needs $2$--$8\%$ of edges masked, and an adaptive recomputation erodes the gain a further $1$--$2$\,pp. \AEGIS thus \emph{localizes} risk for attribution and triage rather than yielding a few-edge defense, the failure mode sober-look critiques~\cite{mujkanovic2022defenses} flag.
+
+\subsection{Per-Architecture Characterisation (Explicit GNNs)}
+\label{app:explicit}
+For $K$-layer explicit GNNs (GCN, SAGE, GIN, APPNP, GAT$^\dagger$~\cite{kipf2017semi,hamilton2017inductive,xu2019how,klicpera2019predict,velickovic2018graph}) we form $S_K{=}\partial \mathrm{vec}(Z_K)/\partial \mathrm{vec}(A)$ via finite differences and build $S_c$ from $S_K$ identically (\cref{prop:explicit}). \Cref{tab:explicit} reports the per-architecture characterisation on Cora: IGNN carries \cref{thm:phase_transition}; the explicit models receive the computational tool without the regime characterisation.
+
+\begin{table}[t]
+\centering
+\caption{$S_c$ framework on 7 GNN architectures (Cora, 10 seeds). Tight.: actual/predicted shift ratio. AtkAdv: \AEGIS/random damage. $\tau$: Kendall of the \emph{unweighted} $v_{ij}$ ranking vs.\ single-edge removal; the edge-weighted $A_{ij}v_{ij}$ ranking of \cref{prop:transfer} (\cref{fig:tau_heatmap}) is the higher headline score. Acc: full-graph test accuracy.}
+\label{tab:explicit}
+\small
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l rrrr@{}}
+\toprule
+Model & Tight. & AtkAdv & $\tau$ & Acc \\
+\midrule
+IGNN (eq.)    & $\ms{1.01}{.00}$ & $\ms{7.6}{0.5}\times$ & $\ms{+.32}{.04}$ & $\ms{77.5}{1.7}\%$ \\
+\midrule
+GCN-2         & $\ms{1.00}{.00}$ & $\ms{3.6}{0.6}\times$ & $\ms{-.04}{.03}$ & $\ms{78.9}{0.9}\%$ \\
+GCN-4         & $\ms{1.02}{.00}$ & $\ms{3.4}{0.4}\times$ & $\ms{+.49}{.02}$ & $\ms{78.3}{1.8}\%$ \\
+GIN-2         & $\ms{1.01}{.00}$ & $\ms{2.6}{0.1}\times$ & $\ms{+.33}{.03}$ & $\ms{76.6}{1.9}\%$ \\
+GAT$^\dagger$ & $\ms{1.01}{.01}$ & $\ms{2.1}{0.1}\times$ & $\ms{\mathbf{+.54}}{.06}$ & $\ms{77.8}{1.2}\%$ \\
+SAGE-2        & $\ms{1.00}{.00}$ & $\ms{1.9}{0.2}\times$ & $\ms{+.22}{.10}$ & $\ms{77.5}{1.5}\%$ \\
+APPNP         & $\ms{1.02}{.00}$ & $\ms{3.4}{0.3}\times$ & $\ms{+.35}{.01}$ & $\ms{\mathbf{82.2}}{0.6}\%$ \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\textbf{GAT$^\dagger$ scope.} Standard GAT uses $A$ as a binary mask, so $\partial Z/\partial A_{ij}{=}0$ on existing edges and $S_c$ is undefined; our GAT$^\dagger$ modulates attention by the edge weight ($h_i' = \sum_{j} \Ahat_{ij} \alpha_{ij} W h_j$), restoring differentiability and yielding tightness $0.99$, AtkAdv $4.4\times$, $\tau{=}+0.36$. Binary-mask architectures (hard attention, max/min aggregation, GATv2~\cite{brody2022how}-style dynamic-attention masking) fall outside the framework. \textbf{Robust backbones.} Under the $\sigma_1(W){\leq}0.9$ cap, RobustGCN-lite~\cite{zhu2019robust} and GNNGuard-lite~\cite{zhang2020gnnguard} match or exceed IGNN; the cap is a precondition (without it $\kappa{>}1$ voids \cref{thm:phase_transition}). \textbf{Cross-dataset transfer detail.} The edge-weighted $A_{ij}v_{ij}$ ranking beats a pure edge-weight baseline by $\Delta\tau{\approx}{+}0.25$, rising to $+0.65$ on the fraud graph where uniform weights are uninformative, so $v_{ij}$ adds rank information beyond the weight. GAT-2$^\dagger$ is the exception: attention reweights edges, so the unweighted $v_{ij}$ transfers better there ($+0.47$ vs.\ $+0.35$). \Cref{prop:transfer}'s sufficient pairwise condition holds for $\mathbf{47}$--$\mathbf{62\%}$ of edge pairs, so the global $\tau$ is empirical, not implied; where unweighted $v_{ij}$ is uninformative (GCN-2's near-uniform 2-hop shifts), the weighted ranking recovers the order via the edge weight ($-0.28{\to}{+}0.99$, Citeseer).
+
+%% ===================================================================
+\section{Fraud-Detector Audit: Walk-Through}
+\label{app:fraud}
+%% ===================================================================
+
+This appendix expands the audit-in-action summarised in \cref{sec:fraud_case}.
+GNN fraud detectors are a prime adversarial target: a flagged account can try to
+evade detection by perturbing a few of its behavioural-similarity
+edges~\cite{zugner2018adversarial,dou2020enhancing}. \AEGIS audits such a detector
+directly --- no labels, no retraining --- reading from one $S_c$ query which edges
+most threaten its predictions.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_fraud_case.pdf}
+\caption{\AEGIS auditing an IGNN fraud detector on an Amazon Fraud cluster~\cite{dou2020enhancing}. Icons mark fraud / benign accounts; the audited account sits at the hub. Green edges are the top-5 adversarial fault lines by the edge-weighted score $A_{ij}v_{ij}$ of \cref{prop:transfer}; yellow dots mark the three also in the brute-force single-edge-removal damage top-3. The one-query ranking reproduces the brute-force ranking ($\tau{=}1.0$ on this cluster), at one query's cost rather than $|E|$ reconvergences.}
+\label{fig:fraud_case}
+\end{figure}
+
+\Cref{fig:fraud_case} shows the audit: the trained IGNN flags the central account,
+and the edge-weighted ranking $A_{ij}v_{ij}$ pinpoints the fault lines,
+reproducing the brute-force single-edge-removal damage ranking from a single $S_c$
+query. This auditing claim is what the paper validates at scale, and
+\emph{non-circularly}. The edge-weighted ranking transfers across the full fraud
+graph (\cref{fig:tau_heatmap}), precisely where uniform edge weights are
+uninformative so $v_{ij}$ adds the most rank information ($\Delta\tau$ up to
+$\mathbf{+0.65}$ over the weight baseline). The SVD direction transfers from a
+\emph{separately trained} surrogate (zero shared gradients, $\cos{=}0.99$;
+\cref{sec:adaptive}), so $v_{ij}$ reflects model-intrinsic vulnerability rather
+than a gradient artifact; \AEGIS out-damages discrete attackers (Mettack, GR-BCD)
+on their own metric in the early-warning regime
+(\cref{sec:cross_domain,app:baselines}); and the per-edge $v_{ij}$ scores
+prioritise which connections to monitor, though adversarial vulnerability itself
+proves delocalized at scale (\cref{app:ablations}). Beyond a smoothing certifier,
+$S_c$ also names \emph{which} edges and \emph{in which direction}
+(\cref{sec:conformal}), turning a one-query audit into an actionable defense.
+
+%% ===================================================================
+\section{Reproducibility}
+\label{app:repro}
+%% ===================================================================
+
+All results use 10 fixed random seeds $\{42,137,271,314,1729,2718,3141,5772,6561,9999\}$;
+reported $\pm$ are standard deviations over these seeds. Models are trained in
+PyTorch~\cite{paszke2019pytorch}; IGNN~\cite{gu2020implicit} uses
+$F(Z){=}\mathrm{ReLU}(\Ahat ZW^\top{+}U(X))$ with $W\in\R^{64\times64}$
+spectral-normalised~\cite{miyato2018spectral} and Adam (lr $0.01$). Datasets are
+the public splits of Cora, Citeseer, Pubmed~\cite{sen2008collective}, Amazon
+Photo~\cite{shchur2018pitfalls}, WikiCS~\cite{mernyei2020wiki}, and Amazon
+Fraud~\cite{dou2020enhancing}. The randomized SVD~\cite{halko2011finding} uses
+$k{=}p{=}10$, $n_{\mathrm{iter}}{=}2$; the Neumann series early-stops at
+$\norm{J_z^k b}<10^{-6}\norm{b}$. Timings are on a single RTX 4090.
+Code release follows the disclosure protocol of \cref{sec:conclusion}: the
+diagnostic-only path ($r_v$ and $v_{ij}$ scores) is released unconditionally,
+while the attack-direction reconstruction (\cref{alg:aegis}, steps 3--4) is gated
+behind institutional-affiliation review.

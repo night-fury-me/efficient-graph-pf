@@ -32,6 +32,12 @@ from data_loading.dataset import ChanghunDataset
 from torch.utils.data import DataLoader, Subset
 
 SEEDS = [42, 137, 271, 314, 1729, 2718, 3141, 5772, 6561, 9999]
+try:
+    import os as _aegis_os
+    _aegis_s = _aegis_os.environ.get('AEGIS_SEEDS')
+    if _aegis_s: SEEDS = [int(_x) for _x in _aegis_s.split(',') if _x.strip()]
+except Exception:
+    pass
 
 CASES = [
     ("case14", "datasets/IEEE_case14_2000.parquet", 14),

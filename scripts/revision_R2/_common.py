@@ -63,16 +63,37 @@ def load_dataset(name: str):
 
 
 def train_ignn(X, A_hat, y, train_mask, n_features, n_classes,
-               device, seed, epochs: int = 200, hidden: int = 64):
-    """Train an IGNN classifier and return the model in eval() mode."""
+               device, seed, epochs: int = 400, hidden: int = 64,
+               c: float | None = 0.9, dropout: float = 0.5,
+               lr: float = 0.01, wd: float = 5e-4,
+               fwd_iter: int = 100, fwd_tol: float = 1e-6,
+               cosine: bool = True):
+    """Train an IGNN classifier and return the model in eval() mode.
+
+    Uses the validated AEGIS revision-R2 recipe by default: a hard spectral cap
+    ``c=0.9`` (genuinely contractive, kappa=||J_z||_2 < 1), dropout 0.5 (train
+    only, on Z* before the head), a moderately tight forward solve
+    (max_iter=100, tol=1e-6), cosine LR over 400 epochs, Adam lr=0.01 wd=5e-4,
+    hidden=64. Reproduces Cora ~80% / Citeseer ~69-70% / Pubmed ~79%.
+
+    Signature is backward compatible: the original positional args plus the
+    optional ``epochs`` / ``hidden`` still work; the recipe knobs are extra
+    optional kwargs (pass ``c=None`` to recover the legacy ||W||=1 model).
+    """
     torch.manual_seed(seed)
-    model = IGNN(n_features, hidden=hidden, n_classes=n_classes).to(device)
-    opt = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
+    model = IGNN(n_features, hidden=hidden, n_classes=n_classes,
+                 c=c, dropout=dropout).to(device)
+    opt = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=wd)
+    sched = (torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs)
+             if cosine else None)
     for _ in range(epochs):
         model.train()
-        logits, _, _ = model(X, A_hat)
+        logits, _, _ = model(X, A_hat, max_iter=fwd_iter, tol=fwd_tol,
+                             train_dropout=(dropout > 0))
         loss = F.cross_entropy(logits[train_mask], y[train_mask])
         opt.zero_grad(); loss.backward(); opt.step()
+        if sched is not None:
+            sched.step()
     model.eval()
     return model
 

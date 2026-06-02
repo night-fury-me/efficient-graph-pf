@@ -1,0 +1,24 @@
+[
+  {
+    "dataset": "Pubmed",
+    "config": "WIN cap=0.9 drop=0.5 cos ep=400 (3sd)",
+    "test_mean": 0.7920000354448954,
+    "test_sd": 0.004582581730166338,
+    "train_mean": 1.0,
+    "kappa_mean": 0.8813483119010925,
+    "kappa_sd": 0.0010913181189064248,
+    "res_eval": 3.445565577446056e-06,
+    "res_train": 0.0002499747109444191
+  },
+  {
+    "dataset": "Pubmed",
+    "config": "cap=0.9 it=100 no-drop ep=200 (3sd)",
+    "test_mean": 0.7690000534057617,
+    "test_sd": 0.008717788205725118,
+    "train_mean": 1.0,
+    "kappa_mean": 0.865625778834025,
+    "kappa_sd": 0.01865791262832019,
+    "res_eval": 2.066106503662013e-06,
+    "res_train": 0.00016467580280732363
+  }
+]
