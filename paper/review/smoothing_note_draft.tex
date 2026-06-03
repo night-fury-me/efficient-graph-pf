@@ -1,0 +1,30 @@
+% ============================================================================
+% FINAL smoothing-vs-Conformal note + appendix table — 10-seed numbers filled.
+% Source: paper/review/smoothing_10seed_findings.md (Cora, n=200, M=200, extrap 1e4).
+% ============================================================================
+
+% --- (A) one-liner for sec:conformal (drop in after the gate discussion) ---
+Against randomized smoothing on the \emph{same} $\varepsilon$-ball, \AEGIS-Conformal is non-vacuous where smoothing degenerates to the full label set, at ${\sim}10^4\times$ lower wall-clock (zero-sample vs $M$ reconvergence passes; \cref{app:smoothing}).
+
+% --- (B) appendix table for app:smoothing ---
+\begin{table}[t]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\caption{\AEGIS-Conformal vs randomized smoothing on Cora ($n{=}200$ subgraph, 10 seeds, $\alpha{=}0.1$, APS). \textbf{frob}: $\sigma{=}\varepsilon/\sqrt{2|E|}$ matches the \emph{same} Frobenius $\varepsilon$-ball (apples-to-apples); \textbf{per\_edge}: $\sigma{=}\varepsilon$ is a strictly larger per-coordinate ball, favorable to smoothing. ``cert'': fraction of nodes certified. Wall-clock extrapolated to $M{=}10^4$ smoothing samples; \AEGIS-Conformal is zero-sample. Values mean$\pm$SD over 10 seeds.}
+\label{tab:smoothing}
+\begin{tabular}{llcccc}
+\toprule
+method & match & $\varepsilon$ & cov & set & cert & wall@$10^4$ \\
+\midrule
+\AEGIS-Conformal & --       & 0.01 & 0.90 & 1.36 & --   & \textbf{${\sim}3$\,s} \\
+RandSmoothing    & frob     & 0.01 & 1.00 & 7.00 & 0.00 & 7{,}600\,s \\
+RandSmoothing    & per\_edge& 0.01 & 0.95 & 1.26 & 0.96 & 15{,}000\,s \\
+\midrule
+\AEGIS-Conformal & --       & 0.05 & 0.90 & 1.05 & --   & \textbf{${\sim}3$\,s} \\
+RandSmoothing    & frob     & 0.05 & 1.00 & 7.00 & 0.00 & 10{,}900\,s \\
+RandSmoothing    & per\_edge& 0.05 & 0.99 & 2.39 & 0.77 & 36{,}300\,s \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% --- (C) appendix prose ---
+On the same Frobenius $\varepsilon$-ball (frob), the matched smoothing $\sigma$ is so small that the smoothed classifier is unchanged and abstains to the full $7$-label set (coverage $1.00$, set $7.00$, zero certified nodes, with \emph{zero} variance across seeds): randomized smoothing is vacuous at the perturbation scale \AEGIS targets. Only on a strictly larger per-coordinate ball (per\_edge, $\sigma{=}\varepsilon$) does smoothing certify ($0.77$--$0.96$ of nodes), and then at $\mathbf{23{,}000}$--$\mathbf{57{,}000}\times$ the wall-clock of the zero-sample $S_c$ bound. Even on the matched ball where the comparison is fairest, the analytic certificate is non-vacuous and $\mathbf{11{,}700}\times$ ($\varepsilon{=}0.01$) to $\mathbf{16{,}700}\times$ ($\varepsilon{=}0.05$) faster. The comparison favors smoothing twice over---its larger ball and its best matching---yet $S_c$ dominates wall-clock by four orders of magnitude.
+% ============================================================================

@@ -91,30 +91,32 @@ The radius $r_v$ (\cref{eq:radius}) is a first-order threshold---locally tight, 
 \qquad\text{for all }\ \norm{\delta\Ahat}_F\leq\varepsilon .
 \label{eq:conformal}
 \end{equation}
-\Cref{tab:conformal} reports coverage over the 10 seeds. The \emph{gate}---coverage under the worst-case \AEGIS attack at magnitude $\varepsilon$ (reconverging the equilibrium after the $v_1$ perturbation)---holds at the nominal $1{-}\alpha{=}0.90$ at $\varepsilon{=}0.01$ and is conservative ($0.92$--$0.98$) at $\varepsilon{=}0.05$, with \emph{zero} equilibrium divergence across all gate nodes; sets are ${\sim}1.0$--$1.5$ labels. The certificate is thus non-vacuous exactly where the deterministic radius certifies few nodes, uses zero Monte-Carlo samples, and via $S_K$ applies to any GNN. Exchangeability on a single transductive graph is a stated condition (the empirical gate is the evidence); we form $S_c$ densely at $N{=}200$, a matrix-free conformal pass being future work.
+\Cref{tab:conformal} reports coverage (10 seeds, four datasets). The \emph{gate}---coverage under the worst-case \AEGIS attack at magnitude $\varepsilon$ (reconverging the equilibrium after the $v_1$ perturbation)---holds at the nominal $1{-}\alpha{=}0.90$ at $\varepsilon{=}0.01$ on every dataset and is conservative ($0.94$--$1.00$) at $\varepsilon{=}0.05$, with \emph{zero} equilibrium divergence across all gate nodes. Sets run ${\sim}1.0$--$1.5$ labels (citation graphs) to ${\sim}3.5$ (WikiCS, $10$ classes), non-vacuous throughout and tightest where the deterministic radius is thin, at zero Monte-Carlo samples. These budgets are ${\approx}0.05$/$0.23$ Cora-edge-equivalents---continuous reweighting below a single edge. On the same ball, randomized smoothing degenerates to the full label set while \AEGIS-Conformal stays non-vacuous at ${\sim}10^4\times$ lower wall-clock (\cref{app:smoothing}). Exchangeability on a single transductive graph is a stated condition (the empirical gate is the evidence); we form $S_c$ densely at $N{=}200$, a matrix-free conformal pass being future work.
 
 \begin{table}[t]\centering\footnotesize\setlength{\tabcolsep}{4pt}
-\caption{\AEGIS-Conformal coverage (10 seeds; $\alpha{=}0.1$, target $0.90$). \textbf{Gate}: coverage under the worst-case attack at $\varepsilon$. ``set'': mean prediction-set size (of 7 Cora / 6 Citeseer classes). Std over seeds ${\leq}0.06$. Set sizes ${<}1$ reflect occasional empty (abstaining) sets under TPS.}
+\caption{\AEGIS-Conformal coverage (10 seeds; Cora, Citeseer, Pubmed, WikiCS; $\alpha{=}0.1$, target $0.90$). Each $\varepsilon$ block reports clean coverage\,/\,mean set size, then the bold \textbf{gate} (coverage under the worst-case attack at $\varepsilon$). Classes: 7/6/3/10 resp.; std over seeds ${\leq}0.07$. Sets ${<}1$ reflect occasional empty (abstaining) sets under TPS.}
 \label{tab:conformal}
-\begin{tabular}{llccc}
+\begin{tabular}{ll cc cc}
 \toprule
-Data & score & $\varepsilon$ & cov / set & \textbf{gate} \\
-\midrule
-Cora & APS & 0.01 & 0.901 / 1.37 & \textbf{0.900} \\
-     & APS & 0.05 & 0.892 / 1.06 & \textbf{0.983} \\
-     & TPS & 0.01 & 0.882 / 0.95 & \textbf{0.895} \\
-     & TPS & 0.05 & 0.893 / 0.99 & \textbf{0.983} \\
-\midrule
-Citeseer & APS & 0.01 & 0.919 / 1.50 & \textbf{0.925} \\
-         & APS & 0.05 & 0.915 / 1.35 & \textbf{0.968} \\
-         & TPS & 0.01 & 0.910 / 1.21 & \textbf{0.918} \\
-         & TPS & 0.05 & 0.917 / 1.26 & \textbf{0.957} \\
+Data & score & \multicolumn{2}{c}{$\varepsilon{=}0.01$} & \multicolumn{2}{c}{$\varepsilon{=}0.05$} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Cora     & APS & 0.90 / 1.37 & \textbf{0.90} & 0.89 / 1.06 & \textbf{0.98} \\
+         & TPS & 0.88 / 0.95 & \textbf{0.90} & 0.89 / 0.99 & \textbf{0.98} \\
+\addlinespace
+Citeseer & APS & 0.92 / 1.50 & \textbf{0.93} & 0.92 / 1.35 & \textbf{0.97} \\
+         & TPS & 0.91 / 1.20 & \textbf{0.92} & 0.92 / 1.26 & \textbf{0.96} \\
+\addlinespace
+Pubmed   & APS & 0.91 / 1.42 & \textbf{0.95} & 0.92 / 1.52 & \textbf{1.00} \\
+         & TPS & 0.90 / 1.15 & \textbf{0.93} & 0.90 / 1.15 & \textbf{0.98} \\
+\addlinespace
+WikiCS   & APS & 0.92 / 3.70 & \textbf{0.94} & 0.93 / 3.62 & \textbf{0.95} \\
+         & TPS & 0.93 / 3.52 & \textbf{0.94} & 0.93 / 3.52 & \textbf{0.95} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{Coupling: A $\sigma_1(S_c)$ Defense Knob}\label{sec:defense}
-The operator that finds the worst attack also tunes the defense. Penalizing $\sigma_1(S_c)$ during training ($\lambda{=}3{\times}10^{-4}$) cuts the dominant sensitivity ${\sim}10\times$ ($\sigma_1{\approx}335{\to}32.6{\pm}1.7$), enlarging the certified radii and raising \AEGIS-Conformal coverage to $0.82{\pm}0.03$ at a ${\sim}5\%$ clean-accuracy cost ($73.9{\pm}0.8\%$): a certified-robustness/accuracy trade controlled by one quantity on the same operator. The trade is genuinely \emph{certified}, not empirical: under the $v_1$ attack at $\varepsilon{\leq}0.1$ robust accuracy is flat for both models (few nodes flip at realistic budgets, the delocalized vulnerability of \cref{sec:adaptive}), so the penalty raises the certified margin, not realized small-budget accuracy. Attack and defense thus couple through $S_c$: per-node attack magnitude and certified radius are partially anticorrelated ($-0.65{\pm}0.12$, margin-controlled).
+The operator that finds the worst attack also tunes the defense. Penalizing $\sigma_1(S_c)$ during training ($\lambda{=}3{\times}10^{-4}$) cuts the dominant sensitivity ${\sim}10\times$ ($\sigma_1{\approx}335{\to}32.6{\pm}1.7$), enlarging the certified radii and raising \AEGIS-Conformal coverage to $0.82{\pm}0.03$ at a ${\sim}5\%$ clean-accuracy cost ($73.9{\pm}0.8\%$): a certified-robustness/accuracy trade on one operator. The trade is genuinely \emph{certified}, not empirical: at $\varepsilon{\leq}0.1$ robust accuracy is flat for both models (few nodes flip at realistic budgets---the delocalized vulnerability of \cref{sec:adaptive}), so the penalty raises the certified margin, not small-budget accuracy. Attack and defense couple through $S_c$: attack magnitude and certified radius are anticorrelated ($-0.65{\pm}0.12$).
 
 \subsection{Continuous-to-Discrete Transfer}
 

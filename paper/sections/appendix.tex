@@ -137,6 +137,25 @@ The deployed model is ReLU, not all-active; its measured nonlinear break budget 
 \emph{This is a conjecture; two independent proof gaps remain open.} (1) \emph{Masked-operator spectral scaling (unproved):} $\ereach\approx\espec/a$ assumes the dominant eigenvalue of the masked Jacobian $D_a(\Ahat'\otimes W)$ scales as $\approx a\,\rho(\Ahat')\rho(W)$, but no such lemma holds in general (the active set correlates with the equilibrium and with $u_1$); this is a mean-field heuristic calibrated to two operating points. (2) \emph{Linear-to-nonlinear bifurcation (empirical only):} the jump from ``a linearized-Jacobian eigenvalue reaches $1$'' to ``the true nonlinear fixed point destabilizes'' is supported here only empirically across the 10 preferred seeds (a clean simple-pole divergence, $\gamma{\approx}1.02$--$1.06$). We present $\ereach\approx(1/a)\espec$ as an empirical regularity organized by the same two knobs ($\gW$, $a$), not a proven extension. \emph{Practical caveat:} $\ereach$ is $60$--$128\%$ of $\norm{\Ahat}_F$, i.e.\ $5$--$11\times$ the largest realistic budget ($\varepsilon\le0.2$), so realistic-budget robustness is governed by the first-order $\sigma_1(S_c)$, not by proximity to criticality.
 \end{remark}
 
+\begin{table}[t]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\caption{Reconciliation of the robustness constants, separating the three ``$\times$'' ratios that recur in the text: they are \emph{distinct} quantities, not estimates of one number. The operating margin measures how far the trained model sits inside $\rho{=}1$; the empirical conservatism is how far $\ecrit$ under-states the true nonlinear break; the proven bracket is the worst-case enclosure constant.}
+\label{tab:constants}
+\begin{tabular}{@{}lll@{}}
+\toprule
+quantity & meaning & source \\
+\midrule
+$\kappa{=}\norm{J_z}_2$ & trained contractivity ($<1$) & \cref{tab:cross_domain} \\
+$\ecrit{=}\tfrac{1-\kappa}{\norm{W}_2}$ & norm certificate (safe radius) & \cref{thm:phase_transition} \\
+$\espec$ & all-active spectral break budget & \cref{thm:cf2s} \\
+$\mathbf{2}$--$\mathbf{4\times}$ & operating $\rho$-margin to $\rho{=}1$ & \cref{app:phase_scal} \\
+$\mathbf{2}$--$\mathbf{9\times}$ & empirical $\ereach/\ecrit$ (10 seeds) & \cref{rem:obs_o1} \\
+$\mathbf{10}$--$\mathbf{16\times}$ & proven bracket constant $C/\beta$ & \cref{thm:cf2s} \\
+$\gamma{\approx}1.02$ & resolvent critical exponent & \cref{rem:obs_o1} \\
+$\eta\in[1.19,2.47]$ & non-normality index $\gW$ & \cref{obs:eta_bound} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 %% ============================================================================
 %% Appendix: Derivation of the AEGIS-Conformal Bound
 %% ============================================================================
@@ -559,6 +578,28 @@ GR-BCD     & Cora $k{=}5$       & $0.643$ & $1.207$ & $+0.16$ \\
 \caption{Cumulative damage from sequential discrete edge removal vs.\ $k$ (IGNN, 50-node subgraph, 10 seeds, $\pm 1$\,sd). \AEGIS \emph{matches} the ground-truth-aware Greedy attacker on Citeseer/WikiCS and recovers $\mathbf{54}$--$\mathbf{67\%}$ of Greedy's damage on Cora at $k{=}5$--$10$ \emph{without any access to discrete ground truth}; degree-ranked stays below random on Cora at every $k$.}
 \label{fig:greedy_topk}
 \end{figure}
+
+\subsection{Certification vs Randomized Smoothing}
+\label{app:smoothing}
+On the same Frobenius $\varepsilon$-ball (frob), the matched smoothing $\sigma{=}\varepsilon/\sqrt{2|E|}$ is so small that the smoothed classifier is unchanged and abstains to the full $7$-label set (coverage $1.00$, set $7.00$, zero certified nodes, with \emph{zero} variance across seeds): randomized smoothing is vacuous at the perturbation scale \AEGIS targets. Only on a strictly larger per-coordinate ball (per\_edge, $\sigma{=}\varepsilon$) does smoothing certify ($0.77$--$0.96$ of nodes), and then at $\mathbf{23{,}000}$--$\mathbf{57{,}000}\times$ the wall-clock of the zero-sample $S_c$ bound. Even on the matched ball where the comparison is fairest, the analytic certificate is non-vacuous and $\mathbf{11{,}700}\times$ ($\varepsilon{=}0.01$) to $\mathbf{16{,}700}\times$ ($\varepsilon{=}0.05$) faster (\cref{tab:smoothing}). The comparison favors smoothing twice over---its larger ball and its best matching---yet $S_c$ dominates wall-clock by four orders of magnitude.
+
+\begin{table}[t]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\caption{\AEGIS-Conformal vs randomized smoothing on Cora ($n{=}200$ subgraph, 10 seeds, $\alpha{=}0.1$, APS). \textbf{frob}: $\sigma{=}\varepsilon/\sqrt{2|E|}$ matches the \emph{same} Frobenius $\varepsilon$-ball; \textbf{per\_edge}: $\sigma{=}\varepsilon$ is a strictly larger per-coordinate ball, favorable to smoothing. ``cert'': fraction of nodes certified. Wall-clock extrapolated to $M{=}10^4$ smoothing samples; \AEGIS-Conformal is zero-sample. Mean over 10 seeds (frob arm has zero variance).}
+\label{tab:smoothing}
+\begin{tabular}{llccccc}
+\toprule
+method & match & $\varepsilon$ & cov & set & cert & wall@$10^4$ \\
+\midrule
+\AEGIS-Conformal & --       & 0.01 & 0.90 & 1.36 & --   & \textbf{${\sim}3$\,s} \\
+RandSmoothing    & frob     & 0.01 & 1.00 & 7.00 & 0.00 & 7{,}600\,s \\
+RandSmoothing    & per\_edge& 0.01 & 0.95 & 1.26 & 0.96 & 15{,}000\,s \\
+\midrule
+\AEGIS-Conformal & --       & 0.05 & 0.90 & 1.05 & --   & \textbf{${\sim}3$\,s} \\
+RandSmoothing    & frob     & 0.05 & 1.00 & 7.00 & 0.00 & 10{,}900\,s \\
+RandSmoothing    & per\_edge& 0.05 & 0.99 & 2.39 & 0.77 & 36{,}300\,s \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Phase Transition and Scalability}
 \label{app:phase_scal}

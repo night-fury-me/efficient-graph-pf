@@ -1,0 +1,57 @@
+% ============================================================================
+% DRAFT replacement for tab:conformal (theory.tex lines ~94-114) — INTEGRATION PASS.
+% Broadens 2 datasets (Cora,Citeseer) -> 4 (adds Pubmed,WikiCS) WITHOUT growing height:
+% restructured from 16 vertical rows to a compact 8-row form (ds x score as rows,
+% eps as column groups). Cora/Citeseer numbers reproduce the current table exactly.
+% Source: results/aegis_conformal.csv (400 rows, 10 seeds, 12,588s run). max seed-SD=0.064.
+% ============================================================================
+
+% --- prose sentence preceding the table (replaces the current one) ---
+\Cref{tab:conformal} reports coverage over the 10 seeds for four datasets. The \emph{gate}---coverage under the worst-case \AEGIS attack at magnitude $\varepsilon$ (reconverging the equilibrium after the $v_1$ perturbation)---holds at the nominal $1{-}\alpha{=}0.90$ at $\varepsilon{=}0.01$ on every dataset and is conservative ($0.94$--$1.00$) at $\varepsilon{=}0.05$, with \emph{zero} equilibrium divergence across all gate nodes. Sets are ${\sim}1.0$--$1.5$ labels on the citation graphs (6--7 classes) and ${\sim}3.5$ on WikiCS (10 classes), non-vacuous in every case and tightest exactly where the deterministic radius certifies few nodes; the certificate uses zero Monte-Carlo samples and via $S_K$ applies to any GNN. Exchangeability on a single transductive graph is a stated condition (the empirical gate is the evidence); we form $S_c$ densely at $N{=}200$, a matrix-free conformal pass being future work.
+
+% --- the table ---
+\begin{table}[t]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\caption{\AEGIS-Conformal coverage (10 seeds; Cora, Citeseer, Pubmed, WikiCS; $\alpha{=}0.1$, target $0.90$). \textbf{Gate}: coverage under the worst-case attack at $\varepsilon$. ``cov/set'': clean coverage and mean prediction-set size (of 7/6/3/10 classes resp.). Std over seeds ${\leq}0.07$. Set sizes ${<}1$ reflect occasional empty (abstaining) sets under TPS.}
+\label{tab:conformal}
+\begin{tabular}{ll cc cc}
+\toprule
+ & & \multicolumn{2}{c}{$\varepsilon{=}0.01$} & \multicolumn{2}{c}{$\varepsilon{=}0.05$} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Data & score & cov / set & \textbf{gate} & cov / set & \textbf{gate} \\
+\midrule
+Cora     & APS & 0.90 / 1.37 & \textbf{0.90} & 0.89 / 1.06 & \textbf{0.98} \\
+         & TPS & 0.88 / 0.95 & \textbf{0.90} & 0.89 / 0.99 & \textbf{0.98} \\
+\midrule
+Citeseer & APS & 0.92 / 1.50 & \textbf{0.93} & 0.92 / 1.35 & \textbf{0.97} \\
+         & TPS & 0.91 / 1.20 & \textbf{0.92} & 0.92 / 1.26 & \textbf{0.96} \\
+\midrule
+Pubmed   & APS & 0.91 / 1.42 & \textbf{0.95} & 0.92 / 1.52 & \textbf{1.00} \\
+         & TPS & 0.90 / 1.15 & \textbf{0.93} & 0.90 / 1.15 & \textbf{0.98} \\
+\midrule
+WikiCS   & APS & 0.92 / 3.70 & \textbf{0.94} & 0.93 / 3.62 & \textbf{0.95} \\
+         & TPS & 0.93 / 3.52 & \textbf{0.94} & 0.93 / 3.52 & \textbf{0.95} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ============================================================================
+% Full-precision numbers (for the appendix table app:conformal if wanted):
+% Data      score eps   cov   / set  gate     kappa
+% Cora      APS 0.01  0.901 / 1.37  0.900     0.680
+% Cora      APS 0.05  0.892 / 1.06  0.983
+% Cora      TPS 0.01  0.882 / 0.95  0.895
+% Cora      TPS 0.05  0.893 / 0.99  0.983
+% Citeseer  APS 0.01  0.919 / 1.50  0.925     0.695
+% Citeseer  APS 0.05  0.915 / 1.35  0.968
+% Citeseer  TPS 0.01  0.910 / 1.20  0.918
+% Citeseer  TPS 0.05  0.917 / 1.26  0.957
+% Pubmed    APS 0.01  0.910 / 1.42  0.945     0.697
+% Pubmed    APS 0.05  0.920 / 1.52  0.997
+% Pubmed    TPS 0.01  0.900 / 1.15  0.925
+% Pubmed    TPS 0.05  0.895 / 1.15  0.983
+% WikiCS    APS 0.01  0.924 / 3.70  0.943     0.310
+% WikiCS    APS 0.05  0.934 / 3.62  0.947
+% WikiCS    TPS 0.01  0.927 / 3.52  0.938
+% WikiCS    TPS 0.05  0.932 / 3.52  0.950
+% If 6-col width overflows the column, drop cov to 2dp (already done) or move to scriptsize.
+% ============================================================================
