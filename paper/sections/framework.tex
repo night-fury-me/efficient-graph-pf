@@ -1,10 +1,44 @@
 %% ===================================================================
-\section{\AEGIS Construction}
+\section{The \AEGIS Operator: One Object, Three Diagnostics}
 \label{sec:framework}
 %% ===================================================================
 
-The pipeline makes the theory of \cref{sec:theory} practical: it queries $S_c$ matrix-free, never materialising $S \in \R^{Nd \times N^2}$ or forming the resolvent. One $S_c$ computation returns the per-edge spectrum $\{v_{ij}\}$, the SVD-optimal direction $\delta\Ahat^\star$, and per-node radii $\{r_v\}$, plus $\ecrit$ and the regime characterisation of \cref{thm:phase_transition} for IGNN-class operators. A dense path ($N \leq 200$) computes an exact SVD; a matrix-free path ($N > 200$, validated to $N{=}7{,}650$) uses JVP/VJP queries and randomized SVD. \Cref{fig:pipeline} illustrates the four stages; \cref{alg:aegis} (\cref{app:algorithm}) gives the routing.
+The \AEGIS pipeline queries $S_c$ matrix-free, never materialising $S \in \R^{Nd \times N^2}$ or forming the resolvent. One $S_c$ computation returns the per-edge spectrum $\{v_{ij}\}$, the SVD-optimal direction $\delta\Ahat^\star$, and per-node radii $\{r_v\}$, plus $\ecrit$ and the regime characterisation of \cref{thm:phase_transition} for IGNN-class operators. A dense path ($N \leq 200$) computes an exact SVD; a matrix-free path ($N > 200$, validated to $N{=}7{,}650$) uses JVP/VJP queries and randomized SVD. \Cref{fig:pipeline} illustrates the four stages and \cref{alg:aegis} the routing.
 
-\textbf{Matrix-free operator.} Scaling rests on never building $S_c$: we only apply it to vectors, needing $O(Nd)$ memory rather than the $O((Nd)^2)$ a dense $S_c$ costs. Concretely, $S_c v = (I{-}J_z)^{-1}J_A P_c v$ is evaluated via the truncated Neumann series $\sum_{k=0}^K J_z^k b$ with depth $K$ adaptive in $\kappa$ (early stop at $\norm{J_z^k b}<10^{-6}\norm{b}$), each Neumann term and $J_A\,\mathrm{vec}(\delta A)$ being forward-mode JVPs in $O(Nd)$ time with $P_c$ applied implicitly; the dense path ($N\leq 200$) materialises $J_z, J_A$ and uses a direct solve. The rSVD~\cite{halko2011finding} ($k{=}p{=}10$, $n_\mathrm{iter}{=}2$) returns $(u_1,\sigma_1,v_1)$ for the direction $\delta\Ahat^\star{=}\varepsilon\,\mathrm{sym}(P_c v_1)$ (\cref{prop:attack}), with $\mathrm{sym}(M){=}(M{+}M^\top)/2$ keeping $\delta\Ahat^\star$ symmetric (\cref{sec:background}); column norms give $\{v_{ij}\}$ and per-node radii follow \cref{prop:radius}. The well-separated singular spectrum (gap $(\sigma_1{-}\sigma_2)/\sigma_1{=}0.39$--$0.50$; \cref{fig:sc_heatmap}) is why one rSVD query matches iterative attackers (\cref{sec:adaptive}).
+\begin{algorithm}[H]
+\caption{\AEGIS matrix-free vulnerability analysis. $S_c$ is queried but never formed; the dense fallback ($N\!\leq\!200$) builds $S_c$ and runs an exact SVD.}
+\label{alg:aegis}
+\begin{algorithmic}[1]
+\REQUIRE $F$, fixed point $\zstar$, $\Ahat$, edge set $E$, budget $\varepsilon$, rank $k$, Neumann tolerance $\mathrm{tol}$; (opt.)\ head $W$, margins $m_v^{(c)}$.
+\ENSURE $\sigma_1(S_c),\ \delta\Ahat^{\star},\ \{v_{ij}\},\ \{r_v\},\ \ecrit$.
+\STATE $\kappa \leftarrow \norm{J_z}_2$;\quad $K \leftarrow \lceil \log(1/\mathrm{tol})/\log(1/\kappa)\rceil$
+\STATE $S_c\,v := \big(\textstyle\sum_{j=0}^{K} J_z^{j}\big)\,J_A\,P_c\,v$ \COMMENT{matrix-free}
+\STATE $(\sigma_1, v_1) \leftarrow \mathrm{rSVD}(S_c,\,k)$~\cite{halko2011finding}
+\STATE $\delta\Ahat^{\star} \leftarrow \varepsilon\,\mathrm{sym}(P_c v_1)\,/\,\norm{\mathrm{sym}(P_c v_1)}_2$
+\STATE $v_{ij} \leftarrow \norm{S_c\,e_{ij}}_2$\ \ for each $(i,j)\in E$
+\STATE $r_v \leftarrow \min_{c\neq y_v} m_v^{(c)} / \norm{(W_{y_v}{-}W_c)\,S_{c,v}}_2$ \COMMENT{head only}
+\STATE $\ecrit \leftarrow (1-\kappa)/\norm{W}_2$ \COMMENT{\cref{thm:phase_transition}}
+\STATE \textbf{return} $(\sigma_1,\ \delta\Ahat^{\star},\ \{v_{ij}\},\ \{r_v\},\ \ecrit)$
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{The constrained sensitivity operator.} The \emph{constrained sensitivity matrix} $S_c \in \R^{Nd \times |E|}$ has columns $[S_c]_{:,k} = S_{:,iN+j} + S_{:,jN+i}$ paired with edge basis $b_k{=}(e_i e_j^\top + e_j e_i^\top)/\sqrt{2}$ ($\norm{b_k}_F{=}1$, so $\sigma_1(S_c)$ is consistent with $\norm{\delta\Ahat}_F{=}\varepsilon$); the $N^2 \to |E|$ projection $P_c$ is the standard duplication-matrix reduction~\cite{magnus2019matrix} on the edge-supported symmetric subspace. One randomized SVD of $S_c$ reads off all three diagnostics: \emph{(i)} the SVD-optimal attack direction (\cref{prop:attack}); \emph{(ii)} the per-edge vulnerability ranking $v_{ij}{=}\norm{[S_c]_{:,k}}_2$; and \emph{(iii)} the per-node safe radius $r_v$, whose first-order guarantee we prove in \cref{prop:radius} (\cref{sec:theory}). These readings \emph{audit} the model; the same operator then \emph{certifies} it---the radius upgrades to a distribution-free guarantee (\cref{sec:conformal})---and \emph{defends} it, since penalizing $\sigma_1(S_c)$ trades clean accuracy for certified robustness (\cref{sec:defense}).
+
+\begin{proposition}[Maximally Sensitive First-Order Structural Perturbation]
+\label{prop:attack}
+The perturbation $\delta A^*$ maximizing $\norm{\Delta \zstar}$ to first order subject to $\norm{\delta A}_F \leq \varepsilon$ is $\delta A^* = \varepsilon \cdot \mathrm{reshape}(v_1, N \times N)$, where $v_1$ is the leading right singular vector of $S$, with shift $\varepsilon \cdot \sigma_1(S)$. Restricted to the threat model's feasible set (symmetric, edge-supported; \cref{sec:background}) the maximizer is instead the leading right singular vector of the constrained $S_c$ in the edge basis $\{b_k\}$, with shift $\varepsilon\,\sigma_1(S_c){\leq}\varepsilon\,\sigma_1(S)$; the unconstrained $\mathrm{reshape}(v_1)$ is generally infeasible.
+\end{proposition}
+
+The optimal direction concerns hidden-state damage within the pseudospectral envelope of \cref{obs:eta_bound,rem:eta_relu}; it identifies the dangerous direction, not a global safety margin (\cref{sec:cross_domain}), and empirically aligns with classification damage (\cref{sec:adaptive}).
+
+\textbf{Matrix-free operator.} Scaling rests on never building $S_c$: we only apply it to vectors, needing $O(Nd)$ memory rather than the $O((Nd)^2)$ a dense $S_c$ costs. Concretely, $S_c v = (I{-}J_z)^{-1}J_A P_c v$ is evaluated via the truncated Neumann series $\sum_{k=0}^K J_z^k b$ with depth $K$ adaptive in $\kappa$ (early stop at $\norm{J_z^k b}<10^{-6}\norm{b}$), each Neumann term and $J_A\,\mathrm{vec}(\delta A)$ being forward-mode JVPs in $O(Nd)$ time with $P_c$ applied implicitly; the dense path ($N\leq 200$) materialises $J_z, J_A$ and uses a direct solve. The rSVD~\cite{halko2011finding} ($k{=}p{=}10$, $n_\mathrm{iter}{=}2$) returns $(u_1,\sigma_1,v_1)$; $\mathrm{sym}(M){=}(M{+}M^\top)/2$ keeps the recovered $\delta\Ahat^\star{=}\varepsilon\,\mathrm{sym}(P_c v_1)$ symmetric (\cref{sec:background}). The well-separated singular spectrum (gap $(\sigma_1{-}\sigma_2)/\sigma_1{=}0.39$--$0.50$; \cref{fig:sc_heatmap}) is why one rSVD query matches iterative attackers (\cref{sec:adaptive}).
 
 \textbf{Cost.} Each $S_c v$ is $O(K{\cdot}Nd)$ time and $O(Nd)$ memory ($K{\in}[20,50]$ for $\kappa{<}0.8$); removing the $O((Nd)^3)$ solve lifts the previous $N{\approx}300$ ceiling (\cref{app:phase_scal}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_sc_heatmap.pdf}
+\caption{$|S_c|$ on a 50-node Cora ego-graph (IGNN, $N{=}50$, $d{=}16$, $|E|{=}61$, seed~0). Vermilion lines: top-3 edges by $|v_1|$ (SVD-optimal direction, bar strip). Sidebar: singular spectrum, $\sigma_1{=}41.2$, $43\%$ gap to $\sigma_2$ (cross-benchmark $(\sigma_1{-}\sigma_2)/\sigma_1\in[0.39,0.50]$; \cref{sec:adaptive}). The well-separated leading mode is why one rSVD query matches iterative attackers.}
+\label{fig:sc_heatmap}
+\end{figure}
+

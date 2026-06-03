@@ -23,6 +23,8 @@
 \setlength{\pdfpageheight}{11in} % DO NOT CHANGE THIS
 %
 % These are recommended to typeset algorithms but not required. See the subsubsection on algorithms.
+% float is loaded before algorithm so the algorithm float honors the [H] (here-exactly) specifier.
+\usepackage{float}
 \usepackage{algorithm}
 \usepackage{algorithmic}
 %
@@ -132,7 +134,7 @@
 % =================== END PORTED PREAMBLE FROM aegis.tex =========================
 
 % Title (mixed case, from the current paper). \AEGIS expands to \textsc{Aegis}.
-\title{\AEGIS: Matrix-Free Diagnostics for the Adversarial Fault Lines of Graph Neural Networks}
+\title{\AEGIS: Matrix-Free Operator \\ to Audit, Certify, and Defend Graph Neural Networks}
 
 % AAAI anonymous (double-blind) author block: per the official sample, write
 % "Anonymous Submission" as the sole author and leave the affiliations empty.
@@ -146,16 +148,27 @@
 \begin{document}
 \maketitle
 % Tighten float separation to fit the 7pp budget (vertical spacing only; no font/margin change).
-\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
-\setlength{\intextsep}{10pt plus 2pt minus 2pt}
-\setlength{\floatsep}{10pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{6pt plus 2pt minus 2pt}
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+% Allow denser float packing so the figure-heavy body fits the 7pp budget (placement only).
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.85}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.75}
+\setcounter{topnumber}{4}
+\setcounter{bottomnumber}{3}
+\setcounter{totalnumber}{6}
+% Smaller caption font (figures + tables) to save vertical space.
+\captionsetup{font=footnotesize,skip=4pt}
 
-% Sections \input in the SAME order as aegis.tex.
+% Section order: Construction (framework) precedes Theory so the operator is
+% defined before the theorems reason about it; other sections as in aegis.tex.
 \input{sections/abstract}
 \input{sections/introduction}
 \input{sections/background}
-\input{sections/theory}
 \input{sections/framework}
+\input{sections/theory}
 \input{sections/experiments}
 \input{sections/case_study}
 \input{sections/related_work}

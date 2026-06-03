@@ -3,7 +3,7 @@
 \label{sec:theory}
 %% ===================================================================
 
-Building on the threat model of \cref{sec:background}, we derive the machinery behind the three diagnostics of \cref{sec:intro} (per-edge rankings, the SVD-optimal direction, per-node radii) from one unified object, the constrained sensitivity matrix $S_c$. The governing picture is a phase transition in the budget $\varepsilon$: while $\varepsilon$ is small the perturbed model stays contractive and its prediction moves boundedly with the graph; as $\varepsilon$ approaches a critical budget $\ecrit$ the equilibrium grows arbitrarily sensitive; past $\ecrit$ contraction is no longer guaranteed and the prediction can break. \Cref{thm:phase_transition} makes this precise and puts $\ecrit$ in closed form.
+\Cref{sec:framework} read three diagnostics off the operator $S_c$; we now establish the guarantees that justify them, beginning with the safety boundary. The governing picture is a phase transition in the budget $\varepsilon$: while $\varepsilon$ is small the perturbed model stays contractive and its prediction moves boundedly with the graph; as $\varepsilon$ approaches a critical budget $\ecrit$ the equilibrium grows arbitrarily sensitive; past $\ecrit$ contraction is no longer guaranteed and the prediction can break. \Cref{thm:phase_transition} makes this precise and puts $\ecrit$ in closed form.
 
 \begin{theorem}[Vulnerability Characterization for Contractive Implicit GNNs]
 \label{thm:phase_transition}
@@ -11,7 +11,7 @@ Let $F_\theta(Z, \Ahat) = \phi(\Ahat ZW^\top + X_{\mathrm{proj}})$ be an IGNN-cl
 \begin{enumerate}
 \item[(A1)] $\phi$ is ReLU or any 1-Lipschitz activation; nonsmoothness at zero is handled via the conservative IFT~\cite{bolte2021conservative} (proof below).
 \item[(A2)] $\norm{W}_2 \leq c$ via spectral normalization.
-\item[(A3)] $\norm{J_z}_2 \leq \kappa < 1$ verified post-training ($\kappa{=}0.14$--$0.59$ across our suite; \cref{tab:cross_domain}). (A2) does not imply (A3); we report the trained $\kappa$ alongside $\ecrit$ so practitioners can audit, and \AEGIS still returns $S_c$ rankings and SVD-optimal attacks if (A3) fails, the formal guarantees then scoped to the contractive regime.
+\item[(A3)] $\norm{J_z}_2 \leq \kappa < 1$ verified post-training ($\kappa{=}0.14$--$0.59$ across our suite; \cref{tab:cross_domain}). (A2) does not imply (A3); we report the trained $\kappa$ so practitioners can audit, and \AEGIS still returns rankings and attacks if (A3) fails, its guarantees then scoped to the contractive regime.
 \end{enumerate}
 Define the critical budget
 \begin{equation}
@@ -28,26 +28,14 @@ where $S = (I - J_z)^{-1} J_A$ is the structural sensitivity matrix and $\sigma_
 
 \noindent\textbf{(b) Critical} ($\varepsilon \to \ecrit$): The resolvent obeys $\norm{(I{-}J_z')^{-1}}_2 \geq 1/\min_i|1{-}\lambda_i(J_z')|$, blowing up when an eigenvalue of $J_z'$ approaches $1$ (a vanishing spectral gap to $1$, not $\norm{J_z'}_2\!\to\!1$ alone). The rate is $\Omega(1/(\ecrit{-}\varepsilon))$ when $J_z'$ is normal with a dominant real-positive (Perron) eigenvalue; in general $\ecrit$ \emph{lower-bounds} the divergence threshold, the slack being the nonnormality $\eta$ (\cref{obs:eta_bound}; $\eta{\leq}2.47$ for general ReLU, \cref{rem:eta_relu}).
 
-\noindent\textbf{(c) Supercritical} ($\varepsilon \geq \ecrit$): The contraction certificate no longer applies ($\norm{J_z'}_2$ may exceed 1); at the worst-case $\kappa{=}\norm{\Ahat}_2\norm{W}_2$, $\varepsilon{<}\ecrit$ is a sufficient safety boundary that trained IGNNs sit well inside (a $2$--$4\times$ spectral-radius margin to $\rho{=}1$, \cref{app:phase_scal}---distinct from the $2$--$9\times$ \emph{certificate} conservatism of \cref{thm:cf2s}).
+\noindent\textbf{(c) Supercritical} ($\varepsilon \geq \ecrit$): The contraction certificate no longer applies ($\norm{J_z'}_2$ may exceed 1); at the worst-case $\kappa{=}\norm{\Ahat}_2\norm{W}_2$, $\varepsilon{<}\ecrit$ is a sufficient safety boundary that trained IGNNs sit well inside (a $2$--$4\times$ spectral-radius margin to $\rho{=}1$, \cref{app:phase_scal}).
 \end{theorem}
 
-\noindent\textit{Proof in \cref{app:proof_phase}.} The subcritical bound follows from a conservative IFT~\cite{bolte2021conservative} on each ReLU region with Neumann $\norm{(I{-}J_z)^{-1}}_2\le1/(1{-}\kappa)$; the critical rate from the unconditional resolvent identity $\norm{(I{-}M)^{-1}}_2\ge1/\min_i|1{-}\lambda_i(M)|$, which $\ecrit$ lower-bounds (slack $\eta$).
+\noindent\textit{Proof in \cref{app:proof_phase}.} The subcritical bound is a conservative IFT~\cite{bolte2021conservative} with Neumann $\norm{(I{-}J_z)^{-1}}_2\le1/(1{-}\kappa)$; the critical rate follows from the resolvent identity, which $\ecrit$ lower-bounds (slack $\eta$).
 
-$\ecrit$ is a closed-form sufficient bound that $S_c$ tightens $7$--$14\times$ over the unconstrained $\sqrt{r}$ bound. The Neumann bound uses $\kappa$, not $\rho(J_z)$; the gap is the pseudospectral index $\eta$, bounded by $W$ alone:
+$\ecrit$ is a closed-form sufficient bound that $S_c$ tightens $7$--$14\times$; the Neumann-vs-spectral-radius gap is the pseudospectral index $\eta$, bounded by $W$ alone for symmetric $\Ahat$ ($\eta\le\kappa(V_W)$ all-active, $\eta\in[1.19,2.47]$ for ReLU; \cref{obs:eta_bound,rem:eta_relu}).
 
-\begin{observation}[Graph-Independent Nonnormality Bound, all-active case]
-\label{obs:eta_bound}
-For $J_z = \mathrm{diag}(\phi')(\Ahat \otimes W)$ with symmetric $\Ahat$ and all activations positive ($\phi'\!\equiv\!1$): $\eta \leq \kappa(V_W)$ where $W{=}V_W D_W V_W^{-1}$ and $\kappa(V_W){=}\norm{V_W}_2 \norm{V_W^{-1}}_2$, independent of $\Ahat$.
-\end{observation}
-
-\noindent\textit{Proof in \cref{app:proof_eta}} (Kronecker eigenstructure of $J_z{=}\Ahat\otimes W$ plus the diagonalisable resolvent bound).
-
-\begin{remark}[Empirical extension to general ReLU patterns]
-\label{rem:eta_relu}
-The proof above requires $\phi'\equiv 1$; for general ReLU patterns, $\eta\in[1.19,2.47]$ on our suite (\cref{app:ablations}), tracking $\kappa(V_W)$ closely. Graph structure does not amplify nonnormality; the moderate $\eta$ traces to spectral-norm regularisation of $W$.
-\end{remark}
-
-\Cref{thm:phase_transition}(a) certifies safety \emph{below} $\ecrit$; the same operator also bounds the boundary from \emph{above}. Let $\varepsilon^\star{=}1/\rho(W){-}\rho(\Ahat)$ be the all-active \emph{spectral} break budget and $g_W{=}\norm{W}_2/\rho(W){\geq}1$ the nonnormality of $W$, which---for symmetric $\Ahat$---is the \emph{entire} norm-vs-radius gap (\cref{obs:eta_bound}).
+\Cref{thm:phase_transition}(a) certifies safety \emph{below} $\ecrit$; the same operator bounds the boundary from \emph{above}, through the nonnormality $g_W{=}\norm{W}_2/\rho(W){\geq}1$ of $W$ (the \emph{entire} norm-vs-radius gap for symmetric $\Ahat$).
 
 \begin{theorem}[Constant-factor two-sided boundary, all-active]
 \label{thm:cf2s}
@@ -60,16 +48,9 @@ Under \textnormal{(A1)--(A3)} with $\Ahat$ symmetric and $\ecrit{>}0$, the all-a
 with $C$ dimension-free and computable post-training, and $\beta{\in}(0,1]$ the edge-supported Frobenius mass of $\Ahat$'s Perron mode (positive for any connected graph). The upper side is attained by a rank-one critical-driving attack aligned with that mode; the bracket collapses to equality iff $g_W{=}1$ and $\beta{=}1$.
 \end{theorem}
 
-This is a \emph{constant-factor} two-sided characterisation, not a tight one---the proven slack $C/\beta$ reaches ${\sim}10$--$16\times$ on our suite (the empirical break ratio below is smaller). Its value is the coupling it exposes: one operator $S_c$ supplies the certified budget $\ecrit$, the matching attack, and (through $\sigma_1(S_c)$) the defense of \cref{sec:defense}. Empirically the norm certificate under-states the true breaking budget by $\mathbf{2}$--$\mathbf{9\times}$ across $10$ seeds (resolvent divergence $\gamma{=}1.02$); the proof and nonlinear extension are in \cref{app:bracket}.
+The constant is not tight---proven slack ${\sim}10$--$16\times$ on our suite---but its value is the coupling it exposes: one operator $S_c$ supplies the certified budget $\ecrit$, the matching attack, and (through $\sigma_1(S_c)$) the defense. Empirically the norm certificate under-states the true breaking budget by $\mathbf{2}$--$\mathbf{9\times}$ ($10$ seeds); proof and nonlinear extension in \cref{app:bracket}.
 
-We now read the three diagnostics off $S_c$, beginning with the most damaging perturbation direction.
-
-\begin{proposition}[Maximally Sensitive First-Order Structural Perturbation]
-\label{prop:attack}
-The perturbation $\delta A^*$ maximizing $\norm{\Delta \zstar}$ to first order subject to $\norm{\delta A}_F \leq \varepsilon$ is $\delta A^* = \varepsilon \cdot \mathrm{reshape}(v_1, N \times N)$, where $v_1$ is the leading right singular vector of $S$, with shift $\varepsilon \cdot \sigma_1(S)$. Restricted to the threat model's feasible set (symmetric, edge-supported; \cref{sec:background}) the maximizer is instead the leading right singular vector of the constrained $S_c$ (below) in the edge basis $\{b_k\}$, with shift $\varepsilon\,\sigma_1(S_c){\leq}\varepsilon\,\sigma_1(S)$; the unconstrained $\mathrm{reshape}(v_1)$ is generally infeasible.
-\end{proposition}
-
-The direction (\cref{prop:attack}) is optimal for hidden-state damage within the pseudospectral envelope of \cref{obs:eta_bound,rem:eta_relu} and empirically aligns with classification damage (\cref{sec:adaptive}). The \emph{constrained sensitivity matrix} $S_c \in \R^{Nd \times |E|}$ has columns $[S_c]_{:,k} = S_{:,iN+j} + S_{:,jN+i}$ paired with edge basis $b_k{=}(e_i e_j^\top + e_j e_i^\top)/\sqrt{2}$ ($\norm{b_k}_F{=}1$, so $\sigma_1(S_c)$ is consistent with $\norm{\delta\Ahat}_F{=}\varepsilon$); the $N^2 \to |E|$ projection $P_c$ is the standard duplication-matrix reduction~\cite{magnus2019matrix} on the edge-supported symmetric subspace, queried matrix-free in \cref{alg:aegis}. This first-order envelope identifies the dangerous direction, not a global safety margin (\cref{sec:cross_domain}).
+The third diagnostic, the per-node radius $r_v$ named in \cref{sec:framework}, carries a first-order safety guarantee.
 
 \begin{proposition}[Per-Node First-Order Sensitivity Radius]
 \label{prop:radius}
@@ -78,7 +59,7 @@ For a linear head $f(z){=}Wz{+}b$ and a node $v$ classified as $y_v$ with positi
 r_v = \min_{c\neq y_v} \frac{m_v^{(c)}}{\norm{(W_{y_v}{-}W_c)\,S_v}_2}
 \label{eq:radius}
 \end{equation}
-preserves the classification of $v$ for any $\norm{\delta\Ahat}_F < r_v$, where $S_v$ are the block-rows of $S$ at node $v$; substituting $S_{c,v}$ gives the tighter constrained radius $r_v^{(c)}{\geq}r_v$. Minimizing over \emph{all} competitors is the distance to the nearest first-order boundary, so the bound holds even when the runner-up changes; the cheaper runner-up surrogate $\hat r_v$ can be optimistic when a non-runner-up class is more aligned.
+preserves the classification of $v$ for any $\norm{\delta\Ahat}_F < r_v$, where $S_v$ are the block-rows of $S$ at node $v$; substituting $S_{c,v}$ gives the tighter constrained radius $r_v^{(c)}{\geq}r_v$. Minimizing over \emph{all} competitors is the distance to the nearest first-order boundary, so the bound holds even when the runner-up changes.
 \end{proposition}
 
 \noindent\textit{Proof in \cref{app:proof_radius}.} A Cauchy--Schwarz bound on each per-competitor margin change gives $r_v$ as the smallest margin divided by two amplification factors (decision-boundary and equilibrium sensitivity); high-margin, low-sensitivity nodes get large radii.
@@ -91,75 +72,7 @@ The radius $r_v$ (\cref{eq:radius}) is a first-order threshold---locally tight, 
 \qquad\text{for all }\ \norm{\delta\Ahat}_F\leq\varepsilon .
 \label{eq:conformal}
 \end{equation}
-\Cref{tab:conformal} reports coverage (10 seeds, four datasets). The \emph{gate}---coverage under the worst-case \AEGIS attack at magnitude $\varepsilon$ (reconverging the equilibrium after the $v_1$ perturbation)---holds at the nominal $1{-}\alpha{=}0.90$ at $\varepsilon{=}0.01$ on every dataset and is conservative ($0.94$--$1.00$) at $\varepsilon{=}0.05$, with \emph{zero} equilibrium divergence across all gate nodes. Sets run ${\sim}1.0$--$1.5$ labels (citation graphs) to ${\sim}3.5$ (WikiCS, $10$ classes), non-vacuous throughout and tightest where the deterministic radius is thin, at zero Monte-Carlo samples. These budgets are ${\approx}0.05$/$0.23$ Cora-edge-equivalents---continuous reweighting below a single edge. On the same ball, randomized smoothing degenerates to the full label set while \AEGIS-Conformal stays non-vacuous at ${\sim}10^4\times$ lower wall-clock (\cref{app:smoothing}). Exchangeability on a single transductive graph is a stated condition (the empirical gate is the evidence); we form $S_c$ densely at $N{=}200$, a matrix-free conformal pass being future work.
+We validate this certificate empirically---nominal-level coverage and the gate under the worst-case attack---in \cref{sec:certify}, and the coupled $\sigma_1(S_c)$ defense in \cref{sec:defense}.
 
-\begin{table}[t]\centering\footnotesize\setlength{\tabcolsep}{4pt}
-\caption{\AEGIS-Conformal coverage (10 seeds; Cora, Citeseer, Pubmed, WikiCS; $\alpha{=}0.1$, target $0.90$). Each $\varepsilon$ block reports clean coverage\,/\,mean set size, then the bold \textbf{gate} (coverage under the worst-case attack at $\varepsilon$). Classes: 7/6/3/10 resp.; std over seeds ${\leq}0.07$. Sets ${<}1$ reflect occasional empty (abstaining) sets under TPS.}
-\label{tab:conformal}
-\begin{tabular}{ll cc cc}
-\toprule
-Data & score & \multicolumn{2}{c}{$\varepsilon{=}0.01$} & \multicolumn{2}{c}{$\varepsilon{=}0.05$} \\
-\cmidrule(lr){3-4}\cmidrule(lr){5-6}
-Cora     & APS & 0.90 / 1.37 & \textbf{0.90} & 0.89 / 1.06 & \textbf{0.98} \\
-         & TPS & 0.88 / 0.95 & \textbf{0.90} & 0.89 / 0.99 & \textbf{0.98} \\
-\addlinespace
-Citeseer & APS & 0.92 / 1.50 & \textbf{0.92} & 0.92 / 1.35 & \textbf{0.97} \\
-         & TPS & 0.91 / 1.20 & \textbf{0.92} & 0.92 / 1.26 & \textbf{0.96} \\
-\addlinespace
-Pubmed   & APS & 0.91 / 1.42 & \textbf{0.95} & 0.92 / 1.52 & \textbf{1.00} \\
-         & TPS & 0.90 / 1.15 & \textbf{0.92} & 0.90 / 1.15 & \textbf{0.98} \\
-\addlinespace
-WikiCS   & APS & 0.92 / 3.70 & \textbf{0.94} & 0.93 / 3.62 & \textbf{0.95} \\
-         & TPS & 0.93 / 3.52 & \textbf{0.94} & 0.93 / 3.52 & \textbf{0.95} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Coupling: A $\sigma_1(S_c)$ Defense Knob}\label{sec:defense}
-The operator that finds the worst attack also tunes the defense. Penalizing $\sigma_1(S_c)$ during training ($\lambda{=}3{\times}10^{-4}$) cuts the dominant sensitivity ${\sim}10\times$ ($\sigma_1{\approx}335{\to}32.6{\pm}1.7$), enlarging the certified radii and raising \AEGIS-Conformal coverage to $0.82{\pm}0.03$ at a ${\sim}5\%$ clean-accuracy cost ($73.9{\pm}0.8\%$): a certified-robustness/accuracy trade on one operator. The trade is genuinely \emph{certified}, not empirical: at $\varepsilon{\leq}0.1$ robust accuracy is flat for both models (few nodes flip at realistic budgets---the delocalized vulnerability of \cref{sec:adaptive}), so the penalty raises the certified margin, not small-budget accuracy. Attack and defense couple through $S_c$: attack magnitude and certified radius are anticorrelated ($-0.65{\pm}0.12$).
-
-\subsection{Continuous-to-Discrete Transfer}
-
-\begin{proposition}[Continuous-to-Discrete Ranking Transfer]
-\label{prop:transfer}
-Under (A1)--(A3), let $w_k = [\Ahat]_{ij}$ denote the normalized weight of edge $k = (i,j) \in E$, $v_k = \norm{[S_c]_{:,k}}_2$ the continuous vulnerability score, and $d_k = \norm{\zstar(A) - \zstar(A \setminus k)}_2$ the discrete damage from fixed-normalization removal of edge~$k$. Assume all single-edge removals are subcritical: $\sqrt{2} \max_k w_k < \ecrit$.
-
-\noindent\textbf{(a) First-order bridge.} The discrete damage satisfies
-\begin{equation}
-d_k = w_k \cdot v_k + R_k, \quad |R_k| \leq \frac{L_J}{2(1-\kappa)^2} \cdot w_k^2,
-\label{eq:transfer}
-\end{equation}
-where $L_J \leq \norm{W}_2^2\,\norm{\zstar}$ is the second-order curvature constant of $\zstar(A)$, finite at the fixed point.
-
-\noindent\textbf{(b) Ranking preservation (pairwise-sufficient).} For two edges $k_1, k_2$ with $v_{k_1} > v_{k_2}$ and $w_{k_1} \geq w_{k_2}$, we have $d_{k_1} > d_{k_2}$ whenever
-\begin{equation}
-w_{k_1} < \frac{v_{k_1} - v_{k_2}}{L_J / (1-\kappa)^2}.
-\label{eq:ranking}
-\end{equation}
-Under uniform weights ($w_k = w$ for all $k$), $v_{k_1} > v_{k_2}$ implies $d_{k_1} > d_{k_2}$ whenever $w < \min_{k_1 \neq k_2} (v_{k_1} - v_{k_2}) \cdot (1-\kappa)^2 / L_J$.
-\end{proposition}
-
-\noindent\textit{Proof in \cref{app:proof_transfer}.} Modelling deletion as fixed-normalization masking gives $\norm{\Delta\zstar}\approx w_k v_k$ from the $S_c$ construction; the second-order remainder $|R_k|$ is bounded via the IFT curvature term, which carries two resolvents and the finite equilibrium norm, and (b) follows by comparing the first-order gap to that remainder.
-
-Empirically $|R_k|$ is $2$--$10\times$ smaller than $L_J w_k^2$, the constrained $S_c$ tightens the bound from $0.31$ to $1.00$, and the edge-weighted score $w_k v_k$ of (a) reaches $\tau\!=\!\mathbf{+0.996}$ against brute-force N-1 on full-graph Amazon Photo (10 seeds, \cref{sec:explicit_extension}), corroborating the first-order bridge at scale.
-
-\subsection{Generalization to Explicit GNNs}
-
-\begin{proposition}[Structural Sensitivity for $K$-Layer GNNs]
-\label{prop:explicit}
-Let $Z_K = g_K \circ \cdots \circ g_1(X, A)$ be a $K$-layer GNN where each layer $g_l$ is differentiable with respect to both its input and $A$. Define the \emph{unrolled sensitivity matrix}
-\begin{equation}
-S_K = \frac{\partial \mathrm{vec}(Z_K)}{\partial \mathrm{vec}(A)} = \sum_{l=1}^{K} \left(\prod_{k=l+1}^{K} J_z^{(k)}\right) J_A^{(l)},
-\label{eq:unrolled}
-\end{equation}
-where $J_z^{(k)} = \partial g_k / \partial Z_{k-1}$ and $J_A^{(l)} = \partial g_l / \partial \mathrm{vec}(A)$. Then:
-
-\noindent\textbf{(a)} The first-order shift bound $\norm{\Delta Z_K}_F \leq \sigma_1(S_K) \cdot \norm{\delta A}_F + O(\norm{\delta A}^2)$ holds, with
-\begin{equation}
-\sigma_1(S_K) \leq \sum_{l=1}^{K} \left(\prod_{k=l+1}^{K} \norm{J_z^{(k)}}_2\right) \norm{J_A^{(l)}}_2.
-\end{equation}
-
-\noindent\textbf{(b)} The constrained construction $S_c$ and per-node radius $r_v$ (\cref{prop:radius}) apply identically with $S_K$ in place of $S$.
-\end{proposition}
-
-For weight-tied models, $\sigma_1(S_K) \leq \norm{J_A}_2 (1{-}\kappa^K)/(1{-}\kappa)$ converges to the IGNN bound as $K{\to}\infty$. Explicit GNNs thus inherit the full pipeline (empirical tightness $0.99$--$1.02$ across the suite, \cref{sec:explicit_extension}); only the closed-form $\ecrit$ is restricted to the contractive subclass.
+\subsection{Transfer to Discrete Edits and Explicit GNNs}
+A first-order bridge carries the continuous score to discrete edge removal: modelling single-edge deletion as fixed-normalization masking, the discrete damage equals the edge-weighted sensitivity score plus a bounded second-order remainder, so for subcritical edges the score $A_{ij}v_{ij}$ preserves the brute-force N-1 ranking (\cref{prop:transfer}); empirically it reaches $\tau{=}\mathbf{+0.996}$ on full-graph Amazon Photo (\cref{sec:explicit_extension}). The construction is not tied to implicit models either: a $K$-layer explicit GNN gets the same $S_c$ from an unrolled sensitivity $S_K$ (\cref{prop:explicit}), so 6 of our 7 architectures inherit the full pipeline; only the closed-form $\ecrit$ stays restricted to the contractive subclass. Both propositions are stated and proved in \cref{app:proofs}.
