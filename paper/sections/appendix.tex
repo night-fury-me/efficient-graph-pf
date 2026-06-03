@@ -71,7 +71,7 @@ Let $F_\theta(Z,\Ahat)=\phi(\Ahat Z W^\top + X_{\mathrm{proj}})$ with:
 \item[(A1)] $\phi$ is $1$-Lipschitz (ReLU or any such), so $\norm{\diag(\phi')}_2\le 1$ everywhere; nonsmoothness at $0$ is handled by the conservative IFT~\cite{bolte2021conservative}.
 \item[(A2)] $\norm{W}_2\le c$ via spectral normalization (controls the \emph{numerator} of $\gW$ only; see the a-posteriori remark below).
 \item[(A3)] The trained model is contractive: $\kappa=\norm{J_z}_2<1$, reported and audited post-training ($\kappa\in[0.14,0.59]$ across our suite). Equivalently $\norm{\Ahat}_2\norm{W}_2<1$.
-\item[(A4, all-active)] On the operating set $\phi'\equiv 1$, so $J_z=\Ahat\otimes W$. The \emph{upper} bound (ii)--(iii) of \cref{thm:cf2s} is proved \emph{for this operator}; the lower bound (i) does \emph{not} use (A4).
+\item[(A4)] \emph{All-active.} On the operating set $\phi'\equiv 1$, so $J_z=\Ahat\otimes W$. The \emph{upper} bound (ii)--(iii) of \cref{thm:cf2s} is proved \emph{for this operator}; the lower bound (i) does \emph{not} use (A4).
 \end{enumerate}
 \end{definition}
 
