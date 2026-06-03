@@ -182,11 +182,11 @@ with $\norm{\delta\Ahat}_F\le\varepsilon$, write $\zstar{}'=\zstar(\Ahat+\delta\
 $\Delta\zstar=\zstar{}'-\zstar$, and $f'=W\zstar{}'_v+b$, $\pi'=\softmax(f')$. Let
 $S_{c,v}\in\R^{d\times|E|}$ be the block-rows of the constrained sensitivity matrix $S_c$ at node
 $v$ (\cref{prop:radius}), so by \cref{thm:phase_transition}(a),
-\begin{equation}
-\Delta\zstar_v \;=\; S_{c,v}\,\boldsymbol\delta \;+\; R_v(\delta\Ahat),
-\qquad \boldsymbol\delta:=\text{(edge-basis coordinates of }\delta\Ahat),\ \norm{\boldsymbol\delta}_2=\norm{\delta\Ahat}_F\le\varepsilon,
+\begin{multline}
+\Delta\zstar_v \;=\; S_{c,v}\,\boldsymbol\delta \;+\; R_v(\delta\Ahat),\\
+\boldsymbol\delta:=\text{(edge-basis coords of }\delta\Ahat),\ \norm{\boldsymbol\delta}_2{=}\norm{\delta\Ahat}_F{\le}\varepsilon,
 \label{eq:ift-firstorder}
-\end{equation}
+\end{multline}
 where $R_v$ is the IFT second-order remainder bounded in \cref{prop:transfer}. (The edge basis
 $\{b_k\}$ is orthonormal, $\norm{b_k}_F=1$, so the coordinate map is an isometry and
 $\norm{\boldsymbol\delta}_2=\norm{\delta\Ahat}_F$; this is exactly the normalization that makes
@@ -194,14 +194,14 @@ $\sigma_1(S_c)$ consistent with the Frobenius budget, \cref{prop:attack}.)
 
 \begin{definition}[Conformity scores and the two AEGIS constants]
 \label{def:conf-scores}
-For node $v$ and candidate label $r\in[C]$ define the two \emph{conformity} scores used by \AEGIS
+For node $v$ and candidate label $r\in[C]$ define the two \emph{conformity} scores used by \AEGIS, TPS~\citep{sadinle2019least} and APS~\citep{romano2020classification}
 (higher $=$ more conforming; the prediction set is $\Cset(v)=\{r:\score_r(v)\ge \hat q\}$):
 \begin{align}
-\text{(TPS, \citealp{sadinle2019least})}\quad
+\text{TPS:}\quad
    &\score^{\mathrm{TPS}}_r(v)\;=\;\pi_r,\\
-\text{(APS, \citealp{romano2020classification})}\quad
-   &\score^{\mathrm{APS}}_r(v)\;=\;1-\Big(\rho_r+u_v\,\pi_r\Big),\quad
-   \rho_r:=\!\!\sum_{c:\,\pi_c>\pi_r}\!\!\pi_c,
+\text{APS:}\quad
+   &\score^{\mathrm{APS}}_r(v)\;=\;1-\Big(\rho_r+u_v\,\pi_r\Big),\\
+   &\rho_r:=\!\!\sum_{c:\,\pi_c>\pi_r}\!\!\pi_c,
 \label{eq:aps}
 \end{align}
 with $u_v\sim\mathrm{Unif}[0,1]$ a per-node tie-break drawn once and shared between calibration and
@@ -242,19 +242,18 @@ $(\nabla_z\score_v)^\top S_{c,v}$ form, which is literally correct only for TPS.
 Assume (A1)--(A3) and $\varepsilon<\ecrit$, and that the readout $f=W\zstar_v+b$ is affine in
 $\zstar_v$ (a linear classification head). Then for every feasible $\delta\Ahat$ with
 $\norm{\delta\Ahat}_F\le\varepsilon$ and every label $r\in[C]$,
-\begin{equation}
+\begin{multline}
 \big|g_c(\Ahat+\delta\Ahat)-g_c(\Ahat)\big|
-\;\le\; L_{1,v}^{(c)}\,\varepsilon \;+\; C_v\,\varepsilon^2
-\qquad\text{for every competitor }c\ne r,
+\;\le\; L_{1,v}^{(c)}\,\varepsilon \;+\; C_v\,\varepsilon^2\\
+\text{for every competitor }c\ne r,
 \label{eq:margin-shift}
-\end{equation}
+\end{multline}
 and consequently the worst-case drop of the conformity score of label $r$ obeys
-\begin{equation}
-\score_r(v;\Ahat)-\score_r(v;\Ahat+\delta\Ahat)\;\le\;\Delta_r(\varepsilon),
-\qquad
+\begin{multline}
+\score_r(v;\Ahat)-\score_r(v;\Ahat+\delta\Ahat)\;\le\;\Delta_r(\varepsilon),\\
 \Delta_r(\varepsilon):=\Psi_r\!\Big(\big\{L_{1,v}^{(c)}\varepsilon+C_v\varepsilon^2\big\}_{c\ne r}\Big),
 \label{eq:score-drop}
-\end{equation}
+\end{multline}
 where $\Psi_r$ is the (monotone) map that sends a vector of
 margin-decrements to the induced conformity-score decrement: $\Psi_r=\mathrm{id}$-dominated for
 APS and $\Psi_r$ realised by the worst-case softmax for TPS (both computed in closed form by
@@ -370,19 +369,19 @@ $\score_{y_w}(w;\Ahat+\delta\Ahat)\ge \score_{y_w}(w;\Ahat)-\Delta_{y_w}(\vareps
 $\Delta_{y_w}(\varepsilon)$ the bound of \cref{lem:score-shift}.
 \end{enumerate}
 Form the calibration-robust threshold
-\begin{equation}
+\begin{multline}
 \hat q_{\mathrm{rob}}
-:=\mathrm{Quantile}_{\,\lceil(n_{\mathrm{cal}}+1)(1-\alpha)\rceil/n_{\mathrm{cal}}}
+:=\mathrm{Quantile}_{\,\lceil(n_{\mathrm{cal}}+1)(1-\alpha)\rceil/n_{\mathrm{cal}}}\\
 \Big(\big\{\,\score_{y_{v_i}}(v_i;\Ahat)-\Delta_{y_{v_i}}(\varepsilon)\,\big\}_{i\in\mathrm{cal}}\Big),
 \label{eq:qrob}
-\end{equation}
+\end{multline}
 and the robust set $\Cset_\varepsilon(v;\Ahat')=\{r:\score_r(v;\Ahat')\ge\hat q_{\mathrm{rob}}\}$.
 Then
-\begin{equation}
-\Pr\!\big[y_v\in\Cset_\varepsilon(v;\Ahat+\delta\Ahat)\big]\;\ge\;1-\alpha
-\qquad\text{simultaneously for all feasible }\norm{\delta\Ahat}_F\le\varepsilon.
+\begin{multline}
+\Pr\!\big[y_v\in\Cset_\varepsilon(v;\Ahat+\delta\Ahat)\big]\;\ge\;1-\alpha\\
+\text{simultaneously for all feasible }\norm{\delta\Ahat}_F\le\varepsilon.
 \label{eq:robcov}
-\end{equation}
+\end{multline}
 \end{theorem}
 
 \begin{proof}
@@ -581,9 +580,9 @@ GR-BCD     & Cora $k{=}5$       & $0.643$ & $1.207$ & $+0.16$ \\
 
 \subsection{Certification vs Randomized Smoothing}
 \label{app:smoothing}
-On the same Frobenius $\varepsilon$-ball (frob), the matched smoothing $\sigma{=}\varepsilon/\sqrt{2|E|}$ is so small that the smoothed classifier is unchanged and abstains to the full $7$-label set (coverage $1.00$, set $7.00$, zero certified nodes, with \emph{zero} variance across seeds): randomized smoothing is vacuous at the perturbation scale \AEGIS targets. Only on a strictly larger per-coordinate ball (per\_edge, $\sigma{=}\varepsilon$) does smoothing certify ($0.77$--$0.96$ of nodes), and then at $\mathbf{23{,}000}$--$\mathbf{57{,}000}\times$ the wall-clock of the zero-sample $S_c$ bound. Even on the matched ball where the comparison is fairest, the analytic certificate is non-vacuous and $\mathbf{11{,}700}\times$ ($\varepsilon{=}0.01$) to $\mathbf{16{,}700}\times$ ($\varepsilon{=}0.05$) faster (\cref{tab:smoothing}). The comparison favors smoothing twice over---its larger ball and its best matching---yet $S_c$ dominates wall-clock by four orders of magnitude.
+On the same Frobenius $\varepsilon$-ball (frob), the matched smoothing $\sigma{=}\varepsilon/\sqrt{2|E|}$ is so small that the smoothed classifier is unchanged and abstains to the full $7$-label set (coverage $1.00$, set $7.00$, zero certified nodes, with \emph{zero} variance across seeds): randomized smoothing is vacuous at the perturbation scale \AEGIS targets. Only on a strictly larger per-coordinate ball (per\_edge, $\sigma{=}\varepsilon$) does smoothing certify ($0.77$--$0.96$ of nodes), and then at $\mathbf{23{,}000}$ to $\mathbf{57{,}000}\times$ the wall-clock of the zero-sample $S_c$ bound. Even on the matched ball where the comparison is fairest, the analytic certificate is non-vacuous and $\mathbf{11{,}700}\times$ ($\varepsilon{=}0.01$) to $\mathbf{16{,}700}\times$ ($\varepsilon{=}0.05$) faster (\cref{tab:smoothing}). The comparison favors smoothing twice over---its larger ball and its best matching---yet $S_c$ dominates wall-clock by four orders of magnitude.
 
-\begin{table}[t]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{table}[t]\centering\footnotesize\setlength{\tabcolsep}{2pt}
 \caption{\AEGIS-Conformal vs randomized smoothing on Cora ($n{=}200$ subgraph, 10 seeds, $\alpha{=}0.1$, APS). \textbf{frob}: $\sigma{=}\varepsilon/\sqrt{2|E|}$ matches the \emph{same} Frobenius $\varepsilon$-ball; \textbf{per\_edge}: $\sigma{=}\varepsilon$ is a strictly larger per-coordinate ball, favorable to smoothing. ``cert'': fraction of nodes certified. Wall-clock extrapolated to $M{=}10^4$ smoothing samples; \AEGIS-Conformal is zero-sample. Mean over 10 seeds (frob arm has zero variance).}
 \label{tab:smoothing}
 \begin{tabular}{llccccc}
