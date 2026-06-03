@@ -122,9 +122,9 @@
 \newcommand{\score}{\mathrm{score}}
 \newcommand{\Cset}{C}
 \newcommand{\AEGIS}{\textsc{Aegis}\xspace}
-% \AEGIS used \xspace from the xspace package, which is dropped here; provide a
-% \xspace stub so the macro still expands cleanly without the package.
-\providecommand{\xspace}{\relax}
+% \AEGIS uses \xspace so it spaces correctly before the following word
+% (without this, "\AEGIS delivers" renders as "AEGISdelivers").
+\usepackage{xspace}
 
 % --- Compatibility shim: the ported abstract.tex still contains an
 % \begin{IEEEkeywords}...\end{IEEEkeywords} block. AAAI papers carry no keyword
@@ -134,7 +134,7 @@
 % =================== END PORTED PREAMBLE FROM aegis.tex =========================
 
 % Title (mixed case, from the current paper). \AEGIS expands to \textsc{Aegis}.
-\title{\AEGIS: Matrix-Free Operator \\ to Audit, Certify, and Defend Graph Neural Networks}
+\title{\AEGIS: Matrix-Free Operator \\ --- Audit, Certify, and Defend Graph Neural Networks}
 
 % AAAI anonymous (double-blind) author block: per the official sample, write
 % "Anonymous Submission" as the sole author and leave the affiliations empty.
