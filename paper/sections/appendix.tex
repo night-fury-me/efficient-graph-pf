@@ -35,7 +35,11 @@ with $J_A = \partial F/\partial \mathrm{vec}(A)$ and Neumann $\norm{(I-J_z)^{-1}
 
 \subsection{Proof of Proposition~\ref{prop:radius}}
 \label{app:proof_radius}
-\textit{Proof.} By \cref{thm:phase_transition}(a), $\Delta\zstar_v \approx S_v\,\mathrm{vec}(\delta A)$, so for each competitor $|\Delta(f_{y_v}{-}f_c)| \leq \norm{(W_{y_v}{-}W_c)S_v}_2 \norm{\delta A}_F$ by Cauchy--Schwarz; the prediction survives while every margin stays positive, i.e.\ $\norm{\delta A}_F < m_v^{(c)}/\norm{(W_{y_v}{-}W_c)S_v}_2$ for all $c$, whose minimum is $r_v$. Intuitively, $r_v$ is the smallest margin divided by two amplification factors (decision-boundary sensitivity to hidden-state change, and equilibrium sensitivity to structure); high-margin, low-sensitivity nodes get large radii. \qed
+\textit{Proof.} By \cref{thm:phase_transition}(a), $\Delta\zstar_v \approx S_v\,\mathrm{vec}(\delta A)$, so for each competitor $|\Delta(f_{y_v}{-}f_c)| \leq \norm{(W_{y_v}{-}W_c)S_v}_2 \norm{\delta A}_F$ by Cauchy--Schwarz. The prediction survives while every margin stays positive; taking the binding minimum over competitors gives
+\[
+r_v \;=\; \min_{c\ne y_v}\frac{m_v^{(c)}}{\norm{(W_{y_v}{-}W_c)S_v}_2}.
+\]
+Intuitively, $r_v$ is the smallest margin divided by two amplification factors (decision-boundary sensitivity to hidden-state change, and equilibrium sensitivity to structure); high-margin, low-sensitivity nodes get large radii. \qed
 
 \subsection{Proof of Proposition~\ref{prop:transfer}}
 \label{app:proof_transfer}
