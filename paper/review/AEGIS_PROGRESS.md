@@ -1,8 +1,8 @@
 # AEGIS — Project Progress Tracker
 
 **Paper:** *Matrix-Free Diagnostics for the Adversarial Fault Lines of Graph Neural
-Networks* (ICDM, strict 10 pp).
-**Last updated:** 2026-06-01.
+Networks* (AAAI-27, 7 pp two-column + unlimited refs + appendix).
+**Last updated:** 2026-06-03.
 **How to read this:** each work item records **What / Why / How / Result / Status /
 Files**. Status legend: ✅ done & validated · 🔬 validated in pilots (not yet in
 the paper) · 🔄 in progress · 📝 drafted (text only) · ❌ not started · ⏬ tested then
@@ -253,3 +253,36 @@ downgraded/dropped.
 | Foundation | `ignn_accuracy_findings.md` · `stepA_c09_adoption.md` · `stepB_b1b4_findings.md` |
 | Paper source | `paper/aegis.tex` · `paper/sections/*.tex` · `paper/aegis.bib` |
 | Cluster | `scripts/cluster_scheduler.py` · `scripts/run_job.sh` · (hub) `/proj/ciptmp/up89uvox/aegis/results/cluster/` |
+
+---
+
+## 9. Update 2026-06-03 — Conformal broadened + smoothing comparison integrated (commit `01f2d22`)
+
+**What.** Folded two completed 10-seed experiments into the AAAI submission in one
+coordinated 7 pp-budget pass. Status: ✅ done & in the paper.
+
+1. **AEGIS-Conformal → 4 datasets** (was Cora/Citeseer). 10-seed run on the 4090
+   (`exp_aegis_conformal.py`, 12,588 s): gate (worst-case-attack coverage) holds at the
+   nominal 0.90 on **Cora, Citeseer, Pubmed, WikiCS**; sets ~1.0–1.5 labels (citation)
+   to ~3.5 (WikiCS, 10 classes). New compact 8-row `tab:conformal`; abstract updated.
+   Data: `conformal_4ds_10seed_findings.md`, `tab_conformal_4ds_draft.tex`.
+2. **Smoothing head-to-head** (new `app:smoothing` / `tab:smoothing`), 10 seeds on Cora.
+   Same-ε-ball (frob) randomized smoothing is **deterministically vacuous** (cov 1.00 /
+   set 7.00 / cert 0.00, zero variance); AEGIS-Conformal is non-vacuous at ~10⁴× lower
+   wall-clock (**11,700×/16,700×** frob; 23,000–57,000× per_edge).
+   Data: `smoothing_10seed_findings.md`, `smoothing_note_draft.tex`.
+   Script: `exp_conformal_vs_smoothing.py` (+`--out`); drivers `run_smoothing_*.sh`.
+3. **SHOULD-FIX:** `tab:constants` reconciliation (2–4× / 2–9× / 10–16× disambiguated);
+   ε→edge-equivalents note in `sec:conformal`; explicit ε=0.01 on the Mettack claim.
+   Prep: `shouldfix_prep.md`.
+
+**Verified.** Compiles clean, **7 pp content** (`endofcontent` p.7), 0 undefined refs,
+Type-1 fonts, both new tables render in-column. Budget held via a collapsed conformal
+header, conclusion compression, and reduced float separation (`\textfloatsep` etc.).
+
+**Lesson (process).** The smoothing workload is GPU-latency-bound (M=200 sequential
+fixed-point solves); 5-way parallel OOM'd (~9 GB/proc, not the ~2 GB guessed) and 2-way
+was ~4× slower per seed from kernel-queue contention. Single-stream was correct. The
+per-seed `rc=1` flags are a benign single-seed conformal-cov self-check; CSVs are valid.
+
+**Remaining:** none for this work item. Open paper items unchanged in §7.
