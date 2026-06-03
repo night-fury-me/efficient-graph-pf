@@ -36,7 +36,7 @@ WikiCS   & $\ms{77.9}{0.4}$ & $\ms{.34}{.04}$ & $\ms{.66}{.04}$ & $\ms{3.8}{.4}$
 
 \begin{table}[t]
 \centering
-\caption{One-query audit vs.\ iterative attackers: equilibrium damage at $\varepsilon{=}0.10$ (IGNN, 50-node subgraph, 10 seeds). \AEGIS's single analytic SVD query matches or beats a $50$-step PGD on equilibrium shift, and per query delivers $74$--$156\times$ its damage. Cls-PGD: classification-loss PGD; Shift-PGD: IFT-gradient PGD (solver validation, not an independent baseline).}
+\caption{One-query audit vs.\ iterative attackers: equilibrium damage at $\varepsilon{=}0.10$ (IGNN, 50-node subgraph, 10 seeds). Cls-PGD: classification-loss PGD; Shift-PGD: IFT-gradient PGD (solver validation, not an independent baseline).}
 \label{tab:attack_full}
 \small
 \setlength{\tabcolsep}{4pt}
@@ -76,7 +76,7 @@ WikiCS   & $\ms{2.10}{.22}$ & $\ms{0.67}{.11}$ & $\ms{1.93}{.20}$ & $\ms{0.53}{.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig_tau_heatmap.pdf}
-\caption{Continuous-to-discrete transfer $\tau$ (10-seed means, 390 runs; per-cell sd $0.0003$--$0.041$), ranking edges by the edge-weighted $A_{ij}v_{ij}$ of \cref{prop:transfer}. All $39/39$ cells positive (median $+0.99$); cross-hatch: GPU OOM. GAT-2$^\dagger$ is lower under weighting (it transfers better unweighted; see \cref{app:explicit}).}
+\caption{Continuous-to-discrete transfer $\tau$ (10-seed means; per-cell sd $0.0003$--$0.041$). Cross-hatch: GPU OOM. GAT-2$^\dagger$ is lower under weighting (it transfers better unweighted; see \cref{app:explicit}).}
 \label{fig:tau_heatmap}
 \end{figure}
 
@@ -118,7 +118,7 @@ The operator that finds the worst attack also tunes the defense. Penalizing $\si
 
 \begin{table}[t]
 \centering
-\caption{The $\sigma_1(S_c)$ penalty trades clean accuracy for certified robustness (Cora, $c{=}0.9$ IGNN, 10 seeds). Raising $\lambda$ cuts the dominant sensitivity $\sigma_1$, shrinks worst-case attack damage, and enlarges the certified fraction; cert.\ frac peaks at $\lambda{=}3{\times}10^{-3}$ before margin collapse. The operating point $\lambda{=}3{\times}10^{-4}$ buys a $10\times$ drop in $\sigma_1$ for ${\sim}4$ accuracy points.}
+\caption{The $\sigma_1(S_c)$ penalty trades clean accuracy for certified robustness (Cora, $c{=}0.9$ IGNN, 10 seeds). Cert.\ frac peaks at $\lambda{=}3{\times}10^{-3}$ before margin collapse.}
 \label{tab:defense}
 \footnotesize
 \setlength{\tabcolsep}{4pt}

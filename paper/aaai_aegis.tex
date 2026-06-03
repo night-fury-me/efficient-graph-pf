@@ -25,6 +25,7 @@
 % These are recommended to typeset algorithms but not required. See the subsubsection on algorithms.
 % float is loaded before algorithm so the algorithm float honors the [H] (here-exactly) specifier.
 \usepackage{float}
+\usepackage{placeins} % \FloatBarrier: keep a section's tables from floating above its heading
 \usepackage{algorithm}
 \usepackage{algorithmic}
 %
@@ -169,6 +170,7 @@
 \input{sections/background}
 \input{sections/framework}
 \input{sections/theory}
+\FloatBarrier % stop the Experiments tables from floating above the section heading
 \input{sections/experiments}
 \input{sections/case_study}
 \input{sections/related_work}

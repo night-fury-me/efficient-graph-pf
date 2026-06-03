@@ -10,7 +10,7 @@ Each existing thread maps only part of these \emph{adversarial fault lines}. Str
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.90\textwidth]{figures/aegis--overview--diagram.pdf}
-\caption{The four-stage \AEGIS pipeline (\cref{sec:framework}): (1) graph processing (BFS subgraph or full-graph fixed-point pass); (2) sensitivity (dense Jacobian for $N \leq 200$, matrix-free Neumann/JVP otherwise); (3) constrained projection $N^2 \to |E|$ via $P_c$; (4) analysis (randomised SVD, $S_c$ column norms, per-node radii). The matrix-free path queries $S_c$ via JVPs/VJPs without materialising it, scaling to $N{=}7{,}650$.}
+\caption{The four-stage \AEGIS pipeline (\cref{sec:framework}): (1) graph processing (BFS subgraph or full-graph fixed-point pass); (2) sensitivity (dense Jacobian for $N \leq 200$, matrix-free Neumann/JVP otherwise); (3) constrained projection $N^2 \to |E|$ via $P_c$; (4) analysis (randomised SVD, $S_c$ column norms, per-node radii).}
 \label{fig:pipeline}
 \end{figure*}
 
