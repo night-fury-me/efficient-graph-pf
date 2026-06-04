@@ -26,7 +26,7 @@ Then structural perturbations $\delta \Ahat$ with $\norm{\delta \Ahat}_F = \vare
 \end{equation}
 where $S = (I - J_z)^{-1} J_A$ is the structural sensitivity matrix and $\sigma_1(S) \leq \norm{J_A}_{\mathrm{op}} / (1 - \kappa)$.
 
-\noindent\textbf{(b) Critical} ($\varepsilon \to \ecrit$): The resolvent obeys $\norm{(I{-}J_z')^{-1}}_2 \geq 1/\min_i|1{-}\lambda_i(J_z')|$ and blows up when an eigenvalue of $J_z'$ approaches $1$ (a vanishing spectral gap to $1$, not $\norm{J_z'}_2\!\to\!1$). The rate is $\Omega(1/(\ecrit{-}\varepsilon))$ for normal $J_z'$ with a dominant Perron eigenvalue; in general $\ecrit$ \emph{lower-bounds} the divergence threshold, the slack being the nonnormality $\eta$ ($\eta{\leq}2.47$ for ReLU; \cref{obs:eta_bound,rem:eta_relu}).
+\noindent\textbf{(b) Critical} ($\varepsilon \to \ecrit$): As an eigenvalue of $J_z'$ approaches $1$, $F$ stops contracting along that mode and the resolvent gain diverges, $\norm{(I{-}J_z')^{-1}}_2 \geq 1/\min_i|1{-}\lambda_i(J_z')|$, set by the vanishing spectral gap to $1$ rather than by $\norm{J_z'}_2\!\to\!1$. The rate is $\Omega(1/(\ecrit{-}\varepsilon))$ for normal $J_z'$ with a dominant Perron eigenvalue; in general $\ecrit$ \emph{lower-bounds} the divergence threshold, the slack being the nonnormality $\eta$ ($\eta{\leq}2.47$ for ReLU; \cref{obs:eta_bound,rem:eta_relu}).
 
 \noindent\textbf{(c) Supercritical} ($\varepsilon \geq \ecrit$): The contraction certificate no longer applies ($\norm{J_z'}_2$ may exceed 1); $\varepsilon{<}\ecrit$ is a sufficient safety boundary that trained IGNNs sit well inside ($2$--$4\times$ spectral-radius margin to $\rho{=}1$, \cref{app:phase_scal}).
 \end{theorem}
