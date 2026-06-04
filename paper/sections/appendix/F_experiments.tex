@@ -69,22 +69,21 @@ beats degree-proportional, edge-betweenness, and spectral rankings at $\varepsil
 Mettack~\cite{zugner2019adversarial} in the early-warning regime $k\!\in\!\{1,\ldots,5\}$
 ($\mathbf{149/150}$ paired wins, $p{<}10^{-43}$).
 
-\Cref{fig:positioning} places these methods on a capability matrix: prior attacks surface attack
-direction or per-edge rank on surrogate losses, prior certifiers surface per-node radii but no
-direction, and \AEGIS surfaces all four from a single closed-form $S_c$ under realistic (symmetric,
-edge-only) perturbations.
+\Cref{fig:positioning} positions these methods on a capability radar. No single method covers every
+axis: structural attacks win raw damage at large budgets, certifiers win the sound per-node
+certificate, and \AEGIS is the only one that reads an attack direction, per-edge attribution, and a
+first-order per-node certificate off a single closed-form, label-free $S_c$ query.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/fig_positioning.pdf}
-\caption{Capability matrix of \AEGIS against prior structural-vulnerability methods across four axes
-(attack direction, per-edge rank, per-node radius, realistic edge-only perturbation). Legend keys
-resolve to the reference list: [1] Nettack~\citep{zugner2018adversarial}; [2]
-Mettack~\citep{zugner2019adversarial}; [3] GR-BCD~\citep{geisler2021robustness}; [4] localized
-smoothing~\citep{schuchardt2023localized}; [5] AGNNCert~\citep{li2025agnncert}. Attacks ($\bullet$)
-surface attack-direction or per-edge information on surrogate losses; certifiers ($\bullet$) surface
-per-node radii but no direction or rank; \AEGIS ($\bullet$) surfaces all four from one closed-form
-computation of $S_c$.}
+\includegraphics[width=\columnwidth]{figures/fig_positioning_radar.pdf}
+\caption{Method-positioning radar (axis levels qualitative; $0$ at the centre, $1$ at the outer ring).
+Structural attacks~\citep{zugner2018adversarial,zugner2019adversarial,geisler2021robustness} surface an
+attack direction and per-edge ranks and dominate raw damage at large budgets, but give no per-node
+certificate; certifiers~\citep{schuchardt2023localized,li2025agnncert} give sound per-node radii but
+name no vulnerability-driving edges; \AEGIS reads attack direction, per-edge attribution, and a
+first-order per-node certificate off a single closed-form $S_c$ query, label-free and at far lower
+cost. The specialists peak on their own axis; \AEGIS is the unified option covering all six.}
 \label{fig:positioning}
 \end{figure}
 
