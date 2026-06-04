@@ -3,15 +3,15 @@
 \label{sec:experiments}
 %% ===================================================================
 
-Our evaluation follows the three capabilities of \cref{sec:framework}. \AEGIS \emph{audits} (\cref{sec:audit}): one analytic query matches iterative attackers and its $S_c$ ranking transfers to discrete edge removal across architectures. It \emph{certifies} (\cref{sec:certify}): \AEGIS-Conformal coverage holds at the nominal level under the very attack it certifies, where randomized smoothing is vacuous. It \emph{defends} (\cref{sec:defense}): a $\sigma_1(S_c)$ penalty buys certified robustness. A deployed fraud detector (\cref{sec:fraud_case}) closes the loop on real data.
+Our evaluation follows the three capabilities of \cref{sec:framework}: \AEGIS \emph{audits} (\cref{sec:audit}), \emph{certifies} (\cref{sec:certify}), and \emph{defends} (\cref{sec:defense}); a deployed fraud detector (\cref{sec:fraud_case}) then closes the loop on real data.
 
-\textbf{Setup.} We evaluate \AEGIS on 6 datasets across 4 domains with 10 seeds each (PyTorch~\cite{paszke2019pytorch}); $\pm$ are seed standard deviations. IGNN~\cite{gu2020implicit} uses $F(Z){=}\mathrm{ReLU}(\Ahat ZW^\top{+}U(X))$, $W\in\R^{64\times64}$ spectral-normalised~\cite{miyato2018spectral}, Adam (lr $0.01$). Datasets: Cora, Citeseer, Pubmed~\cite{sen2008collective}, Amazon Photo~\cite{shchur2018pitfalls}, WikiCS~\cite{mernyei2020wiki}, Amazon Fraud~\cite{dou2020enhancing}; baselines: smoothing (Gaussian $\sigma{=}0.01$), Mettack, GR-BCD/PR-BCD~\cite{geisler2021robustness}. All seven architectures appear only in \cref{fig:tau_heatmap} and \cref{tab:explicit}; the rest use IGNN. Full tables, ablations, and timing are in \cref{app:experiments}; reproducibility in \cref{app:repro}.
+\textbf{Setup.} We evaluate \AEGIS on 6 datasets across 4 domains, 10 seeds each (PyTorch~\cite{paszke2019pytorch}; $\pm$ are seed std). The IGNN~\cite{gu2020implicit} of \cref{eq:ignn_operator} uses $W\in\R^{64\times64}$ spectral-normalised~\cite{miyato2018spectral} with Adam (lr $0.01$). Datasets: Cora, Citeseer, Pubmed~\cite{sen2008collective}, Amazon Photo~\cite{shchur2018pitfalls}, WikiCS~\cite{mernyei2020wiki}, Amazon Fraud~\cite{dou2020enhancing}; baselines: smoothing (Gaussian $\sigma{=}0.01$), Mettack, GR-BCD/PR-BCD~\cite{geisler2021robustness}. Non-IGNN architectures appear only in \cref{fig:tau_heatmap,tab:explicit}. Full tables, ablations, and timing in \cref{app:experiments}; reproducibility in \cref{app:repro}.
 
 %% ----------------------------- AUDIT -----------------------------
 \subsection{Audit: One Query Finds the Worst Attack}
 \label{sec:audit}\label{sec:adaptive}\label{sec:certificates}\label{sec:cross_domain}
 
-Two prerequisites must hold: the trained models sit in the contractive regime, and \AEGIS's perturbations beat chance. \Cref{tab:cross_domain} confirms both, verifying (A3) on every benchmark ($\kappa{<}1$) and reporting per-dataset $\ecrit$ alongside a $3.2$--$4.1\times$ attack advantage over random. Unless stated otherwise, IGNN experiments run on 50-node BFS ego-subgraphs centred on the highest-degree node and report \emph{local} vulnerability, while graph-level assessment uses the matrix-free pipeline (\cref{app:phase_scal}); all bounds use $\kappa{=}\norm{J_z}_2$.
+Two prerequisites must hold: the trained models sit in the contractive regime, and \AEGIS's perturbations beat chance. \Cref{tab:cross_domain} confirms both, verifying (A3) on every benchmark ($\kappa{<}1$) and reporting per-dataset $\ecrit$ with a $3.2$--$4.1\times$ attack advantage over random. Unless stated otherwise, IGNN runs on 50-node BFS ego-subgraphs around the highest-degree node and reports \emph{local} vulnerability; graph-level assessment uses the matrix-free pipeline (\cref{app:phase_scal}), and all bounds use $\kappa{=}\norm{J_z}_2$.
 
 \begin{table}[t]
 \centering
@@ -32,7 +32,7 @@ WikiCS   & $\ms{77.9}{0.4}$ & $\ms{.34}{.04}$ & $\ms{.66}{.04}$ & $\ms{3.8}{.4}$
 \end{tabular*}
 \end{table}
 
-\textbf{One-query attack.} \AEGIS's attack is analytic and costs a single query, not an optimisation loop: by construction the SVD direction maximises the first-order equilibrium shift (\cref{prop:attack}). Three findings show that this single query reflects the model rather than a gradient artifact. First, a transfer direction from a \emph{separately trained} surrogate (zero shared gradients) recovers $99\%$ of the one-query damage ($\cos{=}0.99$), against $44{\pm}4\%$ for a $512$-query black-box search. Second, per query the attack delivers $\mathbf{74}$--$\mathbf{156\times}$ the \emph{equilibrium-shift} damage of a $50$-step PGD~\cite{madry2018towards} (\cref{tab:attack_full}); classification-loss PGD inflicts $15$--$70\%$ less at $50\times$ the cost, and GR-BCD pulls ahead only at the larger budgets it is designed for (\cref{app:baselines}). Third, per-edge finite differences reproduce the $S_c$ column-norm ranking ($\tau{=}0.999$), and iterative recomputation closes at most $3$\,pp of the static-versus-greedy gap at $k{\times}$ the compute, so the static ranking stands as the headline.
+\textbf{One query, not a search.} \AEGIS spends its whole budget in one analytic query: the leading singular direction of $S_c$ is, by construction, the perturbation that moves the equilibrium most (\cref{prop:attack}), with no optimisation loop. The worry with a closed-form attack is that it exploits the victim's gradients rather than a real fault line; three checks rule this out. \emph{It transfers:} a direction from a \emph{separately trained} surrogate (no shared gradients) still recovers $99\%$ of the one-query damage ($\cos{=}0.99$), against $44{\pm}4\%$ for a $512$-query black-box search, so the fault line belongs to the model, not to gradient access. \emph{It is efficient:} in \cref{tab:attack_full} one query matches or beats a $50$-step PGD~\cite{madry2018towards} at $\varepsilon{=}0.10$, a $\mathbf{74}$--$\mathbf{156\times}$ advantage \emph{per query}; only GR-BCD overtakes it, at the large budgets it targets (\cref{app:baselines}). \emph{It is faithful:} per-edge finite differences reproduce the $S_c$ ranking almost exactly ($\tau{=}0.999$), and re-solving after every removal (the greedy ideal) closes at most $3$\,pp of the gap, so the one-shot ranking is the headline.
 
 \begin{table}[t]
 \centering
@@ -51,9 +51,9 @@ WikiCS   & $\ms{2.10}{.22}$ & $\ms{0.67}{.11}$ & $\ms{1.93}{.20}$ & $\ms{0.53}{.
 \end{tabular*}
 \end{table}
 
-\AEGIS also beats degree-proportional, edge-betweenness, and spectral rankings at $\varepsilon{=}0.01$ ($+6$--$148\%$ AtkAdv), and inflicts $3$--$10\times$ more equilibrium damage than Mettack~\cite{zugner2019adversarial} in the early-warning regime ($\mathbf{149/150}$ paired wins, $p{<}10^{-43}$). The discrete-removal curves against a label-aware Greedy attacker appear in \cref{fig:greedy_topk}, with GR-BCD/PR-BCD detail in \cref{app:baselines}. As a check on the linearisation, the first-order shift bounds agree with the actual shifts to within $1\%$ at small budgets, loosening to ${\leq}39\%$ on citation graphs by $\varepsilon{=}0.20$.
+\AEGIS also beats degree, edge-betweenness, and spectral rankings at $\varepsilon{=}0.01$ ($+6$--$148\%$ AtkAdv) and inflicts $3$--$10\times$ more equilibrium damage than Mettack~\cite{zugner2019adversarial} in the early-warning regime ($\mathbf{149/150}$ wins, $p{<}10^{-43}$); discrete-removal curves vs.\ label-aware Greedy are in \cref{fig:greedy_topk} (GR-BCD/PR-BCD in \cref{app:baselines}). The first-order bounds match actual shifts to within $1\%$ at small budgets, loosening to ${\leq}39\%$ on citation graphs by $\varepsilon{=}0.20$.
 
-\textbf{Breach rates.} Every breached node satisfies $\varepsilon > r_v$ across all datasets and budgets, validating $r_v$ as a reliable first-order screen (\cref{sec:certify}). \Cref{fig:breach} reports prediction-flip fractions vs.\ $\varepsilon$ ($95\%$ CI bands): Citeseer and WikiCS stay below $2\%$ throughout; Cora reaches $7.6\%$ at $\varepsilon{=}0.20$; Pubmed is the right-skewed outlier (mean $10.3\%$ at $\varepsilon{=}0.10$, $27.4\%$ at $\varepsilon{=}0.20$).
+\textbf{Breach rates.} Every breached node satisfies $\varepsilon > r_v$ across all datasets and budgets, validating $r_v$ as a first-order screen (\cref{sec:certify}); flip fractions (\cref{fig:breach}) stay below $2\%$ on Citeseer/WikiCS and reach $7.6\%$ (Cora) and a right-skewed $27.4\%$ (Pubmed) at $\varepsilon{=}0.20$.
 
 \begin{figure*}[t]
 \centering
@@ -66,17 +66,17 @@ WikiCS   & $\ms{2.10}{.22}$ & $\ms{0.67}{.11}$ & $\ms{1.93}{.20}$ & $\ms{0.53}{.
 \begin{minipage}[t]{0.655\textwidth}
 \centering
 \includegraphics[width=\linewidth]{figures/fig_greedy_curves.pdf}
-\caption{Cumulative damage from sequential discrete edge removal vs.\ $k$ (IGNN, 50-node subgraph, 10 seeds). \AEGIS \emph{matches} the label-aware Greedy attacker on Citeseer/WikiCS and recovers $\mathbf{54}$--$\mathbf{67\%}$ of its Cora damage at $k{=}5$--$10$ with no discrete-label access; degree-ranking stays below random.}
+\caption{Cumulative damage from sequential discrete edge removal vs.\ $k$ (IGNN, 50-node subgraph, 10 seeds). \AEGIS \emph{matches} label-aware Greedy on Citeseer/WikiCS and recovers $\mathbf{54}$--$\mathbf{67\%}$ of its Cora damage at $k{=}5$--$10$ with no label access.}
 \label{fig:greedy_topk}
 \end{minipage}
 \end{figure*}
 
-\textbf{Continuous-to-discrete transfer.}\label{sec:explicit_extension} The construction is not tied to implicit models. For $K$-layer explicit GNNs (GCN, SAGE, GIN, APPNP, GAT$^\dagger$~\cite{kipf2017semi,hamilton2017inductive,xu2019how,klicpera2019predict,velickovic2018graph}) we form $S_K{=}\partial \mathrm{vec}(Z_K)/\partial \mathrm{vec}(A)$ by finite differences and build $S_c$ exactly as before (\cref{prop:explicit}); only the IGNN additionally carries the boundary of \cref{thm:phase_transition}. The question that matters in practice is whether the continuous $S_c$ ranking predicts the discrete, brute-force N-1 removal order. Ranking edges by the edge-weighted score $A_{ij}v_{ij}$ of \cref{prop:transfer}, \cref{fig:tau_heatmap} reports the Kendall $\tau$ over 6 datasets and 7 architectures (390 runs): every one of the $\mathbf{39/39}$ cells is positive, with median $\tau{=}\mathbf{+0.99}$ ($p{<}10^{-5}$), against $34/39$ for the unweighted score. The agreement even survives leaving the contractive regime: on full-graph Amazon Photo ($N{=}7{,}650$, $\kappa{\approx}1.00$) it reaches $\tau\!=\!\mathbf{+0.996\!\pm\!0.002}$. Per-architecture detail, the phase-transition and scalability sweeps (the matrix-free path reaching $N{=}7{,}650$), and the ablations are in \cref{app:explicit,app:phase_scal,app:ablations}; the ablations show vulnerability to be \emph{delocalized}, so $S_c$ localises risk for triage rather than removing it.
+\textbf{Continuous-to-discrete transfer.}\label{sec:explicit_extension} The bridges of \cref{sec:transfer_explicit} extend the construction beyond implicit models: for seven $K$-layer architectures (GCN, SAGE, GIN, APPNP, GAT$^\dagger$~\cite{kipf2017semi,hamilton2017inductive,xu2019how,klicpera2019predict,velickovic2018graph}) we form $S_K$ by finite differences (\cref{prop:explicit}) and ask whether the continuous $S_c$ ranking predicts the discrete brute-force N-1 removal order. Ranking by the edge-weighted score $A_{ij}v_{ij}$ (\cref{prop:transfer}), \cref{fig:tau_heatmap} reports Kendall $\tau$ over 6 datasets and 7 architectures (390 runs): all $\mathbf{39/39}$ cells positive, median $\tau{=}\mathbf{+0.99}$ ($p{<}10^{-5}$), vs.\ $34/39$ unweighted; on full-graph Amazon Photo ($N{=}7{,}650$, $\kappa{\approx}1.00$) it reaches $\tau\!=\!\mathbf{+0.996\!\pm\!0.002}$. Per-architecture detail, the sweeps, and ablations are in \cref{app:explicit,app:phase_scal,app:ablations}; the ablations show vulnerability is \emph{delocalized}, so $S_c$ localises risk for triage rather than removing it.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig_tau_heatmap.pdf}
-\caption{Continuous-to-discrete transfer $\tau$ (10-seed means; per-cell sd $0.0003$--$0.041$). Cross-hatch: GPU OOM. GAT-2$^\dagger$ is lower under weighting (it transfers better unweighted; see \cref{app:explicit}).}
+\caption{Continuous-to-discrete transfer $\tau$ (10-seed means; per-cell sd $0.0003$--$0.041$). Cross-hatch: GPU OOM. GAT-2$^\dagger$ transfers better unweighted (\cref{app:explicit}).}
 \label{fig:tau_heatmap}
 \end{figure}
 
@@ -84,10 +84,10 @@ WikiCS   & $\ms{2.10}{.22}$ & $\ms{0.67}{.11}$ & $\ms{1.93}{.20}$ & $\ms{0.53}{.
 \subsection{Certify: Distribution-Free Coverage}
 \label{sec:certify}
 
-The certificate of \cref{sec:conformal} holds empirically. \Cref{tab:conformal} reports coverage over 10 seeds and four datasets. The crucial quantity is the \emph{gate}, the coverage retained under the worst-case \AEGIS attack at magnitude $\varepsilon$: it sits at the nominal $1{-}\alpha{=}0.90$ at $\varepsilon{=}0.01$ on every dataset and turns conservative ($0.94$--$1.00$) at $\varepsilon{=}0.05$. The sets stay informative throughout, running ${\sim}1.0$--$3.5$ labels and tightening exactly where the deterministic radius is thin, all at zero Monte-Carlo samples. Two conditions are stated plainly: exchangeability on a single transductive graph is an assumption for which the empirical gate is the evidence, and $S_c$ is formed densely at $N{=}200$, leaving a matrix-free conformal pass to future work.
+The certificate of \cref{sec:conformal} holds empirically. \Cref{tab:conformal} reports coverage over 10 seeds and four datasets. The crucial quantity is the \emph{gate}: coverage retained under the worst-case \AEGIS attack at magnitude $\varepsilon$. It sits at the nominal $1{-}\alpha{=}0.90$ at $\varepsilon{=}0.01$ and turns conservative ($0.94$--$1.00$) at $\varepsilon{=}0.05$, with sets that stay informative (${\sim}1.0$--$3.5$ labels) and tighten where the deterministic radius is thin, at zero Monte-Carlo samples. Two caveats: exchangeability on a single transductive graph is an assumption the gate evidences empirically, and $S_c$ is formed densely at $N{=}200$, leaving a matrix-free pass to future work.
 
 \begin{table}[t]\centering\footnotesize\setlength{\tabcolsep}{4pt}
-\caption{\AEGIS-Conformal coverage (10 seeds; Cora, Citeseer, Pubmed, WikiCS; $\alpha{=}0.1$, target $0.90$). Each $\varepsilon$ block reports clean coverage\,/\,mean set size, then the bold \textbf{gate} (coverage under the worst-case attack at $\varepsilon$). Classes: 7/6/3/10 resp.; std over seeds ${\leq}0.07$. Sets ${<}1$ reflect occasional empty (abstaining) sets under TPS.}
+\caption{\AEGIS-Conformal coverage (10 seeds; Cora, Citeseer, Pubmed, WikiCS; $\alpha{=}0.1$, target $0.90$). Each $\varepsilon$ block reports clean coverage\,/\,mean set size, then the bold \textbf{gate} (coverage under worst-case attack at $\varepsilon$). Classes 7/6/3/10; seed std ${\leq}0.07$; sets ${<}1$ reflect empty (abstaining) TPS sets.}
 \label{tab:conformal}
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}ll cc cc@{}}
 \toprule
@@ -108,7 +108,7 @@ WikiCS   & APS & 0.92 / 3.70 & \textbf{0.94} & 0.93 / 3.62 & \textbf{0.95} \\
 \end{tabular*}
 \end{table}
 
-\Cref{tab:smoothing} pits \AEGIS-Conformal against randomized smoothing: on the matched Frobenius ball smoothing is \emph{vacuous} (full label set, zero certified nodes); only on a strictly larger per-coordinate ball does it certify, and then at $\mathbf{23{,}000}$--$\mathbf{57{,}000\times}$ the cost of the zero-sample $S_c$ bound (\cref{app:smoothing}).
+\Cref{tab:smoothing} pits \AEGIS-Conformal against randomized smoothing: on the matched Frobenius ball smoothing is \emph{vacuous} (full label set, zero certified nodes), certifying only on a strictly larger per-coordinate ball, and then at $\mathbf{23{,}000}$--$\mathbf{57{,}000\times}$ the cost of the zero-sample $S_c$ bound (\cref{app:smoothing}).
 
 \begin{table}[t]\centering\footnotesize\setlength{\tabcolsep}{2pt}
 \caption{\AEGIS-Conformal vs.\ randomized smoothing (Cora, $n{=}200$, 10 seeds, $\alpha{=}0.1$, APS). \textbf{frob}: matched Frobenius ball ($\sigma{=}\varepsilon/\sqrt{2|E|}$); \textbf{per\_edge}: larger per-coordinate ball ($\sigma{=}\varepsilon$), favorable to smoothing. cert: fraction certified; wall-clock at $M{=}10^4$ samples (\AEGIS-Conformal is zero-sample).}
@@ -132,7 +132,7 @@ RandSmoothing    & per\_edge& 0.05 & 0.99 & 2.39 & 0.77 & 36{,}300\,s \\
 \subsection{Defend: A $\sigma_1(S_c)$ Robustness Knob}
 \label{sec:defense}
 
-The operator that finds the worst attack also tunes the defense. Penalizing $\sigma_1(S_c)$ during training drives the dominant sensitivity down, and with it the worst-case attack damage falls while the certified fraction rises (\cref{tab:defense}). At the operating point $\lambda{=}3{\times}10^{-4}$ this cuts $\sigma_1$ by ${\sim}10\times$ ($\ms{319}{59}\!\to\!\ms{32.6}{1.7}$) and lifts the certified fraction to $0.82{\pm}0.03$, at a cost of roughly 4 accuracy points. The gain is genuinely \emph{certified} rather than empirical: at $\varepsilon{\leq}0.1$ few nodes flip for either model (the delocalized vulnerability noted above), so the penalty buys a larger certified margin, not better small-budget accuracy. Attack and defense thus couple through the one operator: across 10 seeds the margin-controlled attack magnitude and the certified radius are anticorrelated ($-0.65{\pm}0.12$, negative in $\mathbf{10/10}$ seeds, $p{\approx}10^{-160}$).
+The operator that finds the worst attack also tunes the defense. Penalizing $\sigma_1(S_c)$ during training drives the dominant sensitivity down, and with it worst-case attack damage falls while the certified fraction rises (\cref{tab:defense}). At $\lambda{=}3{\times}10^{-4}$ this cuts $\sigma_1$ by ${\sim}10\times$ and lifts the certified fraction to $0.82{\pm}0.03$ for ${\sim}4$ accuracy points. The gain is genuinely \emph{certified}, not empirical: at $\varepsilon{\leq}0.1$ few nodes flip for either model, so the penalty buys a larger certified margin, not better small-budget accuracy. Attack and defense thus couple through one operator: across 10 seeds the attack magnitude and certified radius are anticorrelated ($-0.65{\pm}0.12$, negative in $\mathbf{10/10}$, $p{\approx}10^{-160}$).
 
 \begin{table}[t]
 \centering

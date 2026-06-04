@@ -51,24 +51,12 @@ Intuitively, $r_v$ is the smallest margin divided by two amplification factors (
 
 \subsection{Continuous-to-Discrete Ranking Transfer}
 \label{app:proof_transfer}
-\begin{proposition}[Continuous-to-Discrete Ranking Transfer]
-\label{prop:transfer}
-Under (A1)--(A3), let $w_k = [\Ahat]_{ij}$ denote the normalized weight of edge $k = (i,j) \in E$, $v_k = \norm{[S_c]_{:,k}}_2$ the continuous vulnerability score, and $d_k = \norm{\zstar(A) - \zstar(A \setminus k)}_2$ the discrete damage from fixed-normalization removal of edge~$k$. Assume all single-edge removals are subcritical: $\sqrt{2} \max_k w_k < \ecrit$.
-
-\noindent\textbf{(a) First-order bridge.} The discrete damage satisfies
+We prove \cref{prop:transfer} (stated in \cref{sec:transfer_explicit}). Recall $w_k = [\Ahat]_{ij}$, $v_k = \norm{[S_c]_{:,k}}_2$, and $d_k = \norm{\zstar(A) - \zstar(A \setminus k)}_2$ (fixed-normalization removal), with every single-edge removal subcritical, $\sqrt{2} \max_k w_k < \ecrit$. The pairwise ranking-preservation condition used below is
 \begin{equation}
-d_k = w_k \cdot v_k + R_k, \quad |R_k| \leq \frac{L_J}{2(1-\kappa)^2} \cdot w_k^2,
-\label{eq:transfer}
-\end{equation}
-where $L_J \leq \norm{W}_2^2\,\norm{\zstar}$ is the second-order curvature constant of $\zstar(A)$, finite at the fixed point.
-
-\noindent\textbf{(b) Ranking preservation (pairwise-sufficient).} For two edges $k_1, k_2$ with $v_{k_1} > v_{k_2}$ and $w_{k_1} \geq w_{k_2}$, we have $d_{k_1} > d_{k_2}$ whenever
-\begin{equation}
-w_{k_1} < \frac{v_{k_1} - v_{k_2}}{L_J / (1-\kappa)^2}.
+w_{k_1} < \frac{v_{k_1} - v_{k_2}}{L_J / (1-\kappa)^2}
 \label{eq:ranking}
 \end{equation}
-Under uniform weights ($w_k = w$ for all $k$), $v_{k_1} > v_{k_2}$ implies $d_{k_1} > d_{k_2}$ whenever $w < \min_{k_1 \neq k_2} (v_{k_1} - v_{k_2}) \cdot (1-\kappa)^2 / L_J$.
-\end{proposition}
+for edges with $v_{k_1} > v_{k_2}$, $w_{k_1} \geq w_{k_2}$ (uniform-weight form: $w < \min_{k_1 \neq k_2} (v_{k_1} - v_{k_2})(1-\kappa)^2 / L_J$).
 
 Empirically $|R_k|$ is $2$--$10\times$ smaller than $L_J w_k^2$, the constrained $S_c$ tightens the bound from $0.31$ to $1.00$, and the edge-weighted score $w_k v_k$ reaches $\tau\!=\!\mathbf{+0.996}$ against brute-force N-1 on full-graph Amazon Photo (10 seeds, \cref{sec:explicit_extension}).
 
@@ -79,22 +67,14 @@ Empirically $|R_k|$ is $2$--$10\times$ smaller than $L_J w_k^2$, the constrained
 
 \subsection{Structural Sensitivity for $K$-Layer Explicit GNNs}
 \label{app:explicit_prop}
-\begin{proposition}[Structural Sensitivity for $K$-Layer GNNs]
-\label{prop:explicit}
-Let $Z_K = g_K \circ \cdots \circ g_1(X, A)$ be a $K$-layer GNN where each layer $g_l$ is differentiable with respect to both its input and $A$. Define the \emph{unrolled sensitivity matrix}
+We prove \cref{prop:explicit} (stated in \cref{sec:transfer_explicit}).
+\begin{proof}
+Unrolling $Z_K = g_K \circ \cdots \circ g_1(X, A)$ and applying the chain rule to $\mathrm{vec}(Z_K)$ yields the unrolled sensitivity $S_K$ of \cref{eq:unrolled}: each layer $l$ contributes its direct dependence $J_A^{(l)}{=}\partial g_l/\partial\mathrm{vec}(A)$ propagated forward through the later layers' input Jacobians $J_z^{(k)}{=}\partial g_k/\partial Z_{k-1}$. Submultiplicativity of $\norm{\cdot}_2$ then gives
 \begin{equation}
-S_K = \frac{\partial \mathrm{vec}(Z_K)}{\partial \mathrm{vec}(A)} = \sum_{l=1}^{K} \left(\prod_{k=l+1}^{K} J_z^{(k)}\right) J_A^{(l)},
-\label{eq:unrolled}
+\sigma_1(S_K) \leq \sum_{l=1}^{K} \left(\prod_{k=l+1}^{K} \norm{J_z^{(k)}}_2\right) \norm{J_A^{(l)}}_2,
 \end{equation}
-where $J_z^{(k)} = \partial g_k / \partial Z_{k-1}$ and $J_A^{(l)} = \partial g_l / \partial \mathrm{vec}(A)$. Then:
-
-\noindent\textbf{(a)} The first-order shift bound $\norm{\Delta Z_K}_F \leq \sigma_1(S_K) \cdot \norm{\delta A}_F + O(\norm{\delta A}^2)$ holds, with
-\begin{equation}
-\sigma_1(S_K) \leq \sum_{l=1}^{K} \left(\prod_{k=l+1}^{K} \norm{J_z^{(k)}}_2\right) \norm{J_A^{(l)}}_2.
-\end{equation}
-
-\noindent\textbf{(b)} The constrained construction $S_c$ and per-node radius $r_v$ (\cref{prop:radius}) apply identically with $S_K$ in place of $S$.
-\end{proposition}
+and a first-order Taylor expansion of $Z_K$ in $A$ gives the shift bound $\norm{\Delta Z_K}_F \leq \sigma_1(S_K)\,\norm{\delta A}_F + O(\norm{\delta A}^2)$. Finally $S_K$ enters the constrained construction $S_c$ and the per-node radius $r_v$ (\cref{prop:radius}) exactly as $S$ does for the implicit operator.
+\end{proof}
 
 For weight-tied models, $\sigma_1(S_K) \leq \norm{J_A}_2 (1{-}\kappa^K)/(1{-}\kappa)$ converges to the IGNN bound as $K{\to}\infty$. Explicit GNNs thus inherit the full pipeline (empirical tightness $0.99$--$1.02$ across the suite, \cref{sec:explicit_extension}); only the closed-form $\ecrit$ is restricted to the contractive subclass.
 
