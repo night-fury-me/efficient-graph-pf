@@ -176,7 +176,7 @@ The deployed model is ReLU, not all-active; its measured nonlinear break budget 
 \label{tab:constants}
 \begin{tabular}{@{}lll@{}}
 \toprule
-quantity & meaning & source \\
+Quantity & Meaning & Source \\
 \midrule
 $\kappa{=}\norm{J_z}_2$ & trained contractivity ($<1$) & \cref{tab:cross_domain} \\
 $\ecrit{=}\tfrac{1-\kappa}{\norm{W}_2}$ & norm certificate (safe radius) & \cref{thm:phase_transition} \\
@@ -601,14 +601,14 @@ For $K$-layer explicit GNNs (GCN, SAGE, GIN, APPNP, GAT$^\dagger$~\cite{kipf2017
 \toprule
 Model & Tight. & AtkAdv & $\tau$ & Acc \\
 \midrule
-IGNN (eq.)    & $\ms{1.01}{.00}$ & $\ms{7.6}{0.5}\times$ & $\ms{+.32}{.04}$ & $\ms{77.5}{1.7}\%$ \\
+IGNN (eq.)    & $\ms{1.01}{.00}$ & $\ms{7.6}{0.5}\times$ & $\ms{+.32}{.04}$ & $\ms{77.5}{1.7}$ \\
 \midrule
-GCN-2         & $\ms{1.00}{.00}$ & $\ms{3.6}{0.6}\times$ & $\ms{-.04}{.03}$ & $\ms{78.9}{0.9}\%$ \\
-GCN-4         & $\ms{1.02}{.00}$ & $\ms{3.4}{0.4}\times$ & $\ms{+.49}{.02}$ & $\ms{78.3}{1.8}\%$ \\
-GIN-2         & $\ms{1.01}{.00}$ & $\ms{2.6}{0.1}\times$ & $\ms{+.33}{.03}$ & $\ms{76.6}{1.9}\%$ \\
-GAT$^\dagger$ & $\ms{1.01}{.01}$ & $\ms{2.1}{0.1}\times$ & $\ms{\mathbf{+.54}}{.06}$ & $\ms{77.8}{1.2}\%$ \\
-SAGE-2        & $\ms{1.00}{.00}$ & $\ms{1.9}{0.2}\times$ & $\ms{+.22}{.10}$ & $\ms{77.5}{1.5}\%$ \\
-APPNP         & $\ms{1.02}{.00}$ & $\ms{3.4}{0.3}\times$ & $\ms{+.35}{.01}$ & $\ms{\mathbf{82.2}}{0.6}\%$ \\
+GCN-2         & $\ms{1.00}{.00}$ & $\ms{3.6}{0.6}\times$ & $\ms{-.04}{.03}$ & $\ms{78.9}{0.9}$ \\
+GCN-4         & $\ms{1.02}{.00}$ & $\ms{3.4}{0.4}\times$ & $\ms{+.49}{.02}$ & $\ms{78.3}{1.8}$ \\
+GIN-2         & $\ms{1.01}{.00}$ & $\ms{2.6}{0.1}\times$ & $\ms{+.33}{.03}$ & $\ms{76.6}{1.9}$ \\
+GAT$^\dagger$ & $\ms{1.01}{.01}$ & $\ms{2.1}{0.1}\times$ & $\ms{\mathbf{+.54}}{.06}$ & $\ms{77.8}{1.2}$ \\
+SAGE-2        & $\ms{1.00}{.00}$ & $\ms{1.9}{0.2}\times$ & $\ms{+.22}{.10}$ & $\ms{77.5}{1.5}$ \\
+APPNP         & $\ms{1.02}{.00}$ & $\ms{3.4}{0.3}\times$ & $\ms{+.35}{.01}$ & $\ms{\mathbf{82.2}}{0.6}$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
