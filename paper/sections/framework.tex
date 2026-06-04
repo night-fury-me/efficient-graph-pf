@@ -5,6 +5,8 @@
 
 The previous section isolated the two Jacobians, $J_z$ and $J_A$, through which the adjacency moves the equilibrium. \AEGIS packages them into one operator, the constrained sensitivity matrix $S_c$, never formed explicitly but only applied to vectors (\cref{alg:aegis}). \Cref{fig:pipeline} shows the four stages.
 
+\textbf{The constrained sensitivity operator.} $S_c$ is the full sensitivity $S$ cut down to the perturbations the threat model permits: one column per existing edge, symmetrised so that touching edge $(i,j)$ also touches $(j,i)$. The edge basis has unit Frobenius norm, so $\sigma_1(S_c)$ matches the budget $\norm{\delta\Ahat}_F{=}\varepsilon$; the $N^2 \to |E|$ restriction $P_c$ is the standard duplication-matrix reduction~\cite{magnus2019matrix} onto the edge-supported symmetric subspace. One randomized SVD of $S_c$ yields the three audit readings together: the optimal attack direction (\cref{prop:attack}), the per-edge ranking $v_{ij}{=}\norm{[S_c]_{:,k}}_2$, and the per-node radius $r_v$ (\cref{prop:radius}). The same operator then \emph{certifies} the model (\cref{sec:conformal}) and \emph{defends} it (\cref{sec:defense}).
+
 \begin{algorithm}[H]
 \caption{\AEGIS matrix-free vulnerability analysis. $S_c$ is queried but never formed; the dense fallback ($N\!\leq\!200$) builds $S_c$ and runs an exact SVD.}
 \label{alg:aegis}
@@ -21,8 +23,6 @@ The previous section isolated the two Jacobians, $J_z$ and $J_A$, through which 
 \STATE \textbf{return} $(\sigma_1,\ \delta\Ahat^{\star},\ \{v_{ij}\},\ \{r_v\},\ \ecrit)$
 \end{algorithmic}
 \end{algorithm}
-
-\textbf{The constrained sensitivity operator.} $S_c$ is the full sensitivity $S$ cut down to the perturbations the threat model permits: one column per existing edge, symmetrised so that touching edge $(i,j)$ also touches $(j,i)$. The edge basis has unit Frobenius norm, so $\sigma_1(S_c)$ matches the budget $\norm{\delta\Ahat}_F{=}\varepsilon$; the $N^2 \to |E|$ restriction $P_c$ is the standard duplication-matrix reduction~\cite{magnus2019matrix} onto the edge-supported symmetric subspace. One randomized SVD of $S_c$ yields the three audit readings together: the optimal attack direction (\cref{prop:attack}), the per-edge ranking $v_{ij}{=}\norm{[S_c]_{:,k}}_2$, and the per-node radius $r_v$ (\cref{prop:radius}). The same operator then \emph{certifies} the model (\cref{sec:conformal}) and \emph{defends} it (\cref{sec:defense}).
 
 \begin{proposition}[Maximally Sensitive First-Order Structural Perturbation]
 \label{prop:attack}
