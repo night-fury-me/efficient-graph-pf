@@ -286,3 +286,41 @@ was ~4× slower per seed from kernel-queue contention. Single-stream was correct
 per-seed `rc=1` flags are a benign single-seed conformal-cov self-check; CSVs are valid.
 
 **Remaining:** none for this work item. Open paper items unchanged in §7.
+
+---
+
+## 10. Update 2026-06-04 — Positioning-radar competitor-fairness audit + honest 8-axis rebuild
+
+**What.** Deep-inspected whether `fig_positioning_radar` (Appendix F) did justice to the
+competitors. Downloaded and read all five cited source papers (Nettack 1805.07984, Mettack
+1902.08412, Geisler GR-/PR-BCD 2110.14038, Schuchardt localized smoothing 2210.16140, Li–Wang
+AGNNCert 2502.00765) and adjudicated every cell. Status: ✅ fixed & rebuilt clean.
+
+**Findings (the radar was NOT fair on several cells).**
+- Scored our **proxy above the oracle**: AEGIS 1.0 > attacks (per-edge 0.8, direction 0.9), yet the
+  white-box/meta-gradient IS the per-edge attribution oracle and our own S_c correlates only τ=0.16
+  with GR-BCD on Cora.
+- **Libelled AGNNCert**: query-eff 0.1 via "1e3–1e4 MC samples"; AGNNCert is deterministic, T=30–80
+  evals. Localized smoothing actually uses ~5e5 samples/node (above the stated band) and is a
+  *collective*, not per-node, certificate.
+- Two **fabricated rationales**: "50-step/512-query" (in no attack paper; PGD folklore) and
+  "poisoning needs labels" (headline GR-/PR-BCD are evasion, no-retrain, surrogate-free).
+- Over-credited certifiers on label-free/no-retrain (both retrain: noise-/subgraph-augmented).
+
+**Fix (final = Option A).** Rebuilt as a **7-axis heptagon, frontier semantics**: conceded
+direction/per-edge/large-budget to attacks (1.0); split "label-free/no-retrain" into **Label-free** +
+**No retraining**; raised certifier query-eff to 0.85 (AGNNCert deterministic, T=30–80 evals). A
+**Model-hardening/defense axis was considered then dropped**: it would double-count the
+per-node-certificate axis for the certifier polygon (their robustness and certificate share one
+mechanism) and score an unbenchmarked axis; AEGIS's σ₁(S_c) defense already lives in
+`sec:defense`/`tab:defense`, which the caption + prose now point to. AEGIS loses 4/7 axes to a
+specialist (ties No-retrain) and wins on coverage alone. Bib `schuchardt2023localized` corrected
+(Scholten→Wollschläger, ICML→ICLR 2023, exact title). All changes are appendix-only — no main-text
+page-budget impact.
+
+**Verified.** Standalone figure compiles + visually checked; full `aaai_aegis.tex` rebuild clean
+(latexmk exit 0, 0 undefined refs/cites, `sec:defense` cref resolves, figure on p.20, bib renders
+"Wollschläger"). Audit record: `paper/review/radar_competitor_audit.md`.
+
+**Remaining:** none. Defense pillar stays in `sec:defense` (benchmarked vs the robust-architecture
+thread); deliberately not re-plotted on the audit/certify/cost radar.

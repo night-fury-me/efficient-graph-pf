@@ -1,23 +1,45 @@
 % =====================================================================
 % Figure: Method-positioning RADAR (spider) chart -- AEGIS vs the two prior
-% threads it unifies (structural attacks; certifiers). Honest variant of the
-% capability matrix (fig_positioning): axes are scored on [0,1] (0 = centre,
-% 1 = outer ring) and DELIBERATELY include axes where rivals win, so no method
-% fills the whole space (defuses the strawman concern, editorial item C-DA2).
+% threads it is directly comparable to on AUDIT + CERTIFY + COST: structural
+% attacks and certifiers. Honest variant of the capability matrix
+% (fig_positioning): seven axes scored on [0,1] (0 = centre, 1 = outer ring)
+% under FRONTIER semantics -- each polygon traces the BEST its research thread
+% achieves on each axis -- and DELIBERATELY includes axes where rivals win, so
+% no method fills the space (defuses the strawman concern, editorial item C-DA2).
 %
-% Score rationale (all defensible from the paper / related work):
-%   Attack direction      AEGIS 1.0 (closed-form SVD, prop:attack) | Attacks 0.9
-%                         (their core function) | Certifiers 0.0
-%   Per-edge attribution  AEGIS 1.0 (||[S_c]_{:,k}||) | Attacks 0.8 (greedy/grad
-%                         edge selection) | Certifiers 0.0 (do not name edges)
-%   Large-budget damage   Attacks 1.0 (GR-BCD/PR-BCD dominate at large budgets) |
-%                         AEGIS 0.5 (one-query early-warning regime) | Cert. 0.0
-%   Per-node certificate  Certifiers 1.0 (sound prob./determ. radii) | AEGIS 0.65
-%                         (first-order r_v + conformal under exchangeability) | Atk 0.0
-%   Label-free/no-retrain AEGIS 1.0 | Certifiers 0.85 (sampling, no labels) |
-%                         Attacks 0.35 (poisoning needs labels/surrogate)
-%   Query efficiency      AEGIS 1.0 (one query) | Attacks 0.3 (50-step/512-query) |
-%                         Certifiers 0.1 (1e3-1e4 MC samples/node)
+% NOTE: AEGIS's third pillar (DEFENSE: the sigma_1(S_c) training penalty) is NOT
+% an axis here. It is a different kind of claim, benchmarked against the
+% robust-architecture thread in its own subsection (sec:defense, tab:defense);
+% putting it on this radar would (i) double-count the per-node-certificate axis
+% for the certifier polygon (their robustness and their certificate share one
+% mechanism) and (ii) score an axis we do not benchmark head-to-head. Kept off.
+%
+% Score rationale (frontier semantics; verified line-by-line against the cited
+% papers -- see paper/review/radar_competitor_audit.md):
+%   Attack direction    Attacks 1.0 (white-box / meta-gradient define the attack
+%                        direction: Nettack score fn, Mettack grad_A, PR-BCD
+%                        continuous edge prob.) | AEGIS 0.9 (closed-form SVD
+%                        proxy, prop:attack) | Certifiers 0.0
+%   Per-edge attribution Attacks 1.0 (per-edge gradient IS the oracle ranking) |
+%                        AEGIS 0.9 (||[S_c]_{:,k}||; tau 0.16-0.99 vs that oracle) |
+%                        Certifiers 0.0 (name no edges)
+%   Large-budget damage  Attacks 1.0 (GR-BCD/PR-BCD at scale, large budgets) |
+%                        AEGIS 0.5 (one-query early-warning regime) | Cert. 0.0
+%   Per-node certificate Certifiers 1.0 (AGNNCert deterministic per-node radius;
+%                        localized smoothing is a COLLECTIVE cert) | AEGIS 0.65
+%                        (first-order r_v + conformal) | Attacks 0.0
+%   Query efficiency     AEGIS 1.0 (one S_c query) | Certifiers 0.85 (AGNNCert
+%                        deterministic, T=30-80 subgraph evals; localized smoothing
+%                        ~5e5 samples/node sits near 0) | Attacks 0.3 (50-500 grad
+%                        epochs; Nettack greedy cheaper)
+%   No retraining        AEGIS 1.0 and evasion attacks 1.0 (off-the-shelf model;
+%                        GR-/PR-BCD are evasion, fixed-theta) | Certifiers 0.2
+%                        (noise-/subgraph-augmented training)
+%   Label-free           AEGIS 1.0 (no labels in the S_c query) | Certifiers 0.9
+%                        (certify the predicted class) | Attacks 0.1 (loss needs labels)
+% Attacks own damage/direction/edges; certifiers own the per-node certificate;
+% AEGIS wins no specialist axis outright but is the only polygon with nonzero
+% mass on all seven axes.
 % Okabe-Ito palette, mathptmx serif 11pt: consistent with the other figures.
 % =====================================================================
 \documentclass[tikz,border=6pt,11pt]{standalone}
@@ -41,46 +63,54 @@
 \begin{document}
 \begin{tikzpicture}[font=\rmfamily]
 
-% --- concentric grid rings (hexagons at r = 0.25,0.5,0.75,1.0 of R=3.2) ------
+% Seven axes at 360/7 ~= 51.43-degree spacing (R=3.2). Clockwise from the top:
+%   90      Attack direction      | 38.57   Per-edge attribution |
+%  -12.86   Large-budget damage   | -64.29  Per-node certificate |
+% -115.71   Query efficiency      | -167.14 No retraining        |
+%  141.43   Label-free
+
+% --- concentric grid rings (heptagons at r = 0.25,0.5,0.75,1.0 of R=3.2) ------
 \foreach \rr in {0.8,1.6,2.4,3.2}{
   \draw[okGrey!22, line width=0.3pt]
-    (90:\rr)--(30:\rr)--(-30:\rr)--(-90:\rr)--(-150:\rr)--(150:\rr)--cycle;
+    (90:\rr)--(38.5714:\rr)--(-12.8571:\rr)--(-64.2857:\rr)--(-115.7143:\rr)--(-167.1429:\rr)--(141.4286:\rr)--cycle;
 }
 % --- radial spokes -----------------------------------------------------------
-\foreach \a in {90,30,-30,-90,-150,150}{
+\foreach \a in {90,38.5714,-12.8571,-64.2857,-115.7143,-167.1429,141.4286}{
   \draw[okGrey!38, line width=0.3pt] (0,0)--(\a:3.2);
 }
-% scale hint: 1 at the outer ring on the upper-left (least busy) spoke
-\node[okGrey!75, font=\scriptsize, fill=white, inner sep=0.6pt] at (150:1.6) {$0.5$};
-\node[okGrey!75, font=\scriptsize, fill=white, inner sep=0.6pt] at (150:3.2) {$1$};
+% scale hint on the least-busy gap (between the Label-free and No-retraining spokes)
+\node[okGrey!75, font=\scriptsize, fill=white, inner sep=0.6pt] at (167.14:1.6) {$0.5$};
+\node[okGrey!75, font=\scriptsize, fill=white, inner sep=0.6pt] at (167.14:3.2) {$1$};
 
-% --- polygons (drawn behind to front: Certifiers, Attacks, AEGIS) ------------
-% Certifiers: certificate 1.0, label-free 0.85, efficiency 0.1; rest 0
+% --- polygons (drawn back to front: Certifiers, Attacks, AEGIS) ---------------
+% Certifiers: direction 0, per-edge 0, large-budget 0, cert 1.0, query-eff 0.85,
+% no-retrain 0.2, label-free 0.9
 \draw[okBlue!85!black, line width=1.0pt, densely dotted, fill=okBlue, fill opacity=0.12]
-  (90:0)--(30:0)--(-30:0)--(-90:3.2)--(-150:2.72)--(150:0.32)--cycle;
-% Structural attacks: attack-dir 0.9, per-edge 0.8, large-budget 1.0,
-% certificate 0.0, label-free 0.35, efficiency 0.3
+  (90:0)--(38.5714:0)--(-12.8571:0)--(-64.2857:3.2)--(-115.7143:2.72)--(-167.1429:0.64)--(141.4286:2.88)--cycle;
+% Structural attacks: direction 1.0, per-edge 1.0, large-budget 1.0, cert 0.0,
+% query-eff 0.3, no-retrain 1.0, label-free 0.1
 \draw[okVermilion!85!black, line width=1.0pt, dashed, fill=okVermilion, fill opacity=0.12]
-  (90:2.88)--(30:2.56)--(-30:3.2)--(-90:0)--(-150:1.12)--(150:0.96)--cycle;
-% AEGIS: attack-dir 1.0, per-edge 1.0, large-budget 0.5, certificate 0.65,
-% label-free 1.0, efficiency 1.0
+  (90:3.2)--(38.5714:3.2)--(-12.8571:3.2)--(-64.2857:0)--(-115.7143:0.96)--(-167.1429:3.2)--(141.4286:0.32)--cycle;
+% AEGIS: direction 0.9, per-edge 0.9, large-budget 0.5, cert 0.65, query-eff 1.0,
+% no-retrain 1.0, label-free 1.0
 \draw[okGreen!75!black, line width=1.2pt, fill=okGreen, fill opacity=0.18]
-  (90:3.2)--(30:3.2)--(-30:1.6)--(-90:2.08)--(-150:3.2)--(150:3.2)--cycle;
+  (90:2.88)--(38.5714:2.88)--(-12.8571:1.6)--(-64.2857:2.08)--(-115.7143:3.2)--(-167.1429:3.2)--(141.4286:3.2)--cycle;
 % AEGIS vertex markers (it is the only method with mass on every axis)
-\foreach \a/\r in {90/3.2, 30/3.2, -30/1.6, -90/2.08, -150/3.2, 150/3.2}{
+\foreach \a/\r in {90/2.88, 38.5714/2.88, -12.8571/1.6, -64.2857/2.08, -115.7143/3.2, -167.1429/3.2, 141.4286/3.2}{
   \fill[okGreen!75!black] (\a:\r) circle (1.7pt);
 }
 
 % --- axis labels -------------------------------------------------------------
-\node[anchor=south, align=center]            at (90:3.52)  {Attack\\direction};
-\node[anchor=west,  align=left]              at (30:3.32)  {Per-edge\\attribution};
-\node[anchor=west,  align=left]              at (-30:3.32) {Large-budget\\damage};
-\node[anchor=north, align=center]            at (-90:3.52) {Per-node\\certificate};
-\node[anchor=east,  align=right]             at (-150:3.32){Label-free /\\no retraining};
-\node[anchor=east,  align=right]             at (150:3.32) {Query\\efficiency};
+\node[anchor=south,      align=center] at (90:3.52)      {Attack\\direction};
+\node[anchor=south west, align=left]   at (38.5714:3.34) {Per-edge\\attribution};
+\node[anchor=west,       align=left]   at (-12.8571:3.42){Large-budget\\damage};
+\node[anchor=north west,  align=left]  at (-64.2857:3.34){Per-node\\certificate};
+\node[anchor=north east, align=right]  at (-115.7143:3.34){Query\\efficiency};
+\node[anchor=east,       align=right]  at (-167.1429:3.42){No\\retraining};
+\node[anchor=south east, align=right]  at (141.4286:3.34){Label-free};
 
 % --- legend (below the chart) ------------------------------------------------
-\begin{scope}[shift={(0,-5.0)}]
+\begin{scope}[shift={(0,-4.6)}]
   \def\sw{0.5}     % swatch width
   \draw[okGreen!75!black, line width=1.2pt, fill=okGreen, fill opacity=0.18]
     (-3.4,0) rectangle ++(\sw,0.30);
