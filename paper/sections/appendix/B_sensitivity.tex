@@ -1,0 +1,145 @@
+%% ===================================================================
+%% Appendix B. Equilibrium Sensitivity and the Phase Transition
+%% Proofs of thm:phase_transition, the graph-independent nonnormality
+%% bound (obs:eta_bound + rem:eta_relu), and the per-node radius
+%% (prop:radius). Labels app:proofs / app:proof_phase / app:proof_eta /
+%% app:proof_radius are referenced from the main text and preserved.
+%% ===================================================================
+\section{Equilibrium Sensitivity and the Phase Transition}
+\label{app:proofs}
+
+This section proves the three results that turn the operator of \cref{app:prelim} into a safety
+boundary: how the equilibrium moves under a perturbation, how far the worst-case slack between the
+certificate and the true threshold can grow, and the per-node radius that the certificate yields. Each
+proof restates its claim in brief and then derives it step by step using the notation of
+\cref{tab:notation}.
+
+\subsection{Proof of the Phase Transition}
+\label{app:proof_phase}
+
+\Cref{thm:phase_transition} states that, under (A1)--(A3), a structural perturbation of size
+$\varepsilon=\norm{\delta\Ahat}_F$ passes through three regimes set by the critical budget
+$\ecrit=(1-\kappa)/\norm{W}_2$: subcritical ($\varepsilon<\ecrit$, the equilibrium moves boundedly),
+critical ($\varepsilon\to\ecrit$, its sensitivity diverges), and supercritical
+($\varepsilon\ge\ecrit$, contraction is no longer certified).
+
+\begin{proof}
+\emph{Step 1: the subcritical sensitivity.}
+On each ReLU linear region $F_\theta$ is affine, and the activation pattern at $\zstar$ is stable for
+small $\norm{\delta\Ahat}$ because the set of adjacencies whose equilibrium lands exactly on a region
+face has Lebesgue measure zero. The conservative calculus of \citet{bolte2021conservative} therefore
+supplies an IFT on each region. Differentiating the fixed-point condition $G(z,\Ahat)=z-F(z,\Ahat)=0$ at
+$(\zstar,\Ahat)$ gives the equilibrium response
+\begin{equation}
+\Delta\zstar=(I-J_z)^{-1}J_A\,\mathrm{vec}(\delta\Ahat)+O(\norm{\delta\Ahat}^2),
+\label{eq:ift-expand}
+\end{equation}
+which is exactly $S\,\mathrm{vec}(\delta\Ahat)$ to first order. The resolvent factor is what makes this
+an equilibrium rather than a one-step response: a perturbation injected into the loop returns
+attenuated by $J_z$ on each pass, and the total is the geometric sum
+$\sum_{j\ge0}J_z^{\,j}=(I-J_z)^{-1}$. Since $\kappa=\norm{J_z}_2<1$ this sum converges with
+\begin{equation}
+\norm{(I-J_z)^{-1}}_2\le\sum_{j\ge0}\kappa^{\,j}=\frac{1}{1-\kappa},
+\label{eq:neumann-bound}
+\end{equation}
+so taking the leading singular value in \eqref{eq:ift-expand} yields the shift bound
+$\norm{\Delta\zstar}_F\le\sigma_1(S)\,\varepsilon+O(\varepsilon^2)$ with
+$\sigma_1(S)\le\norm{J_A}_2/(1-\kappa)$, i.e.\ \eqref{eq:shift_bound}.
+
+\emph{Step 2: contraction survives below $\ecrit$.}
+Perturbing $\Ahat$ by $\delta\Ahat$ changes the state Jacobian to $J_z'=\diag(\phi')(\Ahat'\otimes W)$.
+Because $\norm{\diag(\phi')}_2\le1$ (A1) and the spectral norm is Kronecker-multiplicative,
+\begin{equation}
+\norm{J_z'}_2\le\norm{\Ahat'}_2\norm{W}_2\le(\norm{\Ahat}_2+\varepsilon)\,\norm{W}_2,
+\label{eq:Jzp-bound}
+\end{equation}
+and the right-hand side is below $1$ precisely when $\varepsilon<1/\norm{W}_2-\norm{\Ahat}_2=\ecrit$.
+A spectral-norm contraction has a unique fixed point by the Banach theorem, so for every feasible
+$\varepsilon<\ecrit$ the perturbed model still has a single well-defined equilibrium: this is the
+subcritical regime, and $\ecrit$ is a sufficient safety boundary.
+
+\emph{Step 3: the critical divergence and why $\ecrit$ is one-sided.}
+For any matrix $M$ the resolvent $(I-M)^{-1}$ has eigenvalues $(1-\lambda_i(M))^{-1}$, so
+\begin{equation}
+\norm{(I-M)^{-1}}_2\ \ge\ \rho\!\big((I-M)^{-1}\big)=\frac{1}{\min_i\abs{1-\lambda_i(M)}},
+\label{eq:resolvent-lb}
+\end{equation}
+which blows up when an eigenvalue of $M$ approaches $1$. The rate depends on the geometry of $J_z'$.
+When $J_z'$ is normal with a dominant real-positive (Perron) eigenvalue equal to $\norm{J_z'}_2$, the
+case for symmetric $\Ahat$ and $W$, the spectral gap to $1$ is
+$\min_i\abs{1-\lambda_i}=1-\norm{J_z'}_2=\norm{W}_2(\ecrit-\varepsilon)$ by \eqref{eq:Jzp-bound} with
+equality, giving the $\Omega\!\big(1/(\ecrit-\varepsilon)\big)$ divergence. The certificate is only
+one-sided because $\norm{J_z'}_2\to1$ need not drive the gap to zero: $M=\diag(-s,0)$ has
+$\norm{M}_2=s$ yet $\norm{(I-M)^{-1}}_2=1$, a dominant eigenvalue at $-s$ that stays far from $1$. So
+$\ecrit$ lower-bounds the true divergence threshold, and the slack is governed by how far $J_z'$ is from
+normal, the nonnormality $\eta$ of \cref{obs:eta_bound}.
+
+\emph{Step 4: supercritical.}
+For $\varepsilon\ge\ecrit$ the bound \eqref{eq:Jzp-bound} no longer forces $\norm{J_z'}_2<1$, the Banach
+contraction certificate fails, and the iteration may converge to a different fixed point, oscillate, or
+diverge.
+\end{proof}
+
+\subsection{A graph-independent bound on the nonnormality}
+\label{app:proof_eta}
+
+The slack $\eta$ in Step 3 could in principle grow with the graph; the next observation shows it does
+not, in the all-active case it is set by $W$ alone.
+
+\begin{observation}[Graph-independent nonnormality bound, all-active case]
+\label{obs:eta_bound}
+For $J_z=\diag(\phi')(\Ahat\otimes W)$ with $\Ahat$ symmetric and all units active ($\phi'\equiv1$), the
+nonnormality obeys $\eta\le\kappa(V_W)$, where $W=V_W D_W V_W^{-1}$ and
+$\kappa(V_W)=\norm{V_W}_2\norm{V_W^{-1}}_2$ is the eigenvector conditioning of $W$, independent of
+$\Ahat$.
+\end{observation}
+
+\begin{proof}
+Under (A4), $J_z=\Ahat\otimes W$, whose eigenvalues are the products $\lambda_i(\Ahat)\lambda_j(W)$ and
+whose eigenvectors are the Kronecker products of those of $\Ahat$ and $W$ \citep{stewart1990matrix}.
+Symmetric $\Ahat$ diagonalizes in an orthonormal basis, so its eigenvector matrix has conditioning
+$\kappa(U_{\Ahat})=1$ and contributes nothing to the joint conditioning; the joint eigenvector matrix
+therefore has condition number $\kappa(V_W)$. For any diagonalizable $M=VDV^{-1}$ the resolvent obeys
+$\norm{(I-M)^{-1}}_2\le\kappa(V)/(1-\rho(M))$, and the slack relative to the spectral-radius rate
+$1/(1-\rho(M))$ is exactly $\kappa(V)$. Applied to $J_z$ this gives $\eta\le\kappa(V_W)$.
+\end{proof}
+
+\begin{remark}[Empirical extension to general ReLU patterns]
+\label{rem:eta_relu}
+The bound assumes $\phi'\equiv1$. For general ReLU patterns the diagonalization argument no longer
+applies exactly, but the measured nonnormality stays moderate, $\eta\in[1.19,2.47]$ across the suite
+(\cref{app:ablations}), tracking $\kappa(V_W)$ closely. Graph structure does not amplify it; the modest
+$\eta$ traces to the spectral-norm regularization of $W$, exactly the quantity (A2) controls.
+\end{remark}
+
+\subsection{Proof of the Per-Node Radius}
+\label{app:proof_radius}
+
+\Cref{prop:radius} gives, for a node $v$ classified as $y_v$ with positive margins
+$m_v^{(c)}=f_{y_v}-f_c$ to every competitor $c$, the certified radius
+$r_v=\min_{c\ne y_v}m_v^{(c)}/\norm{(W_{y_v}-W_c)S_v}_2$, below which the prediction cannot change.
+
+\begin{proof}
+A perturbation of size $\varepsilon$ moves the node's equilibrium by
+$\Delta\zstar_v\approx S_v\,\mathrm{vec}(\delta\Ahat)$ (Step 1 of \cref{app:proof_phase}). Because the
+head is linear, each margin moves by $(W_{y_v}-W_c)\Delta\zstar_v$, and Cauchy--Schwarz bounds this by
+the operator norm of the composed map times the perturbation size,
+\begin{multline}
+\abs{\Delta m_v^{(c)}}=\abs{(W_{y_v}-W_c)\,S_v\,\mathrm{vec}(\delta\Ahat)}\\
+\le\norm{(W_{y_v}-W_c)S_v}_2\,\norm{\delta\Ahat}_F.
+\label{eq:margin-move}
+\end{multline}
+The prediction of $v$ survives as long as every margin stays positive. The margin to competitor $c$
+first reaches zero at $\norm{\delta\Ahat}_F=m_v^{(c)}/\norm{(W_{y_v}-W_c)S_v}_2$, and taking the binding
+(smallest) value over competitors gives
+\begin{equation}
+r_v=\min_{c\ne y_v}\frac{m_v^{(c)}}{\norm{(W_{y_v}-W_c)S_v}_2}.
+\label{eq:radius-restate}
+\end{equation}
+The form is a margin divided by how fast the worst perturbation spends it: the denominator is the
+product of two amplifiers, the decision-boundary gap $W_{y_v}-W_c$ and the equilibrium sensitivity
+$S_v$, so a node earns a large radius exactly when it has a wide margin and a low structural
+sensitivity. Minimizing over all competitors measures the distance to the nearest first-order decision
+boundary, so the guarantee holds even if the runner-up class changes along the way; substituting the
+constrained $S_{c,v}$ for $S_v$ tightens the denominator and yields the larger constrained radius.
+\end{proof}

@@ -1,0 +1,235 @@
+%% ===================================================================
+%% Appendix E. The AEGIS-Conformal Coverage Bound
+%% Conformity-score definitions (def:conf-scores), the worst-case
+%% score-shift lemma (lem:score-shift), the robust-coverage theorem
+%% (thm:robust-cov), and the two honesty remarks. Labels app:conformal,
+%% eq:*, def:conf-scores, lem:score-shift, thm:robust-cov,
+%% rem:margin-not-grad, rem:conf-caveats, rem:exchange-honesty preserved.
+%% ===================================================================
+\section{The \textsc{Aegis}-Conformal Coverage Bound}
+\label{app:conformal}
+
+This section derives the certificate behind \cref{eq:conformal}: a worst-case conformity-score-shift
+bound $L_1^{c}\varepsilon+C_v\varepsilon^2$ and the robust-coverage guarantee it implies. The argument
+has three parts, each building on the sensitivity already established. \Cref{def:conf-scores} fixes the
+two conformity scores and the two constants. \Cref{lem:score-shift} bounds the worst-case score shift
+using the first-order margin sensitivity (the Cauchy--Schwarz step of \cref{prop:radius}) and the
+second-order curvature (the complete remainder of \cref{app:proof_transfer}). \Cref{thm:robust-cov}
+inflates the split-conformal threshold by that shift and reduces to the binary certificate of
+\citet{zargarbashi2023conformal}. We use (A1)--(A3) and operate in the certified regime
+$\varepsilon<\ecrit$.
+
+\medskip\noindent\textbf{Conformal setup.}\quad
+Fix a target node $v$ with true label $y_v\in[C]$, and let $f=W\zstar_v+b\in\R^{C}$ be its pre-softmax
+logits (rows $W_1,\dots,W_C$) with class probabilities $\pi=\softmax(f)$. For a feasible perturbation
+$\delta\Ahat$ of size at most $\varepsilon$, write the perturbed logits $f'=W\zstar{}'_v+b$ and
+probabilities $\pi'=\softmax(f')$, and let $S_{c,v}$ be the block rows of $S_c$ at node $v$. By the
+first-order sensitivity \eqref{eq:ift-expand},
+\begin{equation}
+\Delta\zstar_v=S_{c,v}\,\boldsymbol\delta+R_v,\qquad
+\norm{\boldsymbol\delta}_2=\norm{\delta\Ahat}_F\le\varepsilon,
+\label{eq:ift-firstorder}
+\end{equation}
+where $\boldsymbol\delta$ are the edge-basis coordinates of $\delta\Ahat$ and $R_v$ is the remainder
+bounded in \cref{app:proof_transfer}. The edge basis is orthonormal, so the coordinate map is an
+isometry and the Frobenius budget passes through unchanged, which is the normalization that makes
+$\sigma_1(S_c)$ consistent with $\norm{\delta\Ahat}_F$.
+
+\begin{definition}[Conformity scores and the two AEGIS constants]
+\label{def:conf-scores}
+For node $v$ and candidate label $r\in[C]$, define the two conformity scores (higher means more
+conforming; the prediction set is $\Cset(v)=\{r:\score_r(v)\ge\hat q\}$):
+\begin{align}
+\text{TPS:}\quad&\score^{\mathrm{TPS}}_r(v)=\pi_r,\\
+\text{APS:}\quad&\score^{\mathrm{APS}}_r(v)=1-\big(\rho_r+u_v\,\pi_r\big),\\
+&\rho_r:=\sum_{c:\,\pi_c>\pi_r}\pi_c,
+\label{eq:aps}
+\end{align}
+with $u_v\sim\mathrm{Unif}[0,1]$ a per-node tie-break drawn once and shared between calibration and test,
+so it cancels under exchangeability. For each competitor $c\ne r$ let $g_c:=f_r-f_c$ be the logit
+margin. Define the first-order and curvature constants
+\begin{align}
+L_1^{(c)}&:=\norm{(W_r-W_c)\,S_{c,v}}_2,
+\label{eq:L1def}\\
+C_v&:=\norm{W_r-W_c}_2\cdot\frac{L_{J,v}}{2(1-\kappa)^2},
+\label{eq:Cvdef}
+\end{align}
+where $L_{J,v}\le\norm{W}_2^2\norm{\zstar}$ is the per-node curvature of \cref{app:proof_transfer} and
+$\kappa=\norm{J_z}_2<1$ (A3). Equation \eqref{eq:L1def} is the first-order margin sensitivity;
+\eqref{eq:Cvdef} is the curvature constant $L_J/(2(1-\kappa)^2)$ of \cref{prop:transfer} scaled by the
+readout gap. The aggregate node constant in \cref{eq:conformal} takes the competitor-worst values,
+$L_1^{c}=\max_{c\ne r}L_1^{(c)}$ and $C_v$ with the worst $\norm{W_r-W_c}_2$.
+\end{definition}
+
+\begin{remark}[Why the gradient is the readout gap, not $\nabla_z\score$]
+\label{rem:margin-not-grad}
+The constant \eqref{eq:L1def} uses the logit-margin rows $W_r-W_c$ rather than a softmax-Jacobian row
+$\nabla_z\score_r$, for two reasons. First, both scores depend on the logits only through the margins
+$\{g_c\}_{c\ne r}$ (softmax sees logits only through differences), so controlling every margin controls
+$\pi_r$ and $\rho_r$ and hence both scores (\cref{lem:score-shift}). Second, the margin form needs no
+bound on softmax curvature: it yields a sound, one-sided score drop without the $1/4$ softmax-Lipschitz
+slack. The $\nabla_z\score$ form is literally correct only for TPS, whereas the margin form covers both.
+\end{remark}
+
+\begin{lemma}[Worst-case conformity-score shift]
+\label{lem:score-shift}
+Assume (A1)--(A3), $\varepsilon<\ecrit$, and a linear head $f=W\zstar_v+b$. Then for every feasible
+$\delta\Ahat$ with $\norm{\delta\Ahat}_F\le\varepsilon$ and every label $r$,
+\begin{equation}
+\big|g_c(\Ahat+\delta\Ahat)-g_c(\Ahat)\big|\le L_1^{(c)}\varepsilon+C_v\varepsilon^2
+\label{eq:margin-shift}
+\end{equation}
+for every competitor $c\ne r$, and consequently the worst-case drop of the conformity score of label
+$r$ obeys
+\begin{multline}
+\score_r(v;\Ahat)-\score_r(v;\Ahat+\delta\Ahat)\le\Delta_r(\varepsilon),\\
+\Delta_r(\varepsilon):=\Psi_r\!\big(\{L_1^{(c)}\varepsilon+C_v\varepsilon^2\}_{c\ne r}\big),
+\label{eq:score-drop}
+\end{multline}
+where $\Psi_r$ is the monotone map from margin decrements to the induced score decrement. Taking the
+competitor-worst constants gives the headline $\Delta_r(\varepsilon)\le L_1^{c}\varepsilon+C_v\varepsilon^2$.
+\end{lemma}
+
+\begin{proof}
+\emph{Step 1: the linear term (Cauchy--Schwarz).}
+Because the head is affine, $g_c=(W_r-W_c)\zstar_v+(b_r-b_c)$, so
+$g_c'-g_c=(W_r-W_c)\Delta\zstar_v$. Inserting \eqref{eq:ift-firstorder} splits this into a first-order
+and a remainder part,
+\begin{equation}
+g_c'-g_c=(W_r-W_c)\,S_{c,v}\,\boldsymbol\delta+(W_r-W_c)\,R_v.
+\label{eq:margin-decomp}
+\end{equation}
+The first summand is a fixed covector paired with $\boldsymbol\delta$, so Cauchy--Schwarz and
+$\norm{\boldsymbol\delta}_2\le\varepsilon$ bound it by $L_1^{(c)}\varepsilon$ through definition
+\eqref{eq:L1def}. This is the same step that proves the radius $r_v$, now read with the readout gap
+$W_r-W_c$ in place of the full $S_v$ image, so the constant is the rate at which the most exposed margin
+moves per unit perturbation.
+
+\emph{Step 2: the quadratic term (curvature).}
+For the remainder, $\abs{(W_r-W_c)R_v}\le\norm{W_r-W_c}_2\norm{R_v}_2$. By \cref{app:proof_transfer} the
+equilibrium-map Hessian is the complete second derivative \eqref{eq:hessian-full}, bounded in operator
+norm by $(1-\kappa)^{-2}L_{J,v}$ with $L_{J,v}\le\norm{W}_2^2\norm{\zstar}$ finite under the contraction
+(A3). A second-order Taylor expansion along the feasible segment (finitely many ReLU regions,
+conservative IFT on each) therefore gives
+$\norm{R_v}_2\le\tfrac12(1-\kappa)^{-2}L_{J,v}\,\varepsilon^2$, hence
+$\abs{(W_r-W_c)R_v}\le C_v\varepsilon^2$ by \eqref{eq:Cvdef}. Combining the two summands in
+\eqref{eq:margin-decomp} with the triangle inequality yields \eqref{eq:margin-shift}.
+
+\emph{Step 3: from margins to scores (monotone link).}
+Both scores see the logits only through the margins: $\pi_r=(\sum_c e^{-g_c})^{-1}$ with $g_r:=0$, and
+the rank events $\{\pi_c>\pi_r\}=\{g_c<0\}$ defining $\rho_r$ depend only on the signs of the margins.
+The adversary minimizing $\score_r$ therefore lowers every margin as far as Step 1--2 allow, at most
+$L_1^{(c)}\varepsilon+C_v\varepsilon^2$ each. Define $\Psi_r$ as the resulting worst-case score drop. For
+TPS, $\pi_r$ is coordinatewise nonincreasing in each margin decrement, so substituting the worst
+admissible decrement per competitor and recomputing the softmax gives a sound over-estimate of the drop
+with no softmax-Lipschitz constant needed. For APS, lowering a margin can only raise $\score_r$ through
+the $-u_v\pi_r$ term (favorable) or move a competitor above $r$ in rank, adding $\pi_c$ to $\rho_r$
+(adverse); the worst case uses the same lowered-margin softmax, and since $\rho_r,\pi_r\in[0,1]$ and
+$u_v\le1$ the resulting drop is exact rather than a Lipschitz bound. Either way the per-competitor
+decrement caps the per-label score drop, giving \eqref{eq:score-drop}; the competitor-worst constants
+give the headline form.
+\end{proof}
+
+The shift bound is a margin budget read in two pieces. The linear constant $L_1^{c}$ is the rate at
+which the most exposed decision margin moves, factored as the readout gap $\norm{W_{y_v}-W_c}_2$ times
+the equilibrium sensitivity $S_{c,v}$, the same two-amplifier product as the radius $r_v$ but expressed
+in score units. The quadratic constant $C_v$ is the price of leaving the linear regime, the curvature
+$L_J/(2(1-\kappa)^2)$ with its two resolvents, scaled by the readout gap. Carrying the quadratic term is
+what makes the certificate sound rather than merely first-order: the bare $\sigma_1(S_c)\varepsilon$
+screen can be breached just past $r_v$, whereas $L_1^{c}\varepsilon+C_v\varepsilon^2$ over-states the
+true drop for every $\varepsilon<\ecrit$, which is why the empirical gate is conservative ($0.92$--$0.98$
+at $\varepsilon=0.05$) rather than tight.
+
+\begin{remark}[Where rigor stops, honestly]
+\label{rem:conf-caveats}
+Two load-bearing conditions remain. (1) \textbf{Affine head.} Step 1 needs $f$ affine in $\zstar_v$; a
+nonlinear readout would replace $W_r-W_c$ by the head Jacobian and add a Lipschitz factor. Our models
+use a linear head, so this holds with equality. (2) \textbf{Contractive regime.} The curvature bound and
+the finiteness of $\norm{\zstar}$ both need $\kappa<1$ and $\varepsilon<\ecrit$ (A3); past $\ecrit$ the
+resolvent $1/(1-\kappa)$ is meaningless and the bound is void, the same scope as
+\cref{thm:phase_transition}. On the conformal subgraph $\kappa\approx0.68$, so $(1-\kappa)^{-2}\approx9.8$
+inflates $C_v$, yet the gate confirms the bound is not breached. The earlier worry about ``omitted
+higher-order terms'' does not arise: \cref{app:proof_transfer} shows the operator is bilinear on each
+linear region, so \eqref{eq:hessian-full} is the \emph{complete} equilibrium Hessian and $C_v$ rests on
+the full second derivative, not a dominant-term reduction.
+\end{remark}
+
+\begin{theorem}[Robust coverage of \AEGIS-Conformal]
+\label{thm:robust-cov}
+Let $\{(v_i,y_{v_i})\}_{i\in\mathrm{cal}}$ be a split-conformal calibration set and $v$ a test node.
+Assume:
+\begin{enumerate}
+\item[(C1)] \emph{Exchangeability.} The clean true-label scores
+$\{\score_{y_{v_i}}(v_i)\}_{i\in\mathrm{cal}}\cup\{\score_{y_v}(v)\}$ are exchangeable (an inductive
+split, or a transductive split with a permutation-invariant predictor; \citealp{zargarbashi2023conformal}).
+\item[(C2)] \emph{Score-shift bound.} For every calibration node $w$ and the test node, simultaneously
+over all feasible $\norm{\delta\Ahat}_F\le\varepsilon<\ecrit$,
+$\score_{y_w}(w;\Ahat+\delta\Ahat)\ge\score_{y_w}(w;\Ahat)-\Delta_{y_w}(\varepsilon)$ with
+$\Delta_{y_w}$ the bound of \cref{lem:score-shift}.
+\end{enumerate}
+Form the calibration-robust threshold
+\begin{multline}
+\hat q_{\mathrm{rob}}=\mathrm{Quantile}_{\lceil(n_{\mathrm{cal}}+1)(1-\alpha)\rceil/n_{\mathrm{cal}}}\\
+\Big(\big\{\score_{y_{v_i}}(v_i;\Ahat)-\Delta_{y_{v_i}}(\varepsilon)\big\}_{i\in\mathrm{cal}}\Big),
+\label{eq:qrob}
+\end{multline}
+and the robust set $\Cset_\varepsilon(v;\Ahat')=\{r:\score_r(v;\Ahat')\ge\hat q_{\mathrm{rob}}\}$. Then
+\begin{multline}
+\Pr\!\big[y_v\in\Cset_\varepsilon(v;\Ahat+\delta\Ahat)\big]\ge1-\alpha\\
+\text{for all feasible }\norm{\delta\Ahat}_F\le\varepsilon.
+\label{eq:robcov}
+\end{multline}
+\end{theorem}
+
+\begin{proof}
+\emph{Step 1: reduce to lowered scores.}
+Define the lowered scores
+$\tilde\score_{y_w}(w):=\score_{y_w}(w;\Ahat)-\Delta_{y_w}(\varepsilon)$ on calibration and test. By
+(C2), the realized perturbed true-label score dominates its lowered clean value,
+$\score_{y_w}(w;\Ahat+\delta\Ahat)\ge\tilde\score_{y_w}(w)$, for every feasible $\delta\Ahat$ at once.
+This is exactly the guaranteed lower envelope the binary certificate of \citet{zargarbashi2023conformal}
+requires; \cref{lem:score-shift} supplies it analytically for the continuous $\varepsilon$-ball,
+replacing their combinatorial enumeration of a discrete neighbourhood.
+
+\emph{Step 2: the lowered scores stay exchangeable.}
+Each node's lowering $\Delta_{y_w}(\varepsilon)$ is a deterministic function of that node's own
+$(W_{y_w}-W_c,\,S_{c,w},\,L_{J,w})$, a per-point measurable transform of its clean score context, and
+the tie-break $u_{(\cdot)}$ is shared. Under (C1) the clean scores are exchangeable, and a common
+per-point transform preserves exchangeability, so the lowered scores are exchangeable too.
+
+\emph{Step 3: split-conformal validity on the lowered scores.}
+By the standard split-conformal guarantee \citep{vovk2005algorithmic} applied to the exchangeable
+lowered scores, with $\hat q_{\mathrm{rob}}$ the $\lceil(n_{\mathrm{cal}}+1)(1-\alpha)\rceil$-th smallest
+calibration value \eqref{eq:qrob}, $\Pr[\tilde\score_{y_v}(v)\ge\hat q_{\mathrm{rob}}]\ge1-\alpha$.
+
+\emph{Step 4: transfer to the whole ball.}
+On the event $\{\tilde\score_{y_v}(v)\ge\hat q_{\mathrm{rob}}\}$, Step 1 gives
+$\score_{y_v}(v;\Ahat+\delta\Ahat)\ge\tilde\score_{y_v}(v)\ge\hat q_{\mathrm{rob}}$ for every feasible
+$\delta\Ahat$ simultaneously, because the envelope is uniform over the ball rather than per-$\delta$.
+Hence $y_v\in\Cset_\varepsilon(v;\Ahat+\delta\Ahat)$ on that event, and \eqref{eq:robcov} follows from
+the bound of Step 3. At $\varepsilon=0$, $\Delta\equiv0$ and the statement reduces to the ordinary
+split-conformal $1-\alpha$ guarantee, as it must.
+\end{proof}
+
+The certificate buys robustness by paying the worst-case score drop up front, on the calibration set.
+Lowering every calibration true-label score by its own analytic $\Delta(\varepsilon)$ before taking the
+quantile raises the threshold just enough that any in-ball perturbation of the test node, which can
+lower its true-label score by at most its own $\Delta(\varepsilon)$, still clears the bar. Because the
+lowering is per-node and deterministic it commutes with exchangeability, so the only probabilistic
+content is the ordinary split-conformal quantile event; the uniformity in Step 4 is what upgrades
+``robust to a fixed attack'' into ``robust over the whole ball.''
+
+\begin{remark}[Honest status of the coverage guarantee]
+\label{rem:exchange-honesty}
+(C1) is the load-bearing hypothesis, and it does not hold for free on a single fixed transductive graph:
+calibration and test nodes share one realized adjacency, and an IGNN's output at $v$ depends on the
+whole graph, so the scores are not i.i.d.\ and exchangeability must be imposed by design (inductive
+sampling, or a transductive-exchangeability argument as in \citealp{zargarbashi2023conformal}). We
+therefore state \eqref{eq:robcov} as sound under (C1), with the empirical coverage (clean coverage
+$\approx0.90$) and the worst-case gate ($0.90$ at $\varepsilon=0.01$, $0.92$--$0.98$ at
+$\varepsilon=0.05$, zero equilibrium divergence across all $4138$ gate nodes) as evidence that (C1)
+holds well enough on these graphs. The reduction to \citet{zargarbashi2023conformal} is faithful: their
+construction yields robust coverage from any uniform worst-case score envelope, and
+\cref{lem:score-shift} is exactly such an envelope, computed analytically with zero Monte-Carlo
+smoothing.
+\end{remark}

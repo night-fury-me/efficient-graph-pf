@@ -148,10 +148,13 @@
 
 \begin{document}
 \maketitle
+% (An appendix-only Table of Contents is built at the \appendix block near the end of
+% this file. aaai2026.sty disables \addcontentsline to forbid a document ToC; we
+% restore it there, after the body is typeset, so only appendix sections are listed.)
 % Tighten float separation to fit the 7pp budget (vertical spacing only; no font/margin change).
-\setlength{\textfloatsep}{6pt plus 2pt minus 2pt}
-\setlength{\intextsep}{6pt plus 2pt minus 2pt}
-\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{4pt plus 2pt minus 2pt}
+\setlength{\intextsep}{4pt plus 2pt minus 2pt}
+\setlength{\floatsep}{4pt plus 2pt minus 2pt}
 % Allow denser float packing so the figure-heavy body fits the 7pp budget (placement only).
 \renewcommand{\topfraction}{0.92}
 \renewcommand{\bottomfraction}{0.85}
@@ -161,7 +164,7 @@
 \setcounter{bottomnumber}{3}
 \setcounter{totalnumber}{6}
 % Smaller caption font (figures + tables) to save vertical space.
-\captionsetup{font=footnotesize,skip=4pt}
+\captionsetup{font=footnotesize,skip=3pt}
 
 % Section order: Construction (framework) precedes Theory so the operator is
 % defined before the theorems reason about it; other sections as in aegis.tex.
@@ -194,6 +197,41 @@
 % the detailed experiment tables, the algorithm listing, and the fraud-detector
 % walk-through are relocated here (relocated, not deleted).
 \appendix
+
+% --- Dedicated appendix Table of Contents (black, AAAI-clean) ------------------
+% aaai2026.sty nullifies \addcontentsline (its line 44) to forbid a document ToC.
+% We restore the standard kernel definition HERE, after the body has been typeset,
+% so that ONLY the appendix sections below log to the .toc; the body, already
+% typeset under the no-op definition, contributes nothing, giving an appendix-only
+% ToC with no hyperref/xcolor. \@starttoc inputs/reopens the .toc as \tableofcontents
+% does but without its built-in heading, so we control the "Appendix" /
+% "Table of Contents" titles and the framing rules to match the reference layout.
+% The article defaults render lettered \section entries in bold (no leaders) and
+% \subsection entries with dotted leaders and page numbers. Two passes settle pages.
+% \onecolumn makes the ToC span the full page width (both columns); \twocolumn below
+% resumes the normal two-column layout for the appendix body.
+\onecolumn
+\makeatletter
+% Modern LaTeX \contentsline takes FOUR arguments (the 4th is the hyperref anchor,
+% empty when hyperref is absent); we write that empty {} so each entry is self-
+% contained and does not swallow the next.
+\renewcommand{\addcontentsline}[3]{%
+  \addtocontents{#1}{\protect\contentsline{#2}{#3}{\thepage}{}}}
+\makeatother
+\setcounter{tocdepth}{2}
+\begingroup
+  \par\noindent{\Large\bfseries Appendix}\par
+  \vspace{1.0em}
+  \par\noindent{\large\bfseries Table of Contents}\par
+  \vspace{0.35em}
+  \noindent\rule{\linewidth}{0.8pt}\par
+  \vspace{0.5em}
+  \makeatletter\@starttoc{toc}\makeatother
+  \vspace{0.4em}
+  \noindent\rule{\linewidth}{0.8pt}\par
+\endgroup
+\twocolumn
+
 \input{sections/appendix}
 
 \end{document}

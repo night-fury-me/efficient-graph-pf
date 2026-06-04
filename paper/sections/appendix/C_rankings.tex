@@ -1,0 +1,132 @@
+%% ===================================================================
+%% Appendix C. From Continuous Sensitivity to Discrete Rankings
+%% Proofs of prop:transfer (continuous-to-discrete ranking transfer, with
+%% the full second-order remainder) and prop:explicit (K-layer explicit
+%% GNNs). Labels app:proof_transfer / eq:ranking / app:explicit_prop are
+%% referenced from the main text and preserved.
+%% ===================================================================
+\section{From Continuous Sensitivity to Discrete Rankings}
+\label{app:transfer}
+
+The sensitivity $S_c$ is a continuous, implicit-model object, while practitioners delete whole edges and
+use explicit, finite-depth GNNs. Two bridges carry $S_c$ across that gap, and we prove both here: the
+first shows the continuous score ranks discrete edge removals, the second shows the same construction
+applies to unrolled explicit networks.
+
+\subsection{Continuous-to-Discrete Ranking Transfer}
+\label{app:proof_transfer}
+
+\Cref{prop:transfer} states that, when every single-edge removal is subcritical, the true removal damage
+of edge $k$ factors as $d_k=w_k v_k+R_k$ with $\abs{R_k}\le L_J w_k^2/\big(2(1-\kappa)^2\big)$, so the
+edge-weighted score $w_k v_k$ preserves the brute-force removal order whenever the score gap between two
+edges beats this quadratic remainder. The pairwise condition under which a pair $(k_1,k_2)$ with
+$v_{k_1}>v_{k_2}$ and $w_{k_1}\ge w_{k_2}$ keeps its order is
+\begin{equation}
+w_{k_1}<\frac{v_{k_1}-v_{k_2}}{L_J/(1-\kappa)^2}.
+\label{eq:ranking}
+\end{equation}
+
+\begin{proof}
+\emph{Step 1: a removal is a continuous edge-weight perturbation.}
+Deleting edge $k$ under fixed normalization sets $[\delta\Ahat]_{ij}=[\delta\Ahat]_{ji}=-w_k$ with the
+degree matrix $D$ held fixed, which is exactly the continuous perturbation $S_c$ is built to score. By
+the first-order sensitivity \eqref{eq:ift-expand} restricted to the edge, the damage is
+$\norm{\Delta\zstar}\approx w_k v_k$ with $v_k=\norm{[S_c]_{:,k}}_2$. (Recomputing the normalization
+instead adds an $O(d_i^{-1})$ rescaling of the incident edges, negligible away from low-degree nodes.)
+It remains to bound the second-order error $R_k$.
+
+\emph{Step 2: the remainder is governed by one cross term, with nothing omitted.}
+On the interior of a ReLU linear region the activation mask $D=\diag(\phi')$ is constant, so the operator
+$F(z,\Ahat)=D\,(\Ahat\otimes W)\,z+Dx$ is \emph{bilinear} in $(\Ahat,z)$: linear in $z$ at fixed
+$\Ahat$, and linear in $\Ahat$ at fixed $z$. Both pure second partials therefore vanish,
+\begin{equation}
+F_{zz}=\frac{\partial^2 F}{\partial z^2}=0,\qquad
+F_{AA}=\frac{\partial^2 F}{\partial\mathrm{vec}(A)^2}=0,
+\label{eq:bilinear}
+\end{equation}
+and the only surviving second derivative is the adjacency--state cross term $F_{zA}$. Differentiating
+the IFT sensitivity $\partial\zstar/\partial\mathrm{vec}(A)=(I-J_z)^{-1}J_A$ once more and using
+\eqref{eq:bilinear} to drop every other term gives the full Hessian of the equilibrium map,
+\begin{equation}
+\frac{\partial^2\zstar}{\partial\mathrm{vec}(A)^2}
+=(I-J_z)^{-1}\big(F_{zA}+F_{Az}\big)(I-J_z)^{-1}J_A.
+\label{eq:hessian-full}
+\end{equation}
+Each summand carries two resolvents $(I-J_z)^{-1}$, a cross partial $F_{zA}$ or $F_{Az}$ proportional to
+$\norm{W}_2$, and $J_A$ proportional to $\norm{W}_2\norm{\zstar}$ (since
+$J_A=\partial F/\partial\mathrm{vec}(A)\propto\zstar W^\top$). Bounding the resolvents by $1/(1-\kappa)$
+each (\cref{eq:neumann-bound}) and collecting the weight factors into
+\begin{equation}
+L_J\le\norm{W}_2^2\,\norm{\zstar},\qquad \norm{\zstar}\le\frac{\norm{X_{\mathrm{proj}}}}{1-\kappa},
+\label{eq:LJ-bound}
+\end{equation}
+where the bound on $\norm{\zstar}$ is the $\kappa$-contraction of $F$ at its fixed point (A3), yields
+$\norm{\partial^2\zstar/\partial\mathrm{vec}(A)^2}_2\le(1-\kappa)^{-2}L_J$. The feasible segment
+$\Ahat\to\Ahat+\delta\Ahat$ crosses finitely many regions (simultaneous boundary crossings are
+non-generic, measure zero), and the conservative IFT of \citet{bolte2021conservative} applies on each,
+so summing the second-order Taylor remainder across them preserves the bound:
+\begin{equation}
+\abs{R_k}\le\tfrac12\,(1-\kappa)^{-2}L_J\,w_k^2.
+\label{eq:Rk-bound}
+\end{equation}
+This is the \emph{complete} second-order remainder: the bilinearity \eqref{eq:bilinear} leaves no other
+second-derivative term to bound, so \eqref{eq:Rk-bound} is exact on each region rather than a
+dominant-term reduction.
+
+\emph{Step 3: the score preserves the ranking.}
+With $d_k=w_k v_k+R_k$ from Steps 1--2 and $C:=L_J/\big(2(1-\kappa)^2\big)$, two edges differ by
+\begin{equation}
+d_{k_1}-d_{k_2}\ \ge\ \big(w_{k_1}v_{k_1}-w_{k_2}v_{k_2}\big)-C\big(w_{k_1}^2+w_{k_2}^2\big).
+\label{eq:rank-gap}
+\end{equation}
+When $v_{k_1}>v_{k_2}$ and $w_{k_1}\ge w_{k_2}$ the first-order gap is positive, and condition
+\eqref{eq:ranking} is exactly what makes it exceed the summed quadratic remainders, so the sign of
+$d_{k_1}-d_{k_2}$ matches that of the score gap and the order is preserved. Because the signal scales as
+$O(w_k)$ and the error only as $O(w_k^2)$, the ranking is reliable for the small-weight edges of sparse
+graphs; empirically $\abs{R_k}$ runs $2$--$10\times$ below $L_J w_k^2$, and the edge-weighted score
+reaches Kendall $\tau=+0.996$ against brute-force single-edge removal on full-graph Amazon Photo
+(\cref{sec:explicit_extension}).
+\end{proof}
+
+\subsection{Structural Sensitivity for $K$-Layer Explicit GNNs}
+\label{app:explicit_prop}
+
+\Cref{prop:explicit} states that an explicit $K$-layer network
+$Z_K=g_K\circ\cdots\circ g_1(X,A)$, which has no fixed point, still admits the unrolled sensitivity
+$S_K$ of \cref{eq:unrolled}, and that $S_K$ replaces $S$ throughout the pipeline.
+
+\begin{proof}
+\emph{Step 1: unroll and apply the chain rule.}
+Write $Z_K$ as the composition of the $K$ layers and differentiate $\mathrm{vec}(Z_K)$ with respect to
+$\mathrm{vec}(A)$. Each layer $l$ depends on $A$ both directly, through
+$J_A^{(l)}=\partial g_l/\partial\mathrm{vec}(A)$, and indirectly through its input $Z_{l-1}$; propagating
+the direct dependence of layer $l$ forward through the later layers' input Jacobians
+$J_z^{(k)}=\partial g_k/\partial Z_{k-1}$ and summing over $l$ gives
+\begin{equation}
+S_K=\frac{\partial\,\mathrm{vec}(Z_K)}{\partial\,\mathrm{vec}(A)}
+=\sum_{l=1}^{K}\Big(\prod_{k=l+1}^{K}J_z^{(k)}\Big)J_A^{(l)},
+\label{eq:unrolled-restate}
+\end{equation}
+which is \eqref{eq:unrolled}.
+
+\emph{Step 2: the first-order shift bound.}
+Submultiplicativity of the spectral norm applied term by term in \eqref{eq:unrolled-restate} gives
+$\sigma_1(S_K)\le\sum_{l=1}^{K}\big(\prod_{k=l+1}^{K}\norm{J_z^{(k)}}_2\big)\norm{J_A^{(l)}}_2$, and a
+first-order Taylor expansion of $Z_K$ in $A$ turns this into the shift bound
+$\norm{\Delta Z_K}_F\le\sigma_1(S_K)\,\norm{\delta A}_F+O(\norm{\delta A}^2)$.
+
+\emph{Step 3: the implicit limit.}
+For a weight-tied model every $\norm{J_z^{(k)}}_2\le\kappa$, so the sum is geometric,
+\begin{multline}
+\sigma_1(S_K)\le\norm{J_A}_2\sum_{j=0}^{K-1}\kappa^{\,j}=\norm{J_A}_2\,\frac{1-\kappa^{K}}{1-\kappa}\\
+\xrightarrow[K\to\infty]{}\ \frac{\norm{J_A}_2}{1-\kappa},
+\label{eq:explicit-limit}
+\end{multline}
+recovering the implicit bound of \cref{app:proof_phase}: unrolling a finite network is the truncated
+version of the geometric series that the implicit resolvent $(I-J_z)^{-1}$ sums in closed form, so the
+two agree as depth grows. Because $S_K$ enters the constrained construction $S_c$ and the per-node
+radius $r_v$ (\cref{prop:radius}) in exactly the same place as $S$, the whole pipeline carries over;
+only the closed-form $\ecrit$, which needs the contraction (A3), stays restricted to the implicit
+subclass. Empirically the explicit models match the implicit tightness ($0.99$--$1.02$ across the
+suite, \cref{app:explicit}).
+\end{proof}

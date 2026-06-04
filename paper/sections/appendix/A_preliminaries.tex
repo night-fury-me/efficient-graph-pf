@@ -1,0 +1,159 @@
+%% ===================================================================
+%% Appendix A. Notation and Preliminaries
+%% Central symbol table, standing assumptions (A1)-(A4), the objects the
+%% theory reasons about, and the matrix-free evaluation of the operator.
+%% Everything downstream references this section instead of redefining.
+%% ===================================================================
+\section{Notation and Preliminaries}
+\label{app:prelim}
+
+This appendix proves every result stated in the main paper and reports the supporting experiments in
+full. Its purpose is to let a reader reconstruct each claim end to end, so the proofs are written as
+explicit derivations rather than sketches. To keep them readable we fix all notation once here: every
+symbol used later appears in \cref{tab:notation}, every abbreviation in the glossary below, and the
+standing assumptions and operator identities that recur across proofs are stated a single time and then
+invoked by name.
+
+\subsection{Symbols}
+\label{app:symbols}
+
+The framework studies one object, the equilibrium of a graph operator, and how it moves when the graph
+is perturbed. \Cref{tab:notation} lists the symbols in the order a reader meets them: first the operator
+and its two Jacobians, then the sensitivity matrices read off them, then the two perturbation budgets
+and the constants that relate them, and finally the classification head and the conformal quantities.
+
+\begin{table*}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{6pt}
+\caption{Notation used throughout the appendix. ``First used'' points to the result that introduces or
+relies on the symbol.}
+\label{tab:notation}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Symbol & Meaning & First used \\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Operator and Jacobians}}\\
+$\Ahat$ & symmetric normalized adjacency $D^{-1/2}(A{+}I)D^{-1/2}$ & \cref{thm:phase_transition}\\
+$W$ & tied weight matrix of the layer & \cref{thm:phase_transition}\\
+$\phi,\ \diag(\phi')$ & $1$-Lipschitz activation; its derivative mask & (A1)\\
+$\zstar$ & equilibrium (fixed point) of $F_\theta$ & \cref{thm:phase_transition}\\
+$J_z$ & state Jacobian $\diag(\phi')(\Ahat\otimes W)$ & \cref{thm:phase_transition}\\
+$J_A$ & structural Jacobian $\partial F/\partial\mathrm{vec}(A)$ & \cref{thm:phase_transition}\\
+$\kappa$ & contraction factor $\norm{J_z}_2<1$ & (A3)\\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Sensitivity read off the operator}}\\
+$S$ & structural sensitivity $(I{-}J_z)^{-1}J_A$ & \cref{thm:phase_transition}\\
+$S_c$ & edge-constrained sensitivity $ (I{-}J_z)^{-1}J_A P_c$ & \cref{sec:framework}\\
+$P_c,\ P_E$ & projection onto symmetric, edge-supported perturbations & \cref{thm:cf2s}\\
+$S_v,\ S_{c,v}$ & block rows of $S,\ S_c$ at node $v$ & \cref{prop:radius}\\
+$\sigma_1(\cdot)$ & leading singular value & \cref{prop:attack}\\
+$w_k,\ v_k$ & edge weight $[\Ahat]_{ij}$; edge score $\norm{[S_c]_{:,k}}_2$ & \cref{prop:transfer}\\
+$d_k$ & true damage of removing edge $k$ & \cref{prop:transfer}\\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Budgets and the constants that relate them}}\\
+$\ecrit$ & norm certificate $(1{-}\kappa)/\norm{W}_2$ & \cref{thm:phase_transition}\\
+$\espec$ & all-active spectral break $1/\rho(W){-}\rho(\Ahat)$ & \cref{thm:cf2s}\\
+$\ebreak,\ \ebreakall$ & deployed / all-active contraction-break budget & \cref{thm:cf2s}\\
+$\ereach$ & measured nonlinear break budget & \cref{rem:obs_o1}\\
+$\gW$ & nonnormality of $W$, $\norm{W}_2/\rho(W)\ge1$ & \cref{thm:cf2s}\\
+$\eta$ & Neumann-to-spectral slack (pseudospectral index) & \cref{obs:eta_bound}\\
+$\beta=\sigma_E$ & edge-supported mass of the Perron mode $u_1$ & \cref{thm:cf2s}\\
+$C$ & bracket constant $\gW(1{+}\kappa)/(1{-}\kappa)$ & \cref{thm:cf2s}\\
+$L_J$ & equilibrium-map curvature, $\le\norm{W}_2^2\norm{\zstar}$ & \cref{prop:transfer}\\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Classification head and conformal prediction}}\\
+$f=W\zstar_v{+}b$ & node logits read by the linear head & \cref{prop:radius}\\
+$m_v^{(c)}$ & logit margin $f_{y_v}{-}f_c$ to competitor $c$ & \cref{prop:radius}\\
+$r_v$ & per-node first-order sensitivity radius & \cref{prop:radius}\\
+$\score^{\mathrm{TPS}},\ \score^{\mathrm{APS}}$ & the two conformity scores & \cref{def:conf-scores}\\
+$\Cset(v),\ \hat q$ & prediction set; conformal threshold & \cref{def:conf-scores}\\
+$L_1^{(c)},\ C_v$ & first-order and curvature score-shift constants & \cref{lem:score-shift}\\
+$\alpha,\ n_{\mathrm{cal}}$ & target miscoverage; calibration-set size & \cref{thm:robust-cov}\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\noindent\textbf{Abbreviations.}
+IFT, implicit function theorem; JVP/VJP, Jacobian--vector and vector--Jacobian products (matrix-free
+directional derivatives); SVD/rSVD, (randomized) singular value decomposition; PGD, projected gradient
+descent; BCD, block coordinate descent; MC, Monte Carlo; TPS/APS, threshold and adaptive prediction-set
+conformity scores. Norms are $\norm{\cdot}_2$ (spectral, on operators; Euclidean, on vectors) and
+$\norm{\cdot}_F$ (Frobenius); $\rho(\cdot)$ is the spectral radius and $\otimes$ the Kronecker product.
+
+\subsection{Standing assumptions}
+\label{app:assumptions}
+
+All proofs operate on the same operator and in the same certified regime, recorded once here.
+
+\begin{definition}[Operator and certified regime]
+\label{ass:tight-v2}
+Let $F_\theta(Z,\Ahat)=\phi(\Ahat Z W^\top + X_{\mathrm{proj}})$ with equilibrium
+$\zstar=F_\theta(\zstar,\Ahat)$. We assume:
+\begin{enumerate}
+\item[(A1)] \emph{Lipschitz activation.} $\phi$ is $1$-Lipschitz (ReLU or similar), so
+$\norm{\diag(\phi')}_2\le1$ pointwise; the nonsmoothness of ReLU at $0$ is handled by the conservative
+calculus of \citet{bolte2021conservative}, which supplies an IFT on each linear region.
+\item[(A2)] \emph{Bounded weight.} $\norm{W}_2\le c$ through spectral normalization. This caps the
+\emph{numerator} of $\gW$ but does not by itself bound $\rho(W)$ away from $0$ (see
+\cref{app:bracket}), so (A2) does not imply (A3).
+\item[(A3)] \emph{Trained contractivity.} $\kappa:=\norm{J_z}_2<1$, equivalently
+$\norm{\Ahat}_2\norm{W}_2<1$, verified post-training ($\kappa\in[0.14,0.59]$ across our suite).
+\item[(A4)] \emph{All-active operating point.} On the operating set every unit is active,
+$\phi'\equiv1$, so $J_z=\Ahat\otimes W$. Only the \emph{upper} side of the boundary theorem
+(\cref{app:bracket}) invokes (A4); every certificate uses (A1)--(A3) alone.
+\end{enumerate}
+Unless stated otherwise we work in the certified regime $\varepsilon<\ecrit$, where the perturbed
+operator is still a contraction and the resolvent $(I-J_z)^{-1}$ is well defined.
+\end{definition}
+
+\subsection{The objects the theory reasons about}
+\label{app:objects}
+
+The operator $F_\theta$ maps a node-state matrix $Z$ to a new one by one round of graph propagation and a
+weight $W$; its fixed point $\zstar$ is the equilibrium an implicit GNN settles into. Two Jacobians
+describe how that equilibrium responds to a perturbation. The \emph{state} Jacobian
+$J_z=\diag(\phi')(\Ahat\otimes W)$ measures how the next state depends on the current one; under (A3) it
+is a contraction, so a perturbation injected into the loop decays geometrically. The \emph{structural}
+Jacobian $J_A=\partial F/\partial\mathrm{vec}(A)$ measures how the operator depends directly on the
+graph. Differentiating the fixed-point equation $\zstar=F_\theta(\zstar,\Ahat)$ through the IFT combines
+the two into the structural sensitivity
+\begin{equation}
+S=(I-J_z)^{-1}J_A,
+\label{eq:S-def}
+\end{equation}
+the single object every diagnostic is read from. The inverse resolvent $(I-J_z)^{-1}$ is what turns a
+local Jacobian into the equilibrium response: it sums the effect of the perturbation as it circulates
+around the loop. Restricting the input to feasible (symmetric, edge-supported) perturbations through the
+projection $P_c$ gives the constrained operator $S_c=(I-J_z)^{-1}J_A P_c$ used in practice.
+
+From $S$ and $S_c$ the paper reads three diagnostics, each proved in a later section: the certified
+budget $\ecrit$ below which the prediction cannot break (\cref{app:proofs,app:bracket}); the per-node
+radius $r_v$ that turns the margin of node $v$ into a safe perturbation distance (\cref{app:proofs}); and
+the per-edge score $v_k=\norm{[S_c]_{:,k}}_2$ that ranks how much each edge matters
+(\cref{app:transfer}). The conformal certificate of \cref{app:conformal} upgrades the first-order radius
+into a distribution-free coverage guarantee.
+
+\subsection{Matrix-free evaluation of the sensitivity operator}
+\label{app:matrixfree}
+
+None of the diagnostics forms $S$ explicitly, which is what lets the pipeline scale; the routing is
+\cref{alg:aegis} and we record here why a single matrix--vector rule suffices. Applying $S_c$ to a
+vector $v$ expands the resolvent as a Neumann series,
+\begin{equation}
+S_c\,v=(I-J_z)^{-1}J_A P_c\,v=\sum_{j=0}^{\infty}J_z^{\,j}\,J_A P_c\,v,
+\label{eq:neumann}
+\end{equation}
+which converges because $\kappa<1$ (A3). Truncating at depth $K$ leaves a tail bounded by the same
+contraction factor,
+\begin{equation}
+\Big\lVert S_c v-\sum_{j=0}^{K}J_z^{\,j}J_A P_c v\Big\rVert_2
+\le\frac{\kappa^{\,K+1}}{1-\kappa}\,\norm{J_A P_c v}_2,
+\label{eq:neumann-tail}
+\end{equation}
+so the depth needed for a target accuracy grows only logarithmically in $1/\kappa$ ($K\in[20,50]$ for
+$\kappa<0.8$). Each term $J_z^{\,j}(\cdot)$ is one forward-mode JVP costing $O(Nd)$ memory rather than
+the $O((Nd)^2)$ of a dense $S$, and a randomized SVD returns the leading pair $(\sigma_1,v_1)$ that the
+attack and defense use. The well-separated singular spectrum (gap $0.39$--$0.50$) is why one rSVD
+matches an iterative attacker; the empirical truncation residual $\kappa^{200}\in[10^{-105},10^{-48}]$
+on the suite confirms \eqref{eq:neumann-tail} is slack at the depths we run.
