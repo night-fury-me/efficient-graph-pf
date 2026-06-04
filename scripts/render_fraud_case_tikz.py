@@ -129,7 +129,7 @@ def main():
     # ---- legend ----
     L.append(rf"""% ---- legend ----
 \begin{{scope}}[shift={{({W + 1.15:.2f}, {H + 0.2:.2f})}}]
-  \node[font=\normalsize\itshape, color=black!65, anchor=west] at (-0.30, 0.30) {{Accounts}};
+  \node[font=\normalsize\itshape, color=black!65, anchor=west] at (-0.30, 0.52) {{Accounts}};
   \node[iconT, minimum size=6.2mm] at (0,-0.22) {{\includegraphics[width=5.4mm]{{icons/target}}}};
   \node[font=\small, anchor=west, black] at (0.50,-0.22) {{audited fraud account}};
   \node[iconF, minimum size=5.6mm] at (0,-0.92) {{\includegraphics[width=4.9mm]{{icons/fraud}}}};
@@ -151,7 +151,7 @@ def main():
     # ---- summary card (with review-02 accent) ----
     L.append(r"\node[anchor=north west, font=\small, draw=okGrey!35, line width=0.3pt,")
     L.append(r"      fill=white, rounded corners=2pt, inner sep=4pt, align=left]")
-    L.append(f"  at (-0.4, -0.55) {{\\raisebox{{-1.1mm}}{{\\includegraphics[width=4.4mm]{{icons/review-02}}}}~"
+    L.append(f"  at (-0.4, -0.55) {{\\raisebox{{-2.4mm}}{{\\includegraphics[width=7mm]{{icons/review-02}}}}~"
              f"\\textbf{{Amazon Fraud}}\\, \\textcolor{{black!55}}{{(11{{,}}944 accounts; "
              f"{data['n_nodes']}-node fraud cluster, {n_fraud} fraud)}}\\\\")
     L.append(r"   one \AEGIS{} query: top edges by $A_{ij}v_{ij}$ match brute-force removal "
