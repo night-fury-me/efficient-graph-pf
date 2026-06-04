@@ -124,14 +124,25 @@ criticality ($\rho{=}1$), the operative quantity behind $\ecrit$, stable across 
 converges throughout, and the matrix-free pipeline reaches its 50-step fixed-point budget at
 $\kappa_{\max}{\ge}0.85$.
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/fig_phase_transition.pdf}
+\begin{minipage}[t]{0.33\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figures/fig_phase_transition.pdf}
 \caption{Three-regime characterization of \cref{thm:phase_transition}. The empirical $\kappa$ band
 (grey) saturates well below the spectral-normalization ceiling, so the empirical resolvent growth is far
 milder than the worst-case $1/(1-\kappa)$ divergence at $\varepsilon\to\ecrit$.}
 \label{fig:phase_transition}
-\end{figure}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.655\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figures/fig_scalability.pdf}
+\caption{Dense vs.\ matrix-free \AEGIS pipeline (RTX 4090). The dense path scales as $O((Nd)^3)$,
+exceeding $24$\,GB beyond $N{=}200$; the matrix-free path is roughly $O(N\log N)$ in time and sub-linear
+in memory, reaching Amazon Photo ($N{=}7{,}650$) at $365$\,s and $5.5$\,GB.}
+\label{fig:scalability}
+\end{minipage}
+\end{figure*}
 
 \textbf{Scalability and matrix-free self-consistency.} \Cref{fig:scalability} compares the dense and
 matrix-free pipelines. The matrix-free $S_c v$ implements the dense $S_c$ up to Neumann truncation;
@@ -139,15 +150,6 @@ $\sigma_1$ agrees within $0.03\%$ at $N{=}200$ (per-edge $\tau{=}0.999$), and th
 residual $\kappa^{200}\in[10^{-105},10^{-48}]$ across the suite (\cref{eq:neumann-tail}). For larger $N$
 the rSVD error~\cite{halko2011finding} is bounded by the spectral gap; Pubmed ($N{=}19{,}717$) exceeds
 $24$\,GB on the dense path.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{figures/fig_scalability.pdf}
-\caption{Dense vs.\ matrix-free \AEGIS pipeline (RTX 4090). The dense path scales as $O((Nd)^3)$,
-exceeding $24$\,GB beyond $N{=}200$; the matrix-free path is roughly $O(N\log N)$ in time and sub-linear
-in memory, reaching Amazon Photo ($N{=}7{,}650$) at $365$\,s and $5.5$\,GB.}
-\label{fig:scalability}
-\end{figure}
 
 \subsection{Ablations and Defense}
 \label{app:ablations}
