@@ -84,12 +84,12 @@ WikiCS   & $\ms{2.10}{.22}$ & $\ms{0.67}{.11}$ & $\ms{1.93}{.20}$ & $\ms{0.53}{.
 \subsection{Certify: Distribution-Free Coverage}
 \label{sec:certify}
 
-The certificate of \cref{sec:conformal} holds empirically. \Cref{tab:conformal} reports coverage over 10 seeds and four datasets. The \emph{gate}---coverage under the worst-case \AEGIS attack at magnitude $\varepsilon$ (reconverging the equilibrium after the $v_1$ perturbation)---holds at the nominal $1{-}\alpha{=}0.90$ at $\varepsilon{=}0.01$ on every dataset and is conservative ($0.94$--$1.00$) at $\varepsilon{=}0.05$, with \emph{zero} equilibrium divergence across all gate nodes. Sets run ${\sim}1.0$--$1.5$ labels (citation graphs) to ${\sim}3.5$ (WikiCS, $10$ classes), non-vacuous throughout and tightest where the deterministic radius is thin, at zero Monte-Carlo samples. Exchangeability on a single transductive graph is a stated condition---the empirical gate is the evidence---and $S_c$ is formed densely at $N{=}200$, a matrix-free conformal pass being future work.
+The certificate of \cref{sec:conformal} holds empirically. \Cref{tab:conformal} reports coverage over 10 seeds and four datasets. The \emph{gate}---coverage under the worst-case \AEGIS attack at magnitude $\varepsilon$---holds at the nominal $1{-}\alpha{=}0.90$ at $\varepsilon{=}0.01$ on every dataset and is conservative ($0.94$--$1.00$) at $\varepsilon{=}0.05$. Sets run ${\sim}1.0$--$3.5$ labels, non-vacuous throughout and tightest where the deterministic radius is thin, at zero Monte-Carlo samples. Exchangeability on a single transductive graph is a stated condition---the empirical gate is the evidence---and $S_c$ is formed densely at $N{=}200$, a matrix-free conformal pass being future work.
 
 \begin{table}[t]\centering\footnotesize\setlength{\tabcolsep}{4pt}
 \caption{\AEGIS-Conformal coverage (10 seeds; Cora, Citeseer, Pubmed, WikiCS; $\alpha{=}0.1$, target $0.90$). Each $\varepsilon$ block reports clean coverage\,/\,mean set size, then the bold \textbf{gate} (coverage under the worst-case attack at $\varepsilon$). Classes: 7/6/3/10 resp.; std over seeds ${\leq}0.07$. Sets ${<}1$ reflect occasional empty (abstaining) sets under TPS.}
 \label{tab:conformal}
-\begin{tabular}{ll cc cc}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}ll cc cc@{}}
 \toprule
 Data & score & \multicolumn{2}{c}{$\varepsilon{=}0.01$} & \multicolumn{2}{c}{$\varepsilon{=}0.05$} \\
 \cmidrule(lr){3-4}\cmidrule(lr){5-6}
@@ -105,10 +105,28 @@ Pubmed   & APS & 0.91 / 1.42 & \textbf{0.95} & 0.92 / 1.52 & \textbf{1.00} \\
 WikiCS   & APS & 0.92 / 3.70 & \textbf{0.94} & 0.93 / 3.62 & \textbf{0.95} \\
          & TPS & 0.93 / 3.52 & \textbf{0.94} & 0.93 / 3.52 & \textbf{0.95} \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}
 
-On the same Frobenius $\varepsilon$-ball, randomized smoothing is \emph{vacuous}: the matched $\sigma{=}\varepsilon/\sqrt{2|E|}$ leaves the smoothed classifier unchanged, abstaining to the full label set (coverage $1.00$, zero certified nodes, zero seed variance). \AEGIS-Conformal stays non-vacuous at $\mathbf{11{,}700}$--$\mathbf{16{,}700\times}$ lower wall-clock; even on a strictly larger per-coordinate ball where smoothing finally certifies, it costs $23{,}000$--$57{,}000\times$ the zero-sample $S_c$ bound (\cref{tab:smoothing}, \cref{app:smoothing}).
+\Cref{tab:smoothing} pits \AEGIS-Conformal against randomized smoothing: on the matched Frobenius ball smoothing is \emph{vacuous} (full label set, zero certified nodes); only on a strictly larger per-coordinate ball does it certify, and then at $\mathbf{23{,}000}$--$\mathbf{57{,}000\times}$ the cost of the zero-sample $S_c$ bound (\cref{app:smoothing}).
+
+\begin{table}[t]\centering\footnotesize\setlength{\tabcolsep}{2pt}
+\caption{\AEGIS-Conformal vs.\ randomized smoothing (Cora, $n{=}200$, 10 seeds, $\alpha{=}0.1$, APS). \textbf{frob}: matched Frobenius ball ($\sigma{=}\varepsilon/\sqrt{2|E|}$); \textbf{per\_edge}: larger per-coordinate ball ($\sigma{=}\varepsilon$), favorable to smoothing. cert: fraction certified; wall-clock at $M{=}10^4$ samples (\AEGIS-Conformal is zero-sample).}
+\label{tab:smoothing}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}llccccc@{}}
+\toprule
+method & match & $\varepsilon$ & cov & set & cert & wall@$10^4$ \\
+\midrule
+\AEGIS-Conformal & --       & 0.01 & 0.90 & 1.36 & --   & \textbf{${\sim}1$\,s} \\
+RandSmoothing    & frob     & 0.01 & 1.00 & 7.00 & 0.00 & 7{,}600\,s \\
+RandSmoothing    & per\_edge& 0.01 & 0.95 & 1.26 & 0.96 & 15{,}000\,s \\
+\midrule
+\AEGIS-Conformal & --       & 0.05 & 0.90 & 1.05 & --   & \textbf{${\sim}1$\,s} \\
+RandSmoothing    & frob     & 0.05 & 1.00 & 7.00 & 0.00 & 10{,}900\,s \\
+RandSmoothing    & per\_edge& 0.05 & 0.99 & 2.39 & 0.77 & 36{,}300\,s \\
+\bottomrule
+\end{tabular*}
+\end{table}
 
 %% ----------------------------- DEFEND -----------------------------
 \subsection{Defend: A $\sigma_1(S_c)$ Robustness Knob}

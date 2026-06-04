@@ -580,25 +580,7 @@ GR-BCD     & Cora $k{=}5$       & $0.643$ & $1.207$ & $+0.16$ \\
 
 \subsection{Certification vs Randomized Smoothing}
 \label{app:smoothing}
-On the same Frobenius $\varepsilon$-ball (frob), the matched smoothing $\sigma{=}\varepsilon/\sqrt{2|E|}$ is so small that the smoothed classifier is unchanged and abstains to the full $7$-label set (coverage $1.00$, set $7.00$, zero certified nodes, with \emph{zero} variance across seeds): randomized smoothing is vacuous at the perturbation scale \AEGIS targets. Only on a strictly larger per-coordinate ball (per\_edge, $\sigma{=}\varepsilon$) does smoothing certify ($0.77$--$0.96$ of nodes), and then at $\mathbf{23{,}000}$ to $\mathbf{57{,}000}\times$ the wall-clock of the zero-sample $S_c$ bound. Even on the matched ball where the comparison is fairest, the analytic certificate is non-vacuous and $\mathbf{11{,}700}\times$ ($\varepsilon{=}0.01$) to $\mathbf{16{,}700}\times$ ($\varepsilon{=}0.05$) faster (\cref{tab:smoothing}). The comparison favors smoothing twice over---its larger ball and its best matching---yet $S_c$ dominates wall-clock by four orders of magnitude.
-
-\begin{table}[t]\centering\footnotesize\setlength{\tabcolsep}{2pt}
-\caption{\AEGIS-Conformal vs randomized smoothing on Cora ($n{=}200$ subgraph, 10 seeds, $\alpha{=}0.1$, APS). \textbf{frob}: $\sigma{=}\varepsilon/\sqrt{2|E|}$ matches the \emph{same} Frobenius $\varepsilon$-ball; \textbf{per\_edge}: $\sigma{=}\varepsilon$ is a strictly larger per-coordinate ball, favorable to smoothing. ``cert'': fraction of nodes certified. Wall-clock extrapolated to $M{=}10^4$ smoothing samples; \AEGIS-Conformal is zero-sample. Mean over 10 seeds (frob arm has zero variance).}
-\label{tab:smoothing}
-\begin{tabular}{llccccc}
-\toprule
-method & match & $\varepsilon$ & cov & set & cert & wall@$10^4$ \\
-\midrule
-\AEGIS-Conformal & --       & 0.01 & 0.90 & 1.36 & --   & \textbf{${\sim}1$\,s} \\
-RandSmoothing    & frob     & 0.01 & 1.00 & 7.00 & 0.00 & 7{,}600\,s \\
-RandSmoothing    & per\_edge& 0.01 & 0.95 & 1.26 & 0.96 & 15{,}000\,s \\
-\midrule
-\AEGIS-Conformal & --       & 0.05 & 0.90 & 1.05 & --   & \textbf{${\sim}1$\,s} \\
-RandSmoothing    & frob     & 0.05 & 1.00 & 7.00 & 0.00 & 10{,}900\,s \\
-RandSmoothing    & per\_edge& 0.05 & 0.99 & 2.39 & 0.77 & 36{,}300\,s \\
-\bottomrule
-\end{tabular}
-\end{table}
+The matched smoothing $\sigma{=}\varepsilon/\sqrt{2|E|}$ (frob) is so small that the smoothed classifier is unchanged and abstains; only on the strictly larger per-coordinate ball (per\_edge, $\sigma{=}\varepsilon$) does it certify ($0.77$--$0.96$ of nodes), and then at $\mathbf{23{,}000}$--$\mathbf{57{,}000}\times$ the wall-clock of the zero-sample $S_c$ bound. Even on the matched ball the analytic certificate is non-vacuous and $\mathbf{11{,}700}$--$\mathbf{16{,}700}\times$ faster: the comparison favors smoothing twice (larger ball, best matching), yet the certificate of \cref{tab:smoothing} dominates by four orders of magnitude.
 
 \subsection{Phase Transition and Scalability}
 \label{app:phase_scal}
