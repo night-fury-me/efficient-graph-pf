@@ -3,7 +3,7 @@
 \label{sec:theory}
 %% ===================================================================
 
-\Cref{sec:framework} read three diagnostics off the operator $S_c$; we now establish the guarantees that justify them, beginning with the safety boundary. The governing picture is a phase transition in the budget $\varepsilon$: while $\varepsilon$ is small the perturbed model stays contractive and its prediction moves boundedly with the graph; as $\varepsilon$ approaches a critical budget $\ecrit$ the equilibrium grows arbitrarily sensitive; past $\ecrit$ contraction is no longer guaranteed and the prediction can break. \Cref{thm:phase_transition} makes this precise and puts $\ecrit$ in closed form.
+\Cref{sec:framework} read three diagnostics off the operator $S_c$; we now establish the guarantees that justify them, beginning with the safety boundary. The governing picture is a phase transition in the perturbation budget $\varepsilon$. While $\varepsilon$ stays small, the perturbed model remains contractive and its prediction moves only boundedly with the graph. As $\varepsilon$ climbs toward a critical budget $\ecrit$, the equilibrium grows arbitrarily sensitive, and once $\varepsilon$ passes $\ecrit$ contraction is no longer guaranteed and the prediction can break outright. \Cref{thm:phase_transition} makes this picture precise and puts $\ecrit$ in closed form.
 
 \begin{theorem}[Vulnerability Characterization for Contractive Implicit GNNs]
 \label{thm:phase_transition}
@@ -33,7 +33,7 @@ where $S = (I - J_z)^{-1} J_A$ is the structural sensitivity matrix and $\sigma_
 
 \noindent\textit{Proof in \cref{app:proof_phase}.} The subcritical bound is a conservative IFT~\cite{bolte2021conservative} with Neumann $\norm{(I{-}J_z)^{-1}}_2\le1/(1{-}\kappa)$; the critical rate follows from the resolvent identity, which $\ecrit$ lower-bounds (slack $\eta$).
 
-$\ecrit$ is a closed-form sufficient bound that $S_c$ tightens $7$--$14\times$; the Neumann-vs-spectral-radius gap is the pseudospectral index $\eta$, bounded by $W$ alone for symmetric $\Ahat$ ($\eta\le\kappa(V_W)$ all-active, $\eta\in[1.19,2.47]$ for ReLU; \cref{obs:eta_bound,rem:eta_relu}).
+The budget $\ecrit$ is only a closed-form \emph{sufficient} bound, one that the data-dependent $S_c$ tightens by $7$--$14\times$. The slack between them is precisely the Neumann-versus-spectral-radius gap, the pseudospectral index $\eta$, which for symmetric $\Ahat$ is controlled by $W$ alone ($\eta\le\kappa(V_W)$ in the all-active case, $\eta\in[1.19,2.47]$ for ReLU; \cref{obs:eta_bound,rem:eta_relu}).
 
 \Cref{thm:phase_transition}(a) certifies safety \emph{below} $\ecrit$; the same operator bounds the boundary from \emph{above}, through the nonnormality $g_W{=}\norm{W}_2/\rho(W){\geq}1$ of $W$ (the \emph{entire} norm-vs-radius gap for symmetric $\Ahat$).
 
@@ -48,7 +48,7 @@ Under \textnormal{(A1)--(A3)} with $\Ahat$ symmetric and $\ecrit{>}0$, the all-a
 with $C$ dimension-free and computable post-training, and $\beta{\in}(0,1]$ the edge-supported Frobenius mass of $\Ahat$'s Perron mode (positive for any connected graph). The upper side is attained by a rank-one critical-driving attack aligned with that mode; the bracket collapses to equality iff $g_W{=}1$ and $\beta{=}1$.
 \end{theorem}
 
-The constant is not tight---proven slack ${\sim}10$--$16\times$ on our suite---but its value is the coupling it exposes: one operator $S_c$ supplies the certified budget $\ecrit$, the matching attack, and (through $\sigma_1(S_c)$) the defense. Empirically the norm certificate under-states the true breaking budget by $\mathbf{2}$--$\mathbf{9\times}$ ($10$ seeds); proof and nonlinear extension in \cref{app:bracket}.
+The constant is admittedly loose, with proven slack of ${\sim}10$--$16\times$ on our suite, but its worth is the coupling it exposes: a single operator $S_c$ supplies the certified budget $\ecrit$, the matching attack that approaches it, and, through $\sigma_1(S_c)$, the defense. Empirically the norm certificate under-states the true breaking budget by $\mathbf{2}$--$\mathbf{9\times}$ ($10$ seeds); the proof and a nonlinear extension are in \cref{app:bracket}.
 
 The third diagnostic, the per-node radius $r_v$ named in \cref{sec:framework}, carries a first-order safety guarantee.
 
@@ -66,13 +66,13 @@ preserves the classification of $v$ for any $\norm{\delta\Ahat}_F < r_v$, where 
 
 \subsection{\AEGIS-Conformal: A Distribution-Free Certificate}
 \label{sec:conformal}
-The radius $r_v$ (\cref{eq:radius}) is a first-order threshold---locally tight, but violable at larger $\varepsilon$. We upgrade it to a distribution-free guarantee---sound under an exchangeability condition and gated by the coverage test (\cref{app:conformal}). Split conformal prediction yields a set $C(v)$ with $\Pr[y_v\in C(v)]\geq1{-}\alpha$; making this hold \emph{robustly} over the ball $\norm{\delta\Ahat}_F\leq\varepsilon$ requires bounding the worst-case conformity-score shift, which \AEGIS supplies \emph{analytically} via the same $S_c$ sensitivity (a curvature-corrected $L_1^{c}\varepsilon{+}C_v\varepsilon^2$), replacing the ${\sim}10^4$-sample smoothing otherwise needed. Feeding it into the binary-certificate split conformal of \citet{zargarbashi2023conformal} yields a robust set with
+The radius $r_v$ of \cref{eq:radius} is a first-order threshold: locally tight, but liable to be violated at larger $\varepsilon$. We now upgrade it to a distribution-free guarantee, one that is sound under an exchangeability condition and gated by an explicit coverage test (\cref{app:conformal}). The starting point is split conformal prediction, which returns a set $C(v)$ with $\Pr[y_v\in C(v)]\geq1{-}\alpha$ on clean inputs. Making this hold \emph{robustly} over the ball $\norm{\delta\Ahat}_F\leq\varepsilon$ requires bounding the worst-case shift in the conformity scores, and that is exactly what the same $S_c$ sensitivity delivers in closed form: a curvature-corrected bound $L_1^{c}\varepsilon{+}C_v\varepsilon^2$ that replaces the ${\sim}10^4$-sample smoothing the task would otherwise demand. Substituting it into the binary-certificate split conformal of \citet{zargarbashi2023conformal} yields a robust set with
 \begin{equation}
 \Pr\!\big[y_v\in C_\varepsilon(v)\big]\;\geq\;1-\alpha
 \qquad\text{for all }\ \norm{\delta\Ahat}_F\leq\varepsilon .
 \label{eq:conformal}
 \end{equation}
-We validate this certificate empirically---nominal-level coverage and the gate under the worst-case attack---in \cref{sec:certify}, and the coupled $\sigma_1(S_c)$ defense in \cref{sec:defense}.
+\Cref{sec:certify} validates this certificate empirically, checking both nominal-level coverage and the coverage gate under the worst-case attack, and \cref{sec:defense} returns to the coupled $\sigma_1(S_c)$ defense.
 
 \subsection{Transfer to Discrete Edits and Explicit GNNs}
-A first-order bridge carries the continuous score to discrete edge removal: modelling single-edge deletion as fixed-normalization masking, the discrete damage equals the edge-weighted sensitivity score plus a bounded second-order remainder, so for subcritical edges the score $A_{ij}v_{ij}$ preserves the brute-force N-1 ranking (\cref{prop:transfer}); empirically it reaches $\tau{=}\mathbf{+0.996}$ on full-graph Amazon Photo (\cref{sec:explicit_extension}). The construction is not tied to implicit models either: a $K$-layer explicit GNN gets the same $S_c$ from an unrolled sensitivity $S_K$ (\cref{prop:explicit}), so 6 of our 7 architectures inherit the full pipeline; only the closed-form $\ecrit$ stays restricted to the contractive subclass. Both propositions are stated and proved in \cref{app:proofs}.
+Two bridges connect this continuous operator to the discrete, architecture-general setting practitioners actually face. The first carries the continuous score to discrete edge removal: modelling a single-edge deletion as fixed-normalization masking, the discrete damage equals the edge-weighted sensitivity score plus a bounded second-order remainder, so for subcritical edges the score $A_{ij}v_{ij}$ preserves the brute-force N-1 ranking (\cref{prop:transfer}), reaching $\tau{=}\mathbf{+0.996}$ on full-graph Amazon Photo (\cref{sec:explicit_extension}). The second frees the construction from implicit models altogether: a $K$-layer explicit GNN gets the same $S_c$ from an unrolled sensitivity $S_K$ (\cref{prop:explicit}), so 6 of our 7 architectures inherit the full pipeline, with only the closed-form $\ecrit$ restricted to the contractive subclass. Both propositions are stated and proved in \cref{app:proofs}.

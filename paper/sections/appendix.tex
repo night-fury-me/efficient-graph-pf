@@ -144,9 +144,9 @@ Let $P_E$ be the orthogonal projection onto the symmetric, edge-supported subspa
 \label{thm:cf2s_full}
 Let \cref{ass:tight-v2} hold with $\ecrit>0$ (certified regime) and $\Ahat$ symmetric, and let $\beta=\sigma_E\in(0,1]$ be the edge-supported mass of the critical mode. Then:
 \begin{enumerate}
-\item[\textnormal{(i)}] \textbf{Lower side --- sound certificate (any $1$-Lipschitz $\phi$; no (A4)).} For every feasible $\delta\Ahat$ with $\norm{\delta\Ahat}_F\le\varepsilon<\ecrit$, the perturbed operator $F_\theta(\cdot,\Ahat+\delta\Ahat)$ is an $\norm{\cdot}_2$-contraction ($\norm{J_z'}_2<1$) with a unique equilibrium and $\rho(J_z')<1$. Hence $\ebreak\ge\ecrit$; in particular $\ebreakall\ge\ecrit$.
+\item[\textnormal{(i)}] \textbf{Lower side: sound certificate (any $1$-Lipschitz $\phi$; no (A4)).} For every feasible $\delta\Ahat$ with $\norm{\delta\Ahat}_F\le\varepsilon<\ecrit$, the perturbed operator $F_\theta(\cdot,\Ahat+\delta\Ahat)$ is an $\norm{\cdot}_2$-contraction ($\norm{J_z'}_2<1$) with a unique equilibrium and $\rho(J_z')<1$. Hence $\ebreak\ge\ecrit$; in particular $\ebreakall\ge\ecrit$.
 
-\item[\textnormal{(ii)}] \textbf{Upper side --- all-active matching attack (requires (A4)).} There is a feasible rank-one $\delta\Ahat^\star=(\espec/\beta)\,B\in\mathcal{S}_E$ with $\norm{\delta\Ahat^\star}_F=\espec/\beta$ that drives the \emph{all-active} spectral radius to $1$; hence $\ebreakall\le\espec/\beta$. In the unconstrained-symmetric threat model ($P_E=I$, $\beta=1$) the construction is \emph{exact}: $\ebreakall=\espec$ with extremizer $\espec\,u_1u_1^\top$.
+\item[\textnormal{(ii)}] \textbf{Upper side: all-active matching attack (requires (A4)).} There is a feasible rank-one $\delta\Ahat^\star=(\espec/\beta)\,B\in\mathcal{S}_E$ with $\norm{\delta\Ahat^\star}_F=\espec/\beta$ that drives the \emph{all-active} spectral radius to $1$; hence $\ebreakall\le\espec/\beta$. In the unconstrained-symmetric threat model ($P_E=I$, $\beta=1$) the construction is \emph{exact}: $\ebreakall=\espec$ with extremizer $\espec\,u_1u_1^\top$.
 
 \item[\textnormal{(iii)}] \textbf{Constant-factor enclosure.} $\espec\le C\,\ecrit$ with the explicit, dimension-free, a-posteriori-computable constant
 \begin{equation*}
@@ -368,7 +368,7 @@ $\pi^{\mathrm{wc}}_r$ and $\Delta_r=\pi_r-\pi^{\mathrm{wc}}_r\ge0$. This is prec
 recompute $\softmax$, read $\pi_r$. Monotonicity makes the substitution \emph{sound} (an over-estimate
 of the drop), with no softmax-Lipschitz constant needed.
 \item \textbf{APS} ($\score_r=1-\rho_r-u_v\pi_r$). Lowering a margin $g_c$ can only (i) lower $\pi_r$
-(raising $\score_r$ via the $-u_v\pi_r$ term --- favourable to coverage) and (ii) move competitor $c$
+(raising $\score_r$ via the $-u_v\pi_r$ term, favourable to coverage) and (ii) move competitor $c$
 above $r$ in rank, adding $\pi_c$ to $\rho_r$ (lowering $\score_r$). The adversarial direction is the
 latter; the worst-case $\rho_r$ uses the same lowered-margin softmax $\pi^{\mathrm{wc}}$, so
 $\Delta_r=\big(\rho^{\mathrm{wc}}_r+u_v\pi^{\mathrm{wc}}_r\big)-\big(\rho_r+u_v\pi_r\big)$, again
@@ -384,7 +384,7 @@ The shift bound is a margin budget. $L_1^{c}$ is the rate at which the most expo
 (readout gap $\norm{W_{y_v}-W_c}_2$) $\times$ (equilibrium sensitivity $S_{c,v}$); it is the same
 two-amplifier product as the per-node radius $r_v$ of \cref{prop:radius}, now read in conformity-score
 units. $C_v$ is the price of leaving the linear regime: it is the Prop-transfer curvature
-$L_J/(2(1-\kappa)^2)$ --- two resolvents $1/(1-\kappa)$ from differentiating the equilibrium map twice ---
+$L_J/(2(1-\kappa)^2)$, two resolvents $1/(1-\kappa)$ from differentiating the equilibrium map twice,
 scaled by the readout gap. The quadratic term is what makes the certificate \emph{sound} rather than
 merely first-order: the bare $\sigma_1(S_c)\varepsilon$ screen of \cref{prop:attack} can be breached
 just above $r_v$, whereas $L_1^{c}\varepsilon+C_v\varepsilon^2$ over-states the true drop for every
@@ -397,7 +397,7 @@ Three load-bearing conditions. (1) \textbf{Affine head.} Step 1 needs $f$ affine
 nonlinear readout one replaces $W_r-W_c$ by the head Jacobian and incurs an extra Lipschitz factor.
 Our models use a linear head, so this holds with equality. (2) \textbf{Contractive regime.} The
 curvature bound and the finiteness of $\norm{\zstar}$ both require $\kappa<1$ and $\varepsilon<\ecrit$
-(A3); past $\ecrit$ the resolvent $1/(1-\kappa)$ is meaningless and the bound is void --- the same scope
+(A3); past $\ecrit$ the resolvent $1/(1-\kappa)$ is meaningless and the bound is void, the same scope
 as \cref{thm:phase_transition}. On the conformal subgraph $\kappa\approx0.68$, so $(1-\kappa)^{-2}\approx9.8$;
 this inflates $C_v$ but the gate confirms the bound is not breached. (3) \textbf{Single curvature
 constant.} $L_{J,v}\le\norm{W}_2^2\norm{\zstar}$ is an upper bound on the dominant IFT remainder term,
@@ -477,8 +477,8 @@ the vanilla split-conformal $1-\alpha$ guarantee, as it must.
 The certificate buys robustness by \emph{paying the worst-case score drop up front, on the
 calibration set}. Lowering every calibration true-label score by its own analytic
 $\Delta(\varepsilon)$ before taking the quantile raises the threshold just enough that any
-in-ball perturbation of the test node --- which can lower its true-label score by at most its own
-$\Delta(\varepsilon)$ (\cref{lem:score-shift}) --- still clears the bar. Because the lowering is
+in-ball perturbation of the test node, which can lower its true-label score by at most its own
+$\Delta(\varepsilon)$ (\cref{lem:score-shift}), still clears the bar. Because the lowering is
 per-node and deterministic, it commutes with exchangeability, so the only probabilistic content is
 the ordinary split-conformal quantile event. The $\varepsilon$-uniformity in Step 4 is what upgrades
 ``robust to a fixed attack'' into ``robust over the whole ball'': the envelope $\tilde\score$ does not
@@ -606,7 +606,7 @@ The matched smoothing $\sigma{=}\varepsilon/\sqrt{2|E|}$ (frob) is so small that
 \label{app:ablations}
 \textbf{Subgraph size.} Varying $N{\in}\{30,50,100,200\}$ on Cora (10 seeds): tightness is stable at $1.01$--$1.02$ for $N{\leq}100$ and degrades to $1.031$ at $N{=}200$; we use $N{=}50$ as default ($66\times$ faster). \textbf{Full-graph scale.} A 50-node BFS covers only ${\sim}1.8\%$ of a citation graph's edges (Cora $\tau{=}0.16$), so at this scale we run \AEGIS on the full graph; there its edge advantage over degree-proportional ranking \emph{amplifies} to $\mathbf{9.82\times}$ (Citeseer) and $\mathbf{3.25\times}$ (Cora) at $k{=}10$, against ${\approx}1.1\times$ on subgraphs. \textbf{Hyperparameters.} Tightness is stable across $d{\in}\{16,32,64,128\}$; the spectral-norm ceiling $c{\in}\{0.5,0.9\}$ traces the accuracy--robustness frontier ($r_v{=}0.147$@$72.1\%$ vs.\ $0.089$@$80.6\%$).
 
-\textbf{Edge protection and the delocalization of vulnerability.} On the \emph{full} graph (Cora, $N{=}2{,}708$, 10 seeds), masking the top-$k$ edges by $v_{ij}$ cuts $\sigma_1(S_c)$ damage by $2.4{\pm}1.8\%$ at $k{=}5$ and $4.6{\pm}2.9\%$ at $k{=}10$ --- $\mathbf{12}$--$\mathbf{46\times}$ over random masking, but far below the $42$--$61\%$ a 50-node subgraph reports (where $k{=}5$ is already $10\%$ of its edges). The reason is structural: the leading attack mode is \emph{delocalized} (participation ratio $41$--$89$ edges), so removing a handful excises a negligible slice; reaching subgraph-scale reduction needs $2$--$8\%$ of edges masked, and an adaptive recomputation erodes the gain a further $1$--$2$\,pp. \AEGIS thus \emph{localizes} risk for attribution and triage rather than yielding a few-edge defense, the failure mode sober-look critiques~\cite{mujkanovic2022defenses} flag.
+\textbf{Edge protection and the delocalization of vulnerability.} On the \emph{full} graph (Cora, $N{=}2{,}708$, 10 seeds), masking the top-$k$ edges by $v_{ij}$ cuts $\sigma_1(S_c)$ damage by $2.4{\pm}1.8\%$ at $k{=}5$ and $4.6{\pm}2.9\%$ at $k{=}10$, a $\mathbf{12}$--$\mathbf{46\times}$ gain over random masking, but far below the $42$--$61\%$ a 50-node subgraph reports (where $k{=}5$ is already $10\%$ of its edges). The reason is structural: the leading attack mode is \emph{delocalized} (participation ratio $41$--$89$ edges), so removing a handful excises a negligible slice; reaching subgraph-scale reduction needs $2$--$8\%$ of edges masked, and an adaptive recomputation erodes the gain a further $1$--$2$\,pp. \AEGIS thus \emph{localizes} risk for attribution and triage rather than yielding a few-edge defense, the failure mode sober-look critiques~\cite{mujkanovic2022defenses} flag.
 
 \subsection{Per-Architecture Characterisation (Explicit GNNs)}
 \label{app:explicit}
@@ -644,7 +644,7 @@ This appendix expands the audit-in-action summarised in \cref{sec:fraud_case}.
 GNN fraud detectors are a prime adversarial target: a flagged account can try to
 evade detection by perturbing a few of its behavioural-similarity
 edges~\cite{zugner2018adversarial,dou2020enhancing}. \AEGIS audits such a detector
-directly --- no labels, no retraining --- reading from one $S_c$ query which edges
+directly, with no labels and no retraining, reading from one $S_c$ query which edges
 most threaten its predictions.
 
 The fault-line diagram is now \cref{fig:fraud_case} in \cref{sec:fraud_case}: the trained IGNN flags the central account,
