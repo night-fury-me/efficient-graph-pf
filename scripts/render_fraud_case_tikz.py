@@ -76,8 +76,8 @@ def main():
     tau_w = data["tau_weighted_vs_dk"]
 
     xs = np.array([n["x"] for n in nodes]); ys = np.array([n["y"] for n in nodes])
-    xs = (xs - xs.min()) / (xs.ptp() + 1e-9) * W
-    ys = (ys - ys.min()) / (ys.ptp() + 1e-9) * H
+    xs = (xs - xs.min()) / (xs.max() - xs.min() + 1e-9) * W
+    ys = (ys - ys.min()) / (ys.max() - ys.min() + 1e-9) * H
     coord = {n["local"]: (float(xs[k]), float(ys[k])) for k, n in enumerate(nodes)}
 
     def C(k):
@@ -131,21 +131,21 @@ def main():
 \begin{{scope}}[shift={{({W + 1.15:.2f}, {H + 0.2:.2f})}}]
   \node[font=\normalsize\itshape, color=black!65, anchor=west] at (-0.30, 0.52) {{Accounts}};
   \node[iconT, minimum size=6.2mm] at (0,-0.22) {{\includegraphics[width=5.4mm]{{icons/target}}}};
-  \node[font=\small, anchor=west, black] at (0.50,-0.22) {{audited fraud account}};
+  \node[font=\small, anchor=west, black] at (0.50,-0.22) {{Audited Fraud Account}};
   \node[iconF, minimum size=5.6mm] at (0,-0.92) {{\includegraphics[width=4.9mm]{{icons/fraud}}}};
-  \node[font=\small, anchor=west, black] at (0.50,-0.92) {{fraud}};
+  \node[font=\small, anchor=west, black] at (0.50,-0.92) {{Fraud}};
   \node[iconB, minimum size=5.6mm] at (0,-1.55) {{\includegraphics[width=4.9mm]{{icons/benign}}}};
-  \node[font=\small, anchor=west, black] at (0.50,-1.55) {{benign}};
+  \node[font=\small, anchor=west, black] at (0.50,-1.55) {{Benign}};
   \node[font=\normalsize\itshape, color=black!65, anchor=west] at (-0.30, -2.20) {{Edges}};
-  \draw[eCrit] (-0.25,-2.66) -- (0.25,-2.66) node[right=3pt, font=\small, black] {{\AEGIS{{}} top-5}};
+  \draw[eCrit] (-0.25,-2.66) -- (0.25,-2.66) node[right=3pt, font=\small, black] {{\AEGIS{{}} Top-5}};
   \draw[eCrit] (-0.25,-3.22) -- (0.25,-3.22);
   \node[circle, fill=cmatch, draw=cmatch!40!black, inner sep=0pt, minimum size=2.0mm,
         line width=0.3pt] at (0,-3.22) {{}};
-  \node[font=\small, anchor=west, black] at (0.32,-3.22) {{also brute-force top-3}};
-  \draw[eNorm] (-0.25,-3.78) -- (0.25,-3.78) node[right=3pt, font=\small, black] {{other edges}};
+  \node[font=\small, anchor=west, black] at (0.32,-3.22) {{Also Brute-Force Top-3}};
+  \draw[eNorm] (-0.25,-3.78) -- (0.25,-3.78) node[right=3pt, font=\small, black] {{Other Edges}};
   \node[font=\normalsize\itshape, color=black!65, anchor=west] at (-0.30, -4.40) {{Rank}};
   \node[rankTag] at (0,-4.86) {{\#k}};
-  \node[font=\small, anchor=west, black] at (0.32,-4.86) {{$A_{{ij}}v_{{ij}}$ rank}};
+  \node[font=\small, anchor=west, black] at (0.32,-4.86) {{$A_{{ij}}v_{{ij}}$ Rank}};
 \end{{scope}}""")
 
     # ---- summary card (with review-02 accent) ----

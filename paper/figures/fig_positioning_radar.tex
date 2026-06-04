@@ -101,13 +101,13 @@
 }
 
 % --- axis labels -------------------------------------------------------------
-\node[anchor=south,      align=center] at (90:3.52)      {Attack\\direction};
-\node[anchor=south west, align=left]   at (38.5714:3.34) {Per-edge\\attribution};
-\node[anchor=west,       align=left]   at (-12.8571:3.42){Large-budget\\damage};
-\node[anchor=north west,  align=left]  at (-64.2857:3.34){Per-node\\certificate};
-\node[anchor=north east, align=right]  at (-115.7143:3.34){Query\\efficiency};
-\node[anchor=east,       align=right]  at (-167.1429:3.42){No\\retraining};
-\node[anchor=south east, align=right]  at (141.4286:3.34){Label-free};
+\node[anchor=south,      align=center] at (90:3.52)      {Attack\\Direction};
+\node[anchor=south west, align=left]   at (38.5714:3.34) {Per-Edge\\Attribution};
+\node[anchor=west,       align=left]   at (-12.8571:3.42){Large-Budget\\Damage};
+\node[anchor=north west,  align=left]  at (-64.2857:3.34){Per-Node\\Certificate};
+\node[anchor=north east, align=right]  at (-115.7143:3.34){Query\\Efficiency};
+\node[anchor=east,       align=right]  at (-167.1429:3.42){No\\Retraining};
+\node[anchor=south east, align=right]  at (141.4286:3.34){Label-Free};
 
 % --- legend (right of the chart) ---------------------------------------------
 % Placed clear of the right-side axis labels (rightmost is "Large-budget
@@ -117,17 +117,17 @@
   % AEGIS
   \draw[okGreen!75!black, line width=1.2pt, fill=okGreen, fill opacity=0.18]
     (0,1.30) rectangle ++(\sw,0.30);
-  \node[anchor=west] at (\sw+0.15, 1.45) {\AEGIS\ (ours)};
+  \node[anchor=west] at (\sw+0.15, 1.45) {\AEGIS\ (Ours)};
   % Structural attacks
   \draw[okVermilion!85!black, line width=1.0pt, dashed, fill=okVermilion, fill opacity=0.12]
     (0,0.00) rectangle ++(\sw,0.30);
   \node[anchor=west, align=left] at (\sw+0.15, 0.15)
-    {Structural attacks\\\textnormal{\footnotesize(Nettack, Mettack, GR-BCD)}};
+    {Structural Attacks\\\textnormal{\footnotesize(Nettack, Mettack, GR-BCD)}};
   % Certifiers
   \draw[okBlue!85!black, line width=1.0pt, densely dotted, fill=okBlue, fill opacity=0.12]
     (0,-1.30) rectangle ++(\sw,0.30);
   \node[anchor=west, align=left] at (\sw+0.15, -1.15)
-    {Certifiers\\\textnormal{\footnotesize(localized smoothing, AGNNCert)}};
+    {Certifiers\\\textnormal{\footnotesize(Localized Smoothing, AGNNCert)}};
 \end{scope}
 
 \end{tikzpicture}
