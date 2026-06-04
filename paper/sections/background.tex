@@ -15,7 +15,7 @@ with $W \in \R^{d \times d}$ spectral-normalized~\cite{miyato2018spectral} so $\
 \frac{\partial \zstar}{\partial p} = (I - J_z)^{-1} \frac{\partial F}{\partial p}\bigg|_{\zstar}.
 \label{eq:ift}
 \end{equation}
-Equation~\eqref{eq:ift} is the lever \AEGIS pulls: the closed-form first-order change in $\zstar$ under any parameter $p$. The resolvent $(I-J_z)^{-1}$ acts as a gain that amplifies the perturbation by at most $1/(1-\kappa)$, so the closer the model drifts to losing contractivity ($\kappa\!\to\!1$), the more violently its equilibrium can move; the phase transition of \cref{sec:theory} makes this precise, with one refinement: the pseudospectral index $\eta{=}\norm{(I-J_z)^{-1}}_2(1-\rho) \geq 1$~\cite{trefethen2005spectra} measures how far the true gain sits above its spectral-radius estimate, equalling 1 when $J_z$ is normal.
+Equation~\eqref{eq:ift} is the lever \AEGIS pulls: the closed-form first-order change in $\zstar$ under any parameter $p$. The resolvent $(I-J_z)^{-1}$ acts as a gain bounded by $1/(1-\kappa)$, so as the model nears the loss of contractivity ($\kappa\!\to\!1$) its equilibrium moves ever more violently; \cref{sec:theory} makes this phase transition precise, refined by the pseudospectral index $\eta{=}\norm{(I-J_z)^{-1}}_2(1-\rho){\geq}1$~\cite{trefethen2005spectra} ($\eta{=}1$ for normal $J_z$).
 
 \textbf{Threat model.} A white-box attacker with full access to the trained IGNN perturbs the normalized adjacency
 \begin{equation}

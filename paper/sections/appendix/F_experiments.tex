@@ -80,23 +80,7 @@ an off-the-shelf model. Its third pillar---hardening via the $\sigma_1(S_c)$ pen
 \cref{sec:defense}---is a different kind of claim, benchmarked there against the robust-architecture
 thread rather than scored on this audit-and-certify radar.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{figures/fig_positioning_radar.pdf}
-\caption{Method-positioning radar (qualitative levels; $0$ at the centre, $1$ at the outer ring; each
-polygon traces the \emph{frontier} of its thread, i.e.\ the best any cited method achieves on that
-axis). Structural attacks~\citep{zugner2018adversarial,zugner2019adversarial,geisler2021robustness}
-own attack direction, per-edge ranking, and large-budget damage (the white-box gradient is the
-attribution oracle), but give no per-node certificate.
-Certifiers~\citep{schuchardt2023localized,li2025agnncert} own the per-node certificate---AGNNCert is
-deterministic ($T{=}30$--$80$ subgraph evaluations), localized smoothing is a \emph{collective}
-certificate at ${\sim}10^5$ samples/node---but name no vulnerability-driving edges and need specialised
-retraining. \AEGIS reads attack direction, per-edge attribution, and a first-order per-node certificate
-off a single closed-form, label-free $S_c$ query on an off-the-shelf model: it wins no specialist axis
-outright, but is the only method with nonzero mass on all seven. (\AEGIS's third capability, hardening
-via a $\sigma_1(S_c)$ penalty, is evaluated separately in \cref{sec:defense}.)}
-\label{fig:positioning}
-\end{figure}
+Among the certifiers it scores, AGNNCert~\citep{li2025agnncert} is deterministic ($T{=}30$--$80$ subgraph evaluations) and localized smoothing~\citep{schuchardt2023localized} is a \emph{collective} certificate at ${\sim}10^5$ samples/node; both require specialised retraining and name no vulnerability-driving edges.
 
 \begin{table}[t]
 \centering

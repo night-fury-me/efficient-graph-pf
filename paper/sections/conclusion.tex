@@ -3,8 +3,8 @@
 \label{sec:conclusion}
 %% ===================================================================
 
-From one matrix-free object, $S_c$, \AEGIS \emph{audits}, \emph{certifies}, and \emph{defends} any GNN with continuous edge-weight message passing, adding the safety boundary of \cref{thm:phase_transition} for contractive implicit models. Three once-separate tools become readings of a single operator, coupled by construction.
+From one matrix-free object, $S_c$, \AEGIS unifies auditing, certification, and defense as readings of a single operator, coupled by construction and extending to any GNN with continuous edge-weight message passing; a closed-form safety boundary (\cref{thm:phase_transition}) covers contractive implicit models.
 
-\textbf{Limitations.} The radii $r_v$ are first-order thresholds, and \AEGIS-Conformal runs densely at $N{=}200$. Standard GAT and binary-mask architectures fall outside the framework (\cref{sec:explicit_extension}), the $\ecrit$ track costs ${\sim}6\%$ accuracy, and insertion attacks are scoped out (\cref{sec:background}). \AEGIS also audits vulnerability, not physics: a contractive surrogate cannot model voltage collapse, so it complements rather than replaces power-flow contingency screening~\cite{donon2019graph,nakiganda2023graph,varbella2024contingency}.
+\textbf{Limitations.} The radii $r_v$ are first-order thresholds; \AEGIS-Conformal runs densely at $N{=}200$; standard GAT and binary-mask architectures fall outside the framework (\cref{sec:explicit_extension}); the $\ecrit$ track costs ${\sim}6\%$ accuracy; and insertion attacks are scoped out (\cref{sec:background}). \AEGIS audits vulnerability, not physics: a contractive surrogate cannot model voltage collapse, so it complements rather than replaces power-flow contingency screening~\cite{donon2019graph,nakiganda2023graph,varbella2024contingency}.
 
 \textbf{Disclosure.} We propose a 90-day coordinated-notification window: the diagnostic path ($r_v$, $v_{ij}$) releases unconditionally, while attack-direction reconstruction (\cref{alg:aegis}) is gated behind ethics review, since it alone yields the damaging $\delta A^*$ (\cref{prop:attack}).

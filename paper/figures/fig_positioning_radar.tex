@@ -109,20 +109,25 @@
 \node[anchor=east,       align=right]  at (-167.1429:3.42){No\\retraining};
 \node[anchor=south east, align=right]  at (141.4286:3.34){Label-free};
 
-% --- legend (below the chart) ------------------------------------------------
-\begin{scope}[shift={(0,-4.6)}]
-  \def\sw{0.5}     % swatch width
+% --- legend (right of the chart) ---------------------------------------------
+% Placed clear of the right-side axis labels (rightmost is "Large-budget
+% damage" reaching ~x=5.5), vertically centred on the chart.
+\begin{scope}[shift={(6.0,0)}]
+  \def\sw{0.45}     % swatch width
+  % AEGIS
   \draw[okGreen!75!black, line width=1.2pt, fill=okGreen, fill opacity=0.18]
-    (-3.4,0) rectangle ++(\sw,0.30);
-  \node[anchor=west] at (-3.4+\sw+0.12, 0.15) {\AEGIS\ (ours)};
+    (0,1.30) rectangle ++(\sw,0.30);
+  \node[anchor=west] at (\sw+0.15, 1.45) {\AEGIS\ (ours)};
+  % Structural attacks
   \draw[okVermilion!85!black, line width=1.0pt, dashed, fill=okVermilion, fill opacity=0.12]
-    (-3.4,-0.55) rectangle ++(\sw,0.30);
-  \node[anchor=west] at (-3.4+\sw+0.12, -0.40)
-    {Structural attacks \textnormal{\footnotesize(Nettack, Mettack, GR-BCD)}};
+    (0,0.00) rectangle ++(\sw,0.30);
+  \node[anchor=west, align=left] at (\sw+0.15, 0.15)
+    {Structural attacks\\\textnormal{\footnotesize(Nettack, Mettack, GR-BCD)}};
+  % Certifiers
   \draw[okBlue!85!black, line width=1.0pt, densely dotted, fill=okBlue, fill opacity=0.12]
-    (-3.4,-1.10) rectangle ++(\sw,0.30);
-  \node[anchor=west] at (-3.4+\sw+0.12, -0.95)
-    {Certifiers \textnormal{\footnotesize(localized smoothing, AGNNCert)}};
+    (0,-1.30) rectangle ++(\sw,0.30);
+  \node[anchor=west, align=left] at (\sw+0.15, -1.15)
+    {Certifiers\\\textnormal{\footnotesize(localized smoothing, AGNNCert)}};
 \end{scope}
 
 \end{tikzpicture}
