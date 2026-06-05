@@ -132,7 +132,7 @@ RandSmoothing    & per\_edge& 0.05 & 0.99 & 2.39 & 0.77 & 36{,}300\,s \\
 \subsection{Defend: A $\sigma_1(S_c)$ Robustness Knob}
 \label{sec:defense}
 
-The operator that finds the worst attack also tunes the defense: penalizing $\sigma_1(S_c)$ during training drives the dominant sensitivity down, so worst-case attack damage falls while the certified fraction rises (\cref{tab:defense}). At $\lambda{=}3{\times}10^{-4}$ this cuts $\sigma_1$ by ${\sim}10\times$ and lifts the certified fraction to $0.82{\pm}0.03$ for ${\sim}4$ accuracy points. The gain is genuinely \emph{certified}: at $\varepsilon{\leq}0.1$ few nodes flip for either model, so the penalty buys a larger certified margin, not better small-budget accuracy. Attack and defense thus couple through one operator, their magnitudes anticorrelated across 10 seeds ($-0.65{\pm}0.12$, negative in $\mathbf{10/10}$, $p{\approx}10^{-160}$).
+The operator that finds the worst attack also tunes the defense: penalizing $\sigma_1(S_c)$ during training drives the dominant sensitivity down, so worst-case attack damage falls while the certified fraction rises (\cref{tab:defense}). At $\lambda{=}3{\times}10^{-4}$ this cuts $\sigma_1$ by ${\sim}10\times$ and lifts the certified fraction to $0.82{\pm}0.03$ for ${\sim}4$ accuracy points. The gain is genuinely \emph{certified}: at $\varepsilon{\leq}0.1$ few nodes flip for either model, so the penalty buys a larger certified margin, not better small-budget accuracy. Attack and defense thus couple through one operator, their magnitudes anticorrelated across 10 seeds ($-0.65{\pm}0.12$, negative in $\mathbf{10/10}$).
 
 \begin{table}[t]
 \centering

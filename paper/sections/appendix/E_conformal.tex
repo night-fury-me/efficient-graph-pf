@@ -115,19 +115,24 @@ $\norm{R_v}_2\le\tfrac12(1-\kappa)^{-2}L_{J,v}\,\varepsilon^2$, hence
 $\abs{(W_r-W_c)R_v}\le C_v\varepsilon^2$ by \eqref{eq:Cvdef}. Combining the two summands in
 \eqref{eq:margin-decomp} with the triangle inequality yields \eqref{eq:margin-shift}.
 
-\emph{Step 3: from margins to scores (monotone link).}
-Both scores see the logits only through the margins: $\pi_r=(\sum_c e^{-g_c})^{-1}$ with $g_r:=0$, and
-the rank events $\{\pi_c>\pi_r\}=\{g_c<0\}$ defining $\rho_r$ depend only on the signs of the margins.
-The adversary minimizing $\score_r$ therefore lowers every margin as far as Step 1--2 allow, at most
-$L_1^{(c)}\varepsilon+C_v\varepsilon^2$ each. Define $\Psi_r$ as the resulting worst-case score drop. For
-TPS, $\pi_r$ is coordinatewise nonincreasing in each margin decrement, so substituting the worst
-admissible decrement per competitor and recomputing the softmax gives a sound over-estimate of the drop
-with no softmax-Lipschitz constant needed. For APS, lowering a margin can only raise $\score_r$ through
-the $-u_v\pi_r$ term (favorable) or move a competitor above $r$ in rank, adding $\pi_c$ to $\rho_r$
-(adverse); the worst case uses the same lowered-margin softmax, and since $\rho_r,\pi_r\in[0,1]$ and
-$u_v\le1$ the resulting drop is exact rather than a Lipschitz bound. Either way the per-competitor
-decrement caps the per-label score drop, giving \eqref{eq:score-drop}; the competitor-worst constants
-give the headline form.
+\emph{Step 3: from margins to scores.}
+Both scores read the logits only through the margins $\{g_c\}_{c\ne r}$: the softmax probability is
+$\pi_r=(\sum_c e^{-g_c})^{-1}$ with $g_r:=0$, and the rank set $\{\pi_c>\pi_r\}=\{g_c<0\}$ behind
+$\rho_r$ turns on the margin signs alone. The adversary minimizing $\score_r$ may therefore lower each
+margin freely, $g_c\mapsto g_c-\delta_c$ with $0\le\delta_c\le L_1^{(c)}\varepsilon+C_v\varepsilon^2$
+from Steps~1--2; we bound the score over this box of margins and call the largest admissible drop
+$\Psi_r$.
+
+For TPS the box has one worst corner: $\pi_r$ is nonincreasing in every decrement $\delta_c$, so lowering
+all margins to their budgets and recomputing the softmax is the exact worst case, with no
+softmax-Lipschitz constant. APS needs one more observation, because $\rho_r$ sums over a margin-dependent
+set. Write the drop as $(\rho_r'-\rho_r)+u_v(\pi_r'-\pi_r)$. Lowering margins only weakens $r$, so
+$\pi_r'\le\pi_r$ and the second term is favorable; discarding it leaves the sound bound
+$\score_r-\score_r'\le\rho_r'-\rho_r$. The survivor $\rho_r$ is the probability mass of competitors
+ranked above $r$, and lowering \emph{every} margin to its budget makes $r$ simultaneously weakest against
+all of them, maximizing that mass. The same all-lowered corner therefore dominates APS too, and
+evaluating $\Psi_r$ there is a valid upper bound, with no enumeration of rank crossings. Either score
+then gives \eqref{eq:score-drop}, and the competitor-worst constants give the headline form.
 \end{proof}
 
 The shift bound is a margin budget read in two pieces. The linear constant $L_1^{c}$ is the rate at
