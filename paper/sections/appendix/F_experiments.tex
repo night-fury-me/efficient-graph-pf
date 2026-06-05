@@ -72,12 +72,12 @@ Mettack~\cite{zugner2019adversarial} in the early-warning regime $k\!\in\!\{1,\l
 \Cref{fig:positioning} positions these threads on a seven-axis capability radar, each polygon tracing
 the \emph{frontier} of its thread (the best any cited method in it achieves on that axis). No single
 method covers every axis: structural attacks own attack direction, per-edge ranking, and large-budget
-damage---the white-box gradient is the attribution oracle that \AEGIS only proxies
-($\tau{=}0.16$--$0.99$)---while certifiers own the per-node certificate. \AEGIS wins no specialist axis
-outright, but is the only method with nonzero mass on all seven, reading an attack direction, per-edge
+damage; the white-box gradient is the attribution oracle that \AEGIS only proxies
+($\tau{=}0.16$--$0.99$), while certifiers own the per-node certificate. \AEGIS wins no specialist axis
+outright, but spans all seven, reading an attack direction, per-edge
 attribution, and a first-order per-node certificate off a single closed-form, label-free $S_c$ query on
-an off-the-shelf model. Its third pillar---hardening via the $\sigma_1(S_c)$ penalty of
-\cref{sec:defense}---is a different kind of claim, benchmarked there against the robust-architecture
+an off-the-shelf model. Its third pillar, hardening via the $\sigma_1(S_c)$ penalty of
+\cref{sec:defense}, is a different kind of claim, benchmarked there against the robust-architecture
 thread rather than scored on this audit-and-certify radar.
 
 Among the certifiers it scores, AGNNCert~\citep{li2025agnncert} is deterministic ($T{=}30$--$80$ subgraph evaluations) and localized smoothing~\citep{schuchardt2023localized} is a \emph{collective} certificate at ${\sim}10^5$ samples/node; both require specialised retraining and name no vulnerability-driving edges.
