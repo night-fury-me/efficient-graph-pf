@@ -87,7 +87,8 @@ than comparable on a single radius axis.}
 \label{tab:threat_model}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l l c c@{}}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}llcc@{}}
 \toprule
 Method & Threat model & Edges & Cert. \\
 \midrule
@@ -97,7 +98,8 @@ AGNNCert~\cite{li2025agnncert} & bounded edit count & -- & $\bullet$ \\
 Convex relax.~\cite{zugner2019certifiable} & bounded perturbation & -- & $\bullet$ \\
 Collective smooth.~\cite{schuchardt2021collective} & random edge flips & -- & $\bullet$ \\
 \bottomrule
-\end{tabular*}
+\end{tabular}%
+}
 \end{table}
 
 \Cref{fig:positioning} positions these threads on a seven-axis capability radar, each polygon tracing
@@ -133,7 +135,7 @@ Ratios near $1$ are the damage-equivalence ($\geq 1$ means \AEGIS does at least 
 in \cref{fig:exp3_budget_sweep}.}
 \label{tab:baselines}
 \footnotesize
-\setlength{\tabcolsep}{4pt}
+\setlength{\tabcolsep}{1.5pt}
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l c c c c c c@{}}
 \toprule
 & & & \multicolumn{2}{c}{\AEGIS/GR-BCD} & \multicolumn{2}{c}{\AEGIS/PR-BCD} \\
@@ -160,7 +162,7 @@ the full ranking out-damages edge-weight-alone everywhere; on Citeseer/Pubmed/Am
 sensitivity is decisive (e.g.\ Citeseer $\tau_A{\approx}0$). These $\tau$ score agreement with the GR-BCD ranking; \cref{fig:tau_heatmap} instead scores agreement with brute-force single-edge removal, where the Amazon\,Fraud increment reaches $+0.90$.}
 \label{tab:da_decomp}
 \footnotesize
-\setlength{\tabcolsep}{4pt}
+\setlength{\tabcolsep}{1.5pt}
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l c c c c c c@{}}
 \toprule
 Dataset & $\tau_{Av}$ & $\tau_{A}$ & $\tau_{v}$ & $\Delta\tau$ & $D_{Av}/D_A$ & $D_{Av}/D_v$ \\
@@ -359,7 +361,7 @@ which direction} (\cref{sec:conformal}), turning a one-query audit into an actio
 \label{app:repro}
 %% ===================================================================
 
-All results use 10 fixed random seeds $\{42,137,271,314,1729,2718,3141,5772,6561,9999\}$; reported $\pm$
+All results use 10 fixed random seeds (42, 137, 271, 314, 1729, 2718, 3141, 5772, 6561, 9999); reported $\pm$
 are standard deviations over these seeds. Models are trained in
 PyTorch~\cite{paszke2019pytorch}; IGNN~\cite{gu2020implicit} uses
 $F(Z){=}\mathrm{ReLU}(\Ahat ZW^\top{+}U(X))$ with $W\in\R^{64\times64}$

@@ -54,7 +54,11 @@ a contraction, so that the equilibrium is unique and the first-order expansion o
 The safe answer ignores the mask. A ReLU mask is a $0/1$ diagonal projection, so multiplying by it can only
 shrink a spectral norm, never enlarge it; hence, for \emph{any} activation pattern,
 \begin{equation}
-\norm{J_z'}_2=\norm{\diag(\phi')(\Ahat'\otimes W)}_2\ \le\ \norm{\Ahat'}_2\norm{W}_2\ \le\ (\norm{\Ahat}_2+\varepsilon)\norm{W}_2,
+\begin{split}
+\norm{J_z'}_2=\norm{\diag(\phi')(\Ahat'\otimes W)}_2
+&\ \le\ \norm{\Ahat'}_2\norm{W}_2\\
+&\ \le\ (\norm{\Ahat}_2+\varepsilon)\norm{W}_2,
+\end{split}
 \label{eq:Jzp-bound}
 \end{equation}
 the last step using $\norm{\Ahat'}_2\le\norm{\Ahat}_2+\norm{\delta\Ahat}_2\le\norm{\Ahat}_2+\varepsilon$.

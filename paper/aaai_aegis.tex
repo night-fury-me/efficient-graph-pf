@@ -64,7 +64,7 @@
 %   * caption   -> already loaded by the AAAI required preamble above; we must
 %                  NOT reload it with options, so the IEEEtran
 %                  "\usepackage[font=footnotesize]{caption}" line is dropped.
-%   * subcaption / xcolor / bm / microtype / silence / textcomp / tikz ->
+%   * subcaption / xcolor / bm / silence / textcomp / tikz ->
 %                  not used anywhere in the ported section bodies, so dropped to
 %                  keep the build minimal and AAAI-clean.
 %   * IEEEtran float/display spacing tweaks -> dropped (AAAI forbids altering
@@ -73,6 +73,15 @@
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{array}
+% microtype: character protrusion + font expansion to tighten justified lines.
+% Not forbidden by aaai2026.sty (verified: no entry in its forbidden-package list,
+% so no PackageError). Loaded after the Times/helvet/courier font setup so the
+% protrusion/expansion vectors apply to the active fonts.
+\usepackage{microtype}
+% Allow up to 3% glyph shrink (default 2%) so the rare tight line -- e.g. a long
+% theorem header running into the first body words -- fits without bleeding into the
+% margin. Only engages on lines that need it; loose-line (stretch) behaviour is untouched.
+\microtypesetup{shrink=30}
 % cleveref must be loaded AFTER hyperref; since hyperref is forbidden here,
 % cleveref is simply loaded last among the cross-reference machinery.
 \usepackage{cleveref}
