@@ -207,6 +207,15 @@
 % the detailed experiment tables, the algorithm listing, and the fraud-detector
 % walk-through are relocated here (relocated, not deleted).
 \appendix
+% cleveref: name appendix (sub)sections "Appendix X" rather than the default
+% "Section X". \crefalias retags labels by the counter active when they are DEFINED,
+% so only the appendix (sub)sections below (input after \appendix) become type
+% "appendix"; body \cref{sec:...} defined earlier stays "Section". This fixes the
+% section/appendix naming inconsistency uniformly across body and appendix references.
+\crefalias{section}{appendix}
+\crefalias{subsection}{appendix}
+\crefname{appendix}{Appendix}{Appendices}
+\Crefname{appendix}{Appendix}{Appendices}
 
 % --- Dedicated appendix Table of Contents (black, AAAI-clean) ------------------
 % aaai2026.sty nullifies \addcontentsline (its line 44) to forbid a document ToC.

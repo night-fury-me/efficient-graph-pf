@@ -12,7 +12,7 @@ The previous section isolated the two Jacobians, $J_z$ and $J_A$, through which 
 The perturbation $\delta A^*$ maximizing $\norm{\Delta \zstar}$ to first order subject to $\norm{\delta A}_F \leq \varepsilon$ is $\delta A^* = \varepsilon \cdot \mathrm{reshape}(v_1, N \times N)$, where $v_1$ is the leading right singular vector of $S$, with shift $\varepsilon \cdot \sigma_1(S)$. Restricted to the threat model's feasible set (symmetric, edge-supported; \cref{sec:background}) the maximizer is instead the leading right singular vector of the constrained $S_c$ in the edge basis $\{b_k\}$, with shift $\varepsilon\,\sigma_1(S_c){\leq}\varepsilon\,\sigma_1(S)$; the unconstrained $\mathrm{reshape}(v_1)$ is generally infeasible.
 \end{proposition}
 
-This direction maximises hidden-state shift, not label change, so it pinpoints the most dangerous use of the budget, yet still aligns empirically with classification damage (\cref{sec:adaptive}).
+This direction maximises hidden-state shift, not label change, so it pinpoints the most potent use of the budget, yet still aligns empirically with classification damage (\cref{sec:adaptive}).
 
 \begin{algorithm}[t]
 \caption{\AEGIS matrix-free vulnerability analysis. $S_c$ is queried but never formed; the dense fallback ($N\!\leq\!200$) builds $S_c$ and runs an exact SVD.}
