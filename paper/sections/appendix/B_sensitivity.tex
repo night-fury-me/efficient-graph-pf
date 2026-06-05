@@ -46,17 +46,45 @@ so taking the leading singular value in \eqref{eq:ift-expand} yields the shift b
 $\norm{\Delta\zstar}_F\le\sigma_1(S)\,\varepsilon+O(\varepsilon^2)$ with
 $\sigma_1(S)\le\norm{J_A}_2/(1-\kappa)$, i.e.\ \eqref{eq:shift_bound}.
 
-\emph{Step 2: contraction survives below $\ecrit$.}
-Perturbing $\Ahat$ by $\delta\Ahat$ changes the state Jacobian to $J_z'=\diag(\phi')(\Ahat'\otimes W)$.
-Because $\norm{\diag(\phi')}_2\le1$ (A1) and the spectral norm is Kronecker-multiplicative,
+\emph{Step 2: two contraction certificates, and why only the smaller one is rigorous.}
+Perturbing the graph moves the state Jacobian to $J_z'=\diag(\phi')(\Ahat'\otimes W)$, with $\diag(\phi')$
+the ReLU mask read at the \emph{perturbed} equilibrium. We ask for which $\varepsilon$ the map $F$ is still
+a contraction, so that the equilibrium is unique and the first-order expansion of Step~1 governs.
+
+The safe answer ignores the mask. A ReLU mask is a $0/1$ diagonal projection, so multiplying by it can only
+shrink a spectral norm, never enlarge it; hence, for \emph{any} activation pattern,
 \begin{equation}
-\norm{J_z'}_2\le\norm{\Ahat'}_2\norm{W}_2\le(\norm{\Ahat}_2+\varepsilon)\,\norm{W}_2,
+\norm{J_z'}_2=\norm{\diag(\phi')(\Ahat'\otimes W)}_2\ \le\ \norm{\Ahat'}_2\norm{W}_2\ \le\ (\norm{\Ahat}_2+\varepsilon)\norm{W}_2,
 \label{eq:Jzp-bound}
 \end{equation}
-and the right-hand side is below $1$ precisely when $\varepsilon<1/\norm{W}_2-\norm{\Ahat}_2=\ecrit$.
-A spectral-norm contraction has a unique fixed point by the Banach theorem, so for every feasible
-$\varepsilon<\ecrit$ the perturbed model still has a single well-defined equilibrium: this is the
-subcritical regime, and $\ecrit$ is a sufficient safety boundary.
+the last step using $\norm{\Ahat'}_2\le\norm{\Ahat}_2+\norm{\delta\Ahat}_2\le\norm{\Ahat}_2+\varepsilon$.
+The right-hand side falls below $1$ exactly for $\varepsilon<\eglob=1/\norm{W}_2-\norm{\Ahat}_2$. Because
+the argument never inspected the mask, it survives as the perturbation drives the equilibrium across
+activation regions; a map of spectral norm below $1$ is a Banach contraction, so for every feasible
+$\varepsilon<\eglob$ the perturbed model has a single, \emph{globally unique} equilibrium. This is the
+rigorous safe radius $\eglob$.
+
+The trained models are contractive for a gentler reason than \eqref{eq:Jzp-bound} sees. Spectral
+normalization caps $\norm{W}_2\le c$, but a normalized adjacency with self-loops has $\norm{\Ahat}_2=1$, so
+$\eglob=1/c-1$ is small; what holds these models well inside contraction is the ReLU mask, which keeps the
+trained factor $\kappa=\norm{J_z}_2$ far under the worst case $\norm{\Ahat}_2\norm{W}_2$. Reading the
+threshold off $\kappa$ gives the larger, data-dependent budget $\ecrit=(1-\kappa)/\norm{W}_2\ge\eglob$:
+on a \emph{fixed} activation region the perturbed Jacobian is
+$J_z'=J_z+\diag(\phi')(\delta\Ahat\otimes W)$, so $\norm{J_z'}_2\le\kappa+\varepsilon\norm{W}_2$, which
+reaches $1$ at $\varepsilon=\ecrit$.
+
+The phrase ``fixed activation region'' is where rigor stops. Over a finite budget the equilibrium does not
+stay on one region; it crosses finitely many ReLU faces before $\ecrit$, and each crossing can switch on a
+dormant unit and add a term the single mask $\diag(\phi')$ omits, so $\kappa+\varepsilon\norm{W}_2$ is not a
+valid bound on $\norm{J_z'}_2$ across the whole ball; a free choice of mask can push $\norm{J_z'}_2$ past
+$1$ well before $\ecrit$. The two budgets coincide, $\ecrit=\eglob$, only in the all-active case (A4), where
+$\kappa=\norm{\Ahat}_2\norm{W}_2$ and no region is crossed. For $\varepsilon<\ecrit$ we therefore claim only
+what the implicit function theorem gives locally: the equilibrium continues as a unique smooth branch
+wherever $I-J_z$ is invertible, applied region by region through the conservative calculus of
+\citet{bolte2021conservative}, together with the first-order bound of Step~1. Whether that branch stays the
+unique \emph{global} equilibrium all the way to $\ecrit$ is the empirical regularity of \cref{rem:obs_o1}
+(the measured break lies above $\ecrit$), whose two scaling gaps remain open; it holds across our suite,
+but we record it as observation, not theorem.
 
 \emph{Step 3: the critical divergence and why $\ecrit$ is one-sided.}
 For any matrix $M$ the resolvent $(I-M)^{-1}$ has eigenvalues $(1-\lambda_i(M))^{-1}$, so
@@ -67,8 +95,8 @@ For any matrix $M$ the resolvent $(I-M)^{-1}$ has eigenvalues $(1-\lambda_i(M))^
 which blows up when an eigenvalue of $M$ approaches $1$. The rate depends on the geometry of $J_z'$.
 When $J_z'$ is normal with a dominant real-positive (Perron) eigenvalue equal to $\norm{J_z'}_2$, the
 case for symmetric $\Ahat$ and $W$, the spectral gap to $1$ is
-$\min_i\abs{1-\lambda_i}=1-\norm{J_z'}_2=\norm{W}_2(\ecrit-\varepsilon)$ by \eqref{eq:Jzp-bound} with
-equality, giving the $\Omega\!\big(1/(\ecrit-\varepsilon)\big)$ divergence. The certificate is only
+$\min_i\abs{1-\lambda_i}=1-\norm{J_z'}_2=\norm{W}_2(\ecrit-\varepsilon)$ using the within-region
+linearization $\norm{J_z'}_2=\kappa+\varepsilon\norm{W}_2$, giving the $\Omega\!\big(1/(\ecrit-\varepsilon)\big)$ divergence. The certificate is only
 one-sided because $\norm{J_z'}_2\to1$ need not drive the gap to zero: $M=\diag(-s,0)$ has
 $\norm{M}_2=s$ yet $\norm{(I-M)^{-1}}_2=1$, a dominant eigenvalue at $-s$ that stays far from $1$. So
 $\ecrit$ lower-bounds the true divergence threshold, and the slack is governed by how far $J_z'$ is from

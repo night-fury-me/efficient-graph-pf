@@ -70,10 +70,11 @@ assumption.
 Let \cref{ass:tight-v2} hold with $\ecrit>0$ and $\Ahat$ symmetric, and let $\beta=\sigma_E\in(0,1]$ be
 the edge-supported mass of the critical mode. Then:
 \begin{enumerate}
-\item[\textnormal{(i)}] \textbf{Lower side (any $1$-Lipschitz $\phi$; no (A4)).} For every feasible
-$\delta\Ahat$ with $\norm{\delta\Ahat}_F\le\varepsilon<\ecrit$, the perturbed operator is an
-$\norm{\cdot}_2$-contraction with a unique equilibrium and $\rho(J_z')<1$. Hence
-$\ebreak\ge\ecrit$, and in particular $\ebreakall\ge\ecrit$.
+\item[\textnormal{(i)}] \textbf{Lower side (any $1$-Lipschitz $\phi$).} For every feasible
+$\delta\Ahat$ with $\norm{\delta\Ahat}_F\le\varepsilon<\eglob$, the perturbed operator is an
+$\norm{\cdot}_2$-contraction with a unique equilibrium and $\rho(J_z')<1$, with no use of (A4); hence
+$\ebreak\ge\eglob$. Under (A4), $\kappa=\norm{\Ahat}_2\norm{W}_2$ gives $\eglob=\ecrit$, so
+$\ebreak\ge\ecrit$ and in particular $\ebreakall\ge\ecrit$.
 
 \item[\textnormal{(ii)}] \textbf{Upper side (all-active, requires (A4)).} The feasible rank-one
 $\delta\Ahat^\star=(\espec/\beta)\,B\in\mathcal S_E$, of size $\norm{\delta\Ahat^\star}_F=\espec/\beta$,
@@ -111,12 +112,13 @@ $\norm{\delta\Ahat}_2\le\norm{\delta\Ahat}_F=\varepsilon$. Since $\Ahat$ and the
 are symmetric, $\rho(\Ahat')=\norm{\Ahat'}_2$ and Weyl holds with equality along an aligned rank-one
 mode.
 
-\emph{(i) Lower side.} By (A1), $\norm{\diag(\phi')}_2\le1$; the spectral norm is sub-multiplicative
-and Kronecker-multiplicative, so as in \eqref{eq:Jzp-bound},
-$\norm{J_z'}_2\le(\norm{\Ahat}_2+\varepsilon)\norm{W}_2$, which is below $1$ for
-$\varepsilon<\ecrit$. A spectral-norm contraction has a unique fixed point and $\rho(J_z')\le\norm{J_z'}_2<1$,
-so no feasible $\varepsilon<\ecrit$ breaks contraction of the deployed model: $\ebreak\ge\ecrit$. This
-step uses (A1)--(A3) only. The additive gap \eqref{eq:additive-gap} then gives $\ecrit\le\espec$.
+\emph{(i) Lower side.} By (A1) the activation mask is a $0/1$ projection, so exactly as in
+\eqref{eq:Jzp-bound} $\norm{J_z'}_2\le(\norm{\Ahat}_2+\varepsilon)\norm{W}_2$ for \emph{every} mask, which
+is below $1$ for $\varepsilon<\eglob$. A spectral-norm contraction has a unique fixed point and
+$\rho(J_z')\le\norm{J_z'}_2<1$, so no feasible $\varepsilon<\eglob$ breaks contraction: $\ebreak\ge\eglob$,
+using (A1)--(A3) only. Under the all-active operating point (A4) assumed for the upper side,
+$\kappa=\norm{\Ahat}_2\norm{W}_2$, so $\eglob=\ecrit$ and $\ebreakall\ge\ecrit$. The additive gap
+\eqref{eq:additive-gap} then gives $\ecrit\le\espec$.
 
 \emph{(ii) Upper side, all-active.} Let $u_1$ be a unit top eigenvector of symmetric $\Ahat$. Along the
 rank-one symmetric direction $t\,u_1u_1^\top$ ($\norm{u_1u_1^\top}_F=1$), $\rho(\Ahat+t\,u_1u_1^\top)=\rho(\Ahat)+t$
