@@ -42,12 +42,22 @@ class ScalableSensitivity:
         A_key: str = "A_hat",
         neumann_terms: int = 0,
         neumann_tol: float = 1e-6,
+        ignn_weight: Optional[Tensor] = None,
     ):
         """
         Args:
             neumann_terms: max Neumann iterations. 0 (default) = auto-detect
                 from spectral radius so the series converges to neumann_tol.
             neumann_tol: early-stop when ||J_z^k b|| < tol * ||b||.
+            ignn_weight: opt-in ANALYTIC path for an IGNN operator of the form
+                ``F(Z) = ReLU(A_hat @ (Z @ W^T) + X_proj)``. When supplied with
+                the *effective* (d, d) weight ``W`` (spectral scaling folded in,
+                i.e. ``model._W_eff(Z) == Z @ W.T``), the four Jacobian
+                applications use closed-form matmuls instead of autograd
+                JVP/VJP. This removes the N x N backward graph that OOM'd
+                full-graph Pubmed and is faster at any N. ``None`` (default)
+                keeps the generic autograd path. Use ``extract_ignn_weight``
+                to obtain ``W`` from a trained ``iem.examples.ignn_cora.IGNN``.
         """
         self.F = F
         self.z_star = z_star.detach()
@@ -60,6 +70,33 @@ class ScalableSensitivity:
         self.neumann_tol = neumann_tol
         self.device = z_star.device
         self.dtype = z_star.dtype
+
+        # ---- opt-in IGNN analytic Jacobian path (no autograd, no backward graph) ----
+        # When `ignn_weight` is given, J_z / J_A and their transposes are applied
+        # in closed form (all matmuls). Derived for F(Z) = ReLU(A_hat Z W^T + X_proj):
+        #   J_z  v  = phi' ⊙ (A_hat V W^T)        J_z^T u  = A_hat (phi' ⊙ U) W
+        #   J_A  δA = phi' ⊙ (δA Z W^T)           J_A^T u  = (phi' ⊙ U) W Z^T
+        # with V/U = reshape to (N, d), Z = z_star, phi' = 1[z_star > 0] (ReLU mask
+        # at the equilibrium, since z_star = ReLU(preact) ⇒ z_star>0 ⇔ preact>0),
+        # A_hat symmetric, row-major (reshape(-1)) vec convention.
+        self._analytic = ignn_weight is not None
+        if self._analytic:
+            if self.z_star.dim() != 2:
+                raise ValueError(
+                    "analytic IGNN path requires a 2-D (N, d) z_star; got shape "
+                    f"{tuple(self.z_star.shape)}"
+                )
+            W = ignn_weight.detach().to(device=self.device, dtype=self.dtype)
+            if W.shape != (self.d, self.d):
+                raise ValueError(
+                    f"ignn_weight must be (d, d)=({self.d}, {self.d}); got "
+                    f"{tuple(W.shape)}"
+                )
+            self._W = W
+            self._phi = (self.z_star > 0).to(self.dtype)  # (N, d) active mask
+        else:
+            self._W = None
+            self._phi = None
 
         # Vectorized upper-triangular edge extraction. Identical to the nested
         # `for i: for j in range(i+1, N)` row-major scan (triu_indices yields the
@@ -124,7 +161,10 @@ class ScalableSensitivity:
     # ------------------------------------------------------------------
 
     def _jvp_Jz(self, v: Tensor) -> Tensor:
-        """J_z * v via forward-mode AD."""
+        """J_z * v.  Analytic (IGNN): phi' ⊙ (A_hat V W^T); else forward-mode AD."""
+        if self._analytic:
+            V = v.reshape(self.N, self.d)
+            return (self._phi * (self.A @ V @ self._W.t())).reshape(-1)
         z_flat = self.z_star.reshape(-1)
         try:
             from torch.func import jvp as torch_jvp
@@ -147,7 +187,10 @@ class ScalableSensitivity:
                 return (f_plus - self._f_base) / eps
 
     def _vjp_Jz(self, u: Tensor) -> Tensor:
-        """J_z^T * u via backward-mode AD."""
+        """J_z^T * u.  Analytic (IGNN): A_hat (phi' ⊙ U) W; else backward-mode AD."""
+        if self._analytic:
+            U = u.reshape(self.N, self.d)
+            return (self.A @ (self._phi * U) @ self._W).reshape(-1)
         z = self.z_star.detach().reshape(-1).requires_grad_(True)
         F_val = self.F(z.reshape(self.z_star.shape), self.ctx).reshape(-1)
         (grad_z,) = torch.autograd.grad(
@@ -156,7 +199,9 @@ class ScalableSensitivity:
         return grad_z.detach()
 
     def _structural_jvp(self, delta_A: Tensor) -> Tensor:
-        """J_A * vec(delta_A) via forward-mode AD on the adjacency."""
+        """J_A * vec(delta_A).  Analytic (IGNN): phi' ⊙ (δA Z W^T); else forward AD."""
+        if self._analytic:
+            return (self._phi * (delta_A @ self.z_star @ self._W.t())).reshape(-1)
         A_base = self.A
         try:
             from torch.func import jvp as torch_jvp
@@ -177,7 +222,14 @@ class ScalableSensitivity:
                 return (f_pert - self._f_base) / eps
 
     def _structural_vjp(self, u: Tensor) -> Tensor:
-        """J_A^T * u via backward-mode AD. Returns (N, N) gradient w.r.t. A."""
+        """J_A^T * u. Returns (N, N) gradient w.r.t. A.
+
+        Analytic (IGNN): (phi' ⊙ U) W Z^T; else backward-mode AD. The analytic
+        form never builds the N x N backward graph that OOM'd full-graph Pubmed.
+        """
+        if self._analytic:
+            U = u.reshape(self.N, self.d)
+            return (self._phi * U) @ self._W @ self.z_star.t()
         A = self.A.detach().requires_grad_(True)
         ctx_grad = {**self.ctx, self.A_key: A}
         F_val = self.F(self.z_star.detach(), ctx_grad).reshape(-1)
@@ -367,6 +419,31 @@ class ScalableSensitivity:
             sq_norms += Sg_mat.pow(2).sum(dim=1)
 
         return (sq_norms / n_probes).sqrt()
+
+
+# ----------------------------------------------------------------------
+# IGNN effective-weight extraction (for the analytic Jacobian path)
+# ----------------------------------------------------------------------
+
+
+def extract_ignn_weight(model: nn.Module) -> Tensor:
+    """Effective (d, d) weight ``W`` of a trained IGNN, spectral scaling folded in.
+
+    Returns ``W`` such that ``model._W_eff(Z) == Z @ W.T`` exactly, so it can be
+    passed to ``ScalableSensitivity(..., ignn_weight=W)`` to enable the closed-form
+    Jacobian path. We probe rather than re-deriving the cap arithmetic: ``_W_eff``
+    is linear in ``Z`` (the hard-cap ``scale`` is constant w.r.t. ``Z`` at a fixed,
+    eval-mode model), so ``_W_eff(I_d) = I_d @ W.T = W.T``.
+
+    Works for both the hard-cap (``c`` set) and legacy ``spectral_norm`` recipes,
+    since both reduce ``_W_eff`` to a single linear map.
+    """
+    d = int(model.W.weight.shape[0])
+    ref = model.W.weight
+    eye = torch.eye(d, device=ref.device, dtype=ref.dtype)
+    with torch.no_grad():
+        W_eff_T = model._W_eff(eye)  # (d, d) = W_eff^T
+    return W_eff_T.t().contiguous().detach()
 
 
 # ----------------------------------------------------------------------

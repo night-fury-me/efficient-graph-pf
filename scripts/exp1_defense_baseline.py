@@ -61,6 +61,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import os
 import statistics
 import sys
 import time
@@ -172,6 +173,11 @@ def main():
                     help="both defenses run where N <= --max-penalty-N; "
                          "larger graphs (e.g. Pubmed) get the cap frontier only")
     ap.add_argument("--n-seeds", type=int, default=10)
+    ap.add_argument("--seeds", nargs="*", type=int, default=None,
+                    help="explicit seeds (override --n-seeds and the AEGIS_SEEDS env)")
+    ap.add_argument("--defenses", nargs="+", default=["sc_penalty", "lipschitz_cap"],
+                    choices=["sc_penalty", "lipschitz_cap"],
+                    help="which defense sweep(s) to run; baseline always runs")
     ap.add_argument("--lambdas", nargs="+", type=float,
                     default=[0.001, 0.003, 0.01, 0.03, 0.1],
                     help="sc_penalty sweep (log-penalty knee is in [1e-3, 1e-1])")
@@ -197,15 +203,24 @@ def main():
     args = ap.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    seeds = SEEDS[: args.n_seeds]
+    # seed selection: --seeds  >  AEGIS_SEEDS env (cluster shard)  >  --n-seeds
+    if args.seeds is not None:
+        seeds = list(args.seeds)
+    elif os.environ.get("AEGIS_SEEDS"):
+        seeds = [int(s) for s in os.environ["AEGIS_SEEDS"].replace(",", " ").split()]
+    else:
+        seeds = SEEDS[: args.n_seeds]
     lambdas = list(args.lambdas)
     caps = list(args.caps)
     epochs = args.epochs
     cert_sample = args.cert_sample
     if args.quick:
-        seeds, lambdas, caps, epochs, cert_sample = SEEDS[:2], [0.01], [0.7], 40, 200
+        seeds, lambdas, caps, epochs, cert_sample = seeds[:2], [0.01], [0.7], 40, 200
 
-    out_path = PROJ_ROOT / args.out
+    # output is CWD-relative so the cluster's per-label working dir isolates each
+    # shard (run_job.sh cd's into results/cluster/<label>); locally CWD is the repo.
+    _op = Path(args.out)
+    out_path = _op if _op.is_absolute() else (Path.cwd() / _op)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     log_path = out_path.with_suffix(".log")
     logf = open(log_path, "a")
@@ -277,14 +292,15 @@ def main():
             run_point(dataset, "baseline", args.base_c, 0.0, seed, N, X, A, y,
                       test_mask, dargs)
             # Defense A: sigma_1(S_c) penalty sweep at c=base_c
-            if penalty_ok:
+            if "sc_penalty" in args.defenses and penalty_ok:
                 for lam in lambdas:
                     run_point(dataset, "sc_penalty", args.base_c, lam, seed, N, X, A, y,
                               test_mask, dargs)
             # Defense B: Lipschitz cap sweep at lambda=0
-            for cc in caps:
-                run_point(dataset, "lipschitz_cap", cc, 0.0, seed, N, X, A, y,
-                          test_mask, dargs)
+            if "lipschitz_cap" in args.defenses:
+                for cc in caps:
+                    run_point(dataset, "lipschitz_cap", cc, 0.0, seed, N, X, A, y,
+                              test_mask, dargs)
 
     csvf.close()
     summarize(out_path, log)

@@ -80,7 +80,7 @@ from scripts.exp_full_attack_table import (
     set_seed,
     train_ignn,
 )
-from iem.scalable import ScalableSensitivity
+from iem.scalable import ScalableSensitivity, extract_ignn_weight
 
 EPS = 0.10  # paper table budget for tab:attack_full
 assert EPS in EPS_VALUES, "EPS must be one of the subgraph script's budgets"
@@ -134,19 +134,28 @@ def rho_rayleigh(op: ScalableSensitivity, iters: int = 200) -> float:
 def build_op(model, X, A, rho_thresh: float = 0.98):
     """Forward to the full-graph fixed point, build a matrix-free
     ScalableSensitivity, compute a trustworthy rho, and (if rho>=thresh) rebuild
-    with deep Neumann truncation so v_1 is accurate. Returns (op, rho, rebuilt)."""
+    with deep Neumann truncation so v_1 is accurate. Returns (op, rho, rebuilt).
+
+    For an IGNN operator the four Jacobian applications are routed through the
+    CLOSED-FORM path (``ignn_weight=W``), verified ==autograd to machine precision
+    by ``scripts/_verify_opt_b_analytic.py``. This removes the N x N backward graph
+    that OOM'd full-graph Pubmed (>24 GB) and is ~19x faster at N=2708; it falls
+    back to autograd for any non-IGNN operator (guarded by duck-typing)."""
     def F_op(z, c):
         return model.operator(z, c)
 
     with torch.no_grad():
         _, Z_star, ctx = model(X, A)
-    op = ScalableSensitivity(F_op, Z_star, ctx)
+    ignn_W = (extract_ignn_weight(model)
+              if hasattr(model, "_W_eff") and hasattr(model, "W") else None)
+    op = ScalableSensitivity(F_op, Z_star, ctx, ignn_weight=ignn_W)
     rho = rho_rayleigh(op)
     rebuilt = False
     if rho >= rho_thresh:
         # Route around the K=500 pin: deep Neumann so the resolvent (and hence
         # v_1) is accurate at high spectral radius.
-        op = ScalableSensitivity(F_op, Z_star, ctx, neumann_terms=3000)
+        op = ScalableSensitivity(F_op, Z_star, ctx, neumann_terms=3000,
+                                 ignn_weight=ignn_W)
         rebuilt = True
     return op, Z_star, ctx, rho, rebuilt
 

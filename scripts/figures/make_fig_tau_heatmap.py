@@ -147,7 +147,8 @@ def main():
     # #555555 washed out against the white background.
     fig.text(
         0.5, 0.015,
-        r"$^\dagger$ GAT-2: 2-layer attention; OOM on Pubmed, WikiCS, Amazon Fraud.",
+        r"$^\dagger$ GAT-2: 2-layer attention; finite-difference sensitivity "
+        r"(attention masks $A$).",
         ha="center", va="bottom", fontsize=9, color="#222222",
         family="serif", style="italic",
     )

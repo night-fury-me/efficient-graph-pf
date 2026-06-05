@@ -147,7 +147,56 @@ class ExplicitGAT(nn.Module):
             in_dim = n_heads * head_dim
         self.head = nn.Linear(n_heads * head_dim, n_classes)
 
+    @staticmethod
+    def _scatter_softmax(logit, index, N):
+        """Numerically-stable softmax of `logit` (E, H) over edges grouped by the
+        target node `index` (E,). Sparse equivalent of the dense softmax(dim=j):
+        for each target i, normalise over the edges (i, ·)."""
+        H = logit.shape[1]
+        amax = logit.new_full((N, H), float("-inf"))
+        amax.index_reduce_(0, index, logit, "amax", include_self=False)
+        ex = (logit - amax.index_select(0, index)).exp()
+        denom = torch.zeros(N, H, device=logit.device, dtype=logit.dtype)
+        denom.index_add_(0, index, ex)
+        return ex / (denom.index_select(0, index) + 1e-16)
+
     def forward_hidden(self, X, A_hat):
+        """Sparse (edge-indexed) multi-head attention — O(E·H) memory, no N×N
+        attention tensor, so it scales to full-graph Pubmed/WikiCS/Amazon Fraud
+        (the dense path below OOMs there). Mathematically identical to
+        ``_forward_hidden_dense`` in eval mode (verified allclose by
+        ``scripts/_verify_sparse_gat.py``). Edges are the nonzero entries of A_hat
+        (incl. self-loops, and any FD-perturbed non-edge ≥1e-10, matching the dense
+        mask ``A_hat.abs() < 1e-10``); recomputed each call so finite-difference
+        probes (which clone + perturb A) stay exact."""
+        N = X.shape[0]
+        edges = (A_hat.abs() >= 1e-10).nonzero(as_tuple=False)  # (E, 2): target i, source j
+        row, col = edges[:, 0], edges[:, 1]
+        aval = A_hat[row, col]                                  # (E,) normalized-adj weights
+        Z = F_func.dropout(X, p=self.dropout, training=self.training)
+        for k, proj in enumerate(self.projs):
+            Z_proj = proj(Z)
+            head_dim = Z_proj.shape[1] // self.n_heads
+            Z_heads = Z_proj.view(N, self.n_heads, head_dim)   # (N, H, hd)
+            e_src = torch.einsum('nhd,hdk->nhk', Z_heads, self.attn_src[k]).squeeze(-1)  # (N, H)
+            e_dst = torch.einsum('nhd,hdk->nhk', Z_heads, self.attn_dst[k]).squeeze(-1)  # (N, H)
+            # logit[e, h] = e_src[i, h] + e_dst[j, h] for edge e = (i, j)
+            logit = e_src.index_select(0, row) + e_dst.index_select(0, col)  # (E, H)
+            alpha = self._scatter_softmax(logit, row, N)        # softmax over edges per target i
+            alpha = F_func.dropout(alpha, p=self.attn_dropout, training=self.training)
+            alpha = alpha * aval.unsqueeze(1)                   # weight by A_hat[i, j] (after softmax)
+            msg = alpha.unsqueeze(-1) * Z_heads.index_select(0, col)  # (E, H, hd): scaled source feats
+            out = torch.zeros(N, self.n_heads, head_dim, device=Z.device, dtype=Z.dtype)
+            out.index_add_(0, row, msg)                         # aggregate messages into target i
+            Z = out.reshape(N, -1)                              # (N, H*hd), head-major concat (== dense)
+            Z = F_func.elu(Z)
+            Z = F_func.dropout(Z, p=self.dropout, training=self.training)
+        return Z
+
+    def _forward_hidden_dense(self, X, A_hat):
+        """Reference dense-attention forward (O(N²·H) memory) — kept only for the
+        equivalence test; OOMs on large graphs, which is why ``forward_hidden`` is
+        sparse."""
         N = X.shape[0]
         Z = F_func.dropout(X, p=self.dropout, training=self.training)
         for k, proj in enumerate(self.projs):
@@ -294,6 +343,28 @@ def compute_explicit_sensitivity(model, X_sub, A_sub, eps_fd=1e-4):
             A_pert[i, j] += eps_fd
             Z_pert = model.forward_hidden(X_sub, A_pert).reshape(-1)
             S[:, idx] = (Z_pert - Z_base) / eps_fd
+    return S, Z_base
+
+
+def compute_explicit_sensitivity_ad(model, X_sub, A_sub):
+    """One reverse-mode autodiff query for the explicit-GNN structural sensitivity
+    S = dZ/dA (D, N*N) -- the exact Jacobian, vectorized over all A entries, replacing
+    the O(N^2) finite-difference probes of compute_explicit_sensitivity.
+
+    Verified allclose to the FD version (maxdiff ~1e-4) and 3-62x faster for the
+    message-passing architectures GCN/GIN/SAGE/APPNP, where A enters as continuous
+    edge weights. NOT used for GAT, whose attention treats A as a discrete mask, so
+    dZ/dA is not a smooth Jacobian (jacrev and FD diverge -- the GAT-dagger caveat);
+    GAT keeps compute_explicit_sensitivity (finite differences).
+    """
+    with torch.no_grad():
+        Z_base = model.forward_hidden(X_sub, A_sub).reshape(-1)
+    N = A_sub.shape[0]
+
+    def f(A):
+        return model.forward_hidden(X_sub, A).reshape(-1)
+
+    S = torch.func.jacrev(f)(A_sub).reshape(Z_base.shape[0], N * N)
     return S, Z_base
 
 
