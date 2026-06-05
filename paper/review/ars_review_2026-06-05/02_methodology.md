@@ -1,0 +1,51 @@
+# R1 — Methodology & Theory Referee
+
+**Recommendation:** Major Revision. The empirical hygiene is good (10 fixed seeds, std reported, finite-difference cross-checks). But there is one genuine soundness gap in the headline certificate's proof, a scope violation in the flagship experiment, and several comparisons whose framing inflates the result. None is fatal; all are addressable.
+
+---
+## A. Theory — proof verification
+
+### A1. **[MAJOR — soundness gap] The subcritical certificate `ε_crit` is not established by its own proof for partially-active ReLU.**
+`thm:phase_transition` defines `ε_crit = (1−κ)/‖W‖_2` with **κ := ‖J_z‖_2** by (A3). The proof (`app:proof_phase`, Step 2, eq. `Jzp-bound`) bounds the *perturbed* Jacobian as
+`‖J_z'‖_2 ≤ ‖Â'‖_2‖W‖_2 ≤ (‖Â‖_2+ε)‖W‖_2`, then asserts the RHS `< 1` "precisely when ε < 1/‖W‖_2 − ‖Â‖_2 = ε_crit."
+
+That last equality requires `‖Â‖_2 = κ/‖W‖_2`, i.e. **κ = ‖Â‖_2‖W‖_2**. But that holds only in the all-active case (A4), where `J_z = Â⊗W`. For a genuinely contractive *ReLU* model with inactive units, `κ = ‖J_z‖_2 < ‖Â‖_2‖W‖_2`, so
+`1/‖W‖_2 − ‖Â‖_2 = (1−‖Â‖_2‖W‖_2)/‖W‖_2 < (1−κ)/‖W‖_2 = ε_crit.`
+The proof therefore certifies safety only out to the *smaller* radius `1/‖W‖−‖Â‖`, while the theorem advertises the *larger* `ε_crit`. As written, the certificate is **optimistic** (claims safety on `(1/‖W‖−‖Â‖, ε_crit)` where Step 2 gives none). The theorem header also says the certificate "uses (A1)–(A3) alone," yet the written argument silently needs the all-active identity.
+
+**[Update — independently verified by `ml-theory-reviewer`, 2026-06-05; see `07_theory_verification_ecrit.md`.]** The gap is confirmed from primary source AND sharpened: my first-guess fix (the triangle route `‖J_z'‖ ≤ κ + ε‖W‖`) is *itself unsound* over a finite ball. It assumes a single activation mask, but the equilibrium provably crosses ReLU regions inside the certified ball (mask flips at ε≈0.22 ≪ ε_crit=0.54), so the correct decomposition `J_z'−J_z = M'(δÂ⊗W) + (M'−M)(Â⊗W)` carries a dropped mask-change term (adversarial search: true `‖J_z'‖=0.625` vs the bound `0.335`, a +0.29 violation). **Correct required fix:** certify the *mask-agnostic* radius `ε_crit^suff := max(0, 1/‖W‖−‖Â‖)` — sound for every mask because `M'` is a 0/1 projection (`‖J_z'‖=‖M'(Â'⊗W)‖≤‖Â'‖‖W‖`), consuming A1+A2+threat-bound only — and demote `(1−κ)/‖W‖` to a reported operating margin; *or* keep `(1−κ)/‖W‖` and explicitly add (A4) all-active scope, correcting the "(A1)–(A3) alone" header. Until one of these lands, the headline safe radius is not proven. (Severity MAJOR; the panel treats it as blocking. Note: the verifier flags this as the *same* norm-vs-actual / all-active-vs-partial-ReLU conflation pattern that also touches the `thm:cf2s` upper side and the `‖z*‖`-finiteness denominator — worth a sweep.)
+
+### A2. **[verified correct] Bracket theorem `thm:cf2s_full` (Appendix D).** I checked the three load-bearing steps:
+- `β = ⟨u_1, B u_1⟩ = σ_E` (eq. `beta-eq`): correct — `⟨P_E(u_1u_1^T), u_1u_1^T⟩_F = ‖P_E(u_1u_1^T)‖_F^2` because `P_E` is an orthogonal projection. ✓
+- Upper side (ii): `t ↦ λ_max(Â+tB)` is a pointwise max of affine forms, hence convex, hence above its tangent `ρ(Â)+βt`; choosing `t=ε_spec/β` drives `ρ(J_z')≥1`. The convexity *direction* is right and the paper correctly notes the concave version would fail. ✓ (Requires (A4); correctly scoped.)
+- Enclosure (iii): `ε_spec ≤ g_W·(1/(1−κ))·ε_crit ≤ C·ε_crit` with `C=g_W(1+κ)/(1−κ)`. Algebra checks; note `C` is deliberately loosened from `g_W/(1−κ)` to `g_W(1+κ)/(1−κ)` — harmless but the tighter constant `g_W/(1−κ)` is available and worth stating.
+**Caveat (not an error):** the bracket brackets the **all-active** boundary `ε_br^all`. The *deployed* ReLU break `ε_reach` is handled only in `rem:obs_o1`, explicitly a conjecture with two open gaps. So the "two-sided bracket" the abstract sells is for a linearized surrogate; this is honestly disclosed in the appendix but not in the front matter.
+
+### A3. **[MINOR — rigor] APS branch of `lem:score-shift` (Appendix E, Step 3).** The APS score depends on rank events `{π_c>π_r}` that are *discontinuous* in the margins (a competitor crossing in rank adds `π_c` to `ρ_r`). The proof asserts the worst case "uses the same lowered-margin softmax" and that the drop is "exact rather than a Lipschitz bound," but the combinatorial worst-case over *which* competitors cross rank is not fully discharged. The TPS branch (monotone in each margin) is clean. Please make the APS worst-case selection explicit, or restrict the closed-form `Δ_r` to TPS and treat APS empirically.
+
+### A4. **[verified correct] `prop:transfer` complete remainder (Appendix C).** The bilinearity argument (`F_zz=F_AA=0` on a linear region, eq. `bilinear`) genuinely makes eq. `hessian-full` the *complete* second derivative, so `|R_k| ≤ ½(1−κ)^{-2}L_J w_k^2` is exact-on-each-region rather than a dominant-term reduction. This is a nice, correct touch and the paper is right to highlight it.
+
+---
+## B. Experimental design
+
+### B1. **[MAJOR — scope violation] Flagship `τ=+0.996` is measured at κ≈1.00.** `fig:tau_heatmap`/`sec:explicit_extension`: full-graph Amazon Photo, `N=7,650`, **κ≈1.00**. `prop:transfer` assumes *every single-edge removal is subcritical*, which needs `ε_crit>0`, i.e. `κ<1`; at κ≈1.00, `ε_crit≈0` and the proposition does not apply. The most-quoted number in the paper is thus *outside* the theory it is offered as evidence for. Either run the headline transfer inside the certified regime, or relabel it as an empirical regularity that holds even as contraction is lost (which would actually be an interesting, separate claim — but state it as such).
+
+### B2. **[MAJOR — framing] "τ=0.99" conflates the sensitivity with the edge weight.** The weighted ranking `A_ij·v_ij` mixes a *free* quantity (the edge weight, known from `Â` without any `S_c` computation) with the `S_c` signal `v_ij`. The honest test of the sensitivity is the *unweighted* `v_ij`: median ≈ +0.32 (IGNN), with `34/39` cells positive vs `39/39` weighted, and one negative cell (GCN-2). The paper *does* report the marginal `Δτ≈+0.25` (`app:explicit`), which is the defensible contribution of `S_c`. Move that to the headline; the 0.99 currently credits the graph's edge weights to the operator.
+
+### B3. **[MAJOR] The "attack" maximizes equilibrium shift, not misclassification.** `tab:attack_full` reports `‖ΔZ*‖` ("equilibrium damage"); flips are 0–1.8% at ε=0.10 (`app:attack_full`). The `74–156×` per-query advantage is therefore an advantage at *moving the hidden state*, not at *flipping predictions*. For an "audit" of which edges "would cause predictions to fail" (intro), the relevant currency is flips/margin loss. Either (a) report the per-query advantage on a *flip* or *margin* metric, or (b) restate the claim as equilibrium-sensitivity, not attack success. Note the honest mitigation: flips do reach 7.6%/27.4% (Cora/Pubmed) by ε=0.20 (`fig:breach`) — but that is a different budget than the headline.
+
+### B4. **[MAJOR] Smoothing comparison is on a ball chosen to hamstring smoothing.** `tab:smoothing`: on the *matched Frobenius* ball `σ=ε/√(2|E|)` smoothing is vacuous (abstains); on its *natural per-coordinate* ball it certifies 0.77–0.96. The abstract's "stays non-vacuous where randomized smoothing degenerates to the full label set" selects the matching unfavorable to smoothing. The **cost** argument (10^3–10^4×, zero-sample) is valid and is the real win; lead with cost, and present the ball-matching even-handedly (you already disclose both — make the headline match the disclosure). Also note you are comparing a *coverage-set* guarantee (conformal) to a *certified-radius* guarantee (smoothing); say so.
+
+### B5. **[MAJOR] Head-to-head against SOTA structural attackers is two table rows.** `tab:baselines` vs GR-BCD/PR-BCD is only {Pubmed k=10, Cora k=5}, and even there GR-BCD decorrelates on Cora (τ=+0.16) and dominates raw damage at its target budgets (conceded). AGNNCert is compared only qualitatively ("different threat models"). For a paper claiming a unifying operator, expand to all datasets × a budget sweep, and report where AEGIS's one-query proxy *loses*, not only the early-warning regime where it wins.
+
+### B6. **[MODERATE] The "unified pipeline at scale" is uneven.** Audit scales to N=7,650; but **certify (AEGIS-Conformal) runs densely at N=200** (`sec:certify`, `conclusion`), the **defense table is Cora-only IGNN** (`tab:defense`), and the closed-form `ε_crit` is IGNN-only. The "one operator, three capabilities, at scale" story is realized at scale only for the audit. State this scoping in the contributions list.
+
+### B7. **[MINOR — good practice] Reproducibility is solid.** 10 fixed seeds enumerated (`app:repro`), std reported throughout, rSVD/Neumann hyperparameters given, finite-difference faithfulness checks (τ=0.999), and matrix-free vs dense self-consistency (0.03% at N=200). This is above the median for the venue. Two gaps: (i) no code/anon-repo link at submission (a "gated release" is described but reviewers cannot run it); (ii) the defense and conformal tables would benefit from ≥1 additional dataset to rule out Cora-specificity.
+
+---
+## C. Statistical claims — spot checks
+- `2–9×` deterministic-vs-empirical break: consistent with `ε_reach/ε_crit = 2.17 (κ=0.5) … 8.72 (κ=0.9)` (`rem:obs_o1`). ✓
+- `p<10^{-43}` (149/150 wins vs Mettack) and `p≈10^{-160}` (attack/cert anticorrelation): these are extreme p-values from paired tests over 10 seeds × nodes; ensure the unit of analysis and multiple-comparison handling are stated (node-level vs seed-level pooling changes the effective n). Currently the n behind each p is not given.
+- `g_W∈[1.19,2.47]`, `η∈[1.19,2.47]` — identical interval for two different quantities (`obs:eta_bound` says `η≤κ(V_W)`, `app:bracket` says `g_W≤κ_2(V_W)`); confirm this is not a copy error and that both genuinely land on the same range.
+
+**Bottom line:** the machinery is largely correct and the empirical protocol is honest, but (A1) must be fixed for the certificate to stand, (B1) reconciled, and (B2)–(B5) reframed so the headline matches the appendix. **Soundness 5/10, Rigor of experiments 6/10 → Major Revision.**
