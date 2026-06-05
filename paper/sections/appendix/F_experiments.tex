@@ -157,7 +157,7 @@ Amazon Fraud & $78$ & $+0.46$ & $1.00$ & $1.01$ & $1.00$ & $0.99$ \\
 increment $\Delta\tau{=}\tau_{Av}{-}\tau_{A}$ and the damage of the full ranking relative to each
 component ($D_{Av}/D_A$, $D_{Av}/D_v$; means over $k$). The increment is positive on every dataset and
 the full ranking out-damages edge-weight-alone everywhere; on Citeseer/Pubmed/Amazon\,Fraud the
-sensitivity is decisive (e.g.\ Citeseer $\tau_A{\approx}0$).}
+sensitivity is decisive (e.g.\ Citeseer $\tau_A{\approx}0$). These $\tau$ score agreement with the GR-BCD ranking; \cref{fig:tau_heatmap} instead scores agreement with brute-force single-edge removal, where the Amazon\,Fraud increment reaches $+0.90$.}
 \label{tab:da_decomp}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -316,15 +316,15 @@ APPNP & $\ms{1.02}{.00}$ & $\ms{3.4}{0.3}\times$ & $\ms{+.35}{.01}$ & $\ms{\math
 \textbf{GAT$^\dagger$ scope.} Standard GAT uses $A$ as a binary mask, so $\partial Z/\partial A_{ij}{=}0$
 on existing edges and $S_c$ is undefined; our GAT$^\dagger$ modulates attention by the edge weight
 ($h_i'=\sum_j\Ahat_{ij}\alpha_{ij}Wh_j$), restoring differentiability and yielding tightness $0.99$,
-AtkAdv $4.4\times$, $\tau{=}{+}0.36$. Binary-mask architectures (hard attention, max/min aggregation,
+AtkAdv $4.4\times$, $\tau{=}{+}0.56$. Binary-mask architectures (hard attention, max/min aggregation,
 GATv2~\cite{brody2022how}-style dynamic-attention masking) fall outside the framework. \textbf{Robust
 backbones.} Under the $\sigma_1(W){\le}0.9$ cap, RobustGCN-lite~\cite{zhu2019robust} and
 GNNGuard-lite~\cite{zhang2020gnnguard} match or exceed IGNN; the cap is a precondition (without it
 $\kappa{>}1$ voids \cref{thm:phase_transition}). \textbf{Cross-dataset transfer detail.} The
-edge-weighted $A_{ij}v_{ij}$ ranking beats a pure edge-weight baseline by $\Delta\tau{\approx}{+}0.25$,
-rising to $+0.65$ on the fraud graph where uniform weights are uninformative, so $v_{ij}$ adds rank
+edge-weighted $A_{ij}v_{ij}$ ranking beats a pure edge-weight baseline by $\Delta\tau{\approx}{+}0.16$,
+rising to $+0.90$ on the fraud graph where uniform weights are uninformative, so $v_{ij}$ adds rank
 information beyond the weight. GAT-2$^\dagger$ is the exception: attention reweights edges, so the
-unweighted $v_{ij}$ transfers better there ($+0.47$ vs.\ $+0.35$). \Cref{prop:transfer}'s sufficient
+unweighted $v_{ij}$ transfers better there ($+0.61$ vs.\ $+0.56$). \Cref{prop:transfer}'s sufficient
 pairwise condition holds for $\mathbf{47}$--$\mathbf{62\%}$ of edge pairs, so the global $\tau$ is
 empirical, not implied; where unweighted $v_{ij}$ is uninformative (GCN-2's near-uniform 2-hop shifts)
 the weighted ranking recovers the order via the edge weight ($-0.28{\to}{+}0.99$, Citeseer).
@@ -345,7 +345,7 @@ central account, and the edge-weighted ranking $A_{ij}v_{ij}$ pinpoints the faul
 brute-force single-edge-removal damage ranking from a single $S_c$ query. This auditing claim is what the
 paper validates at scale, and non-circularly. The ranking transfers across the full fraud graph
 (\cref{fig:tau_heatmap}), precisely where uniform edge weights are uninformative so $v_{ij}$ adds the
-most rank information ($\Delta\tau$ up to $\mathbf{+0.65}$ over the weight baseline). The SVD direction
+most rank information ($\Delta\tau$ up to $\mathbf{+0.90}$ over the weight baseline). The SVD direction
 transfers from a separately trained surrogate (zero shared gradients, $\cos{=}0.99$;
 \cref{sec:adaptive}), so $v_{ij}$ reflects model-intrinsic vulnerability rather than a gradient
 artifact; \AEGIS out-damages discrete attackers (Mettack, GR-BCD) on their own metric in the

@@ -378,7 +378,9 @@ regenerated (`make_fig_tau_heatmap.py`), OOM boxes → real values, footnote OOM
 (Cora +0.32, Citeseer +0.50, Amazon Photo +0.23) but high on the large ones (Pubmed +0.75, WikiCS +0.71,
 Amazon Fraud +0.82). The weak-transfer impression was an artifact of only having the small graphs.
 
-**Remaining (paper prose, NOT auto-edited).** experiments.tex/introduction.tex: 390→420 runs, 39/39→42/42 cells,
-remove "Cross-hatch: GPU OOM" caption, per-cell sd max 0.041→0.068, median τ +0.99→+0.98, and the "GAT transfers
-better unweighted" note (now 4/6). The paper's τ-stat pipeline doesn't match a naive CSV read (Δτ +0.16/+0.90 vs
-the paper's +0.25/+0.65), so left for the authors. Details: `results/sparse_gat_findings.md`.
+**Paper prose — applied (figure aggregation).** Recomputed stats with `make_fig_tau_heatmap.aggregate` (per-cell
+mean of `tau_weighted`) and edited: experiments.tex/introduction.tex 390→420 runs; experiments.tex 39/39→42/42,
+median τ +0.99→+0.98, Δτ +0.25/+0.65→+0.16/+0.90, caption dropped "Cross-hatch: GPU OOM" + sd 0.041→0.068;
+case_study.tex fraud-graph Δτ +0.65→+0.90 (same IGNN/Amazon-Fraud cell). The old +0.25/+0.65 was not
+figure-consistent (matched per-run p90, likely stale). Left for authors: caption "transfers better unweighted"
+(now 4/6) and the optional intro "scaling to N=7,650"→19,717 bump. Details: `results/sparse_gat_findings.md`.
