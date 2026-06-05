@@ -21,9 +21,11 @@ $\times$ (equilibrium-shift, classification-loss). The SVD direction maximizes f
 shift by construction (\cref{prop:attack}); what matters is non-circularity and cost. A transfer
 direction from a separately trained surrogate (zero shared gradients) recovers $99\%$ of the one-query
 damage ($\cos{=}0.99$), versus $44{\pm}4\%$ for a $512$-query black-box search, so the fault line is
-model-intrinsic rather than a gradient artifact. Per query it delivers $74$--$156\times$ the damage of a
-$50$-step PGD~\cite{madry2018towards}; classification-loss PGD inflicts $15$--$70\%$ less at $50\times$
-the cost, IFT-gradient PGD (solver validation, not an independent baseline) $72$--$92\%$, and prediction
+model-intrinsic rather than a gradient artifact. Per query it delivers $78$--$157\times$ the damage of a
+$50$-step PGD~\cite{madry2018towards} (Frobenius-ball projected, $3$ random restarts, gradients
+backpropagated through a converged fixed-point solve\,---\,the implicit/IFT gradient);
+classification-loss PGD inflicts $15$--$71\%$ less at $50\times$
+the cost, IFT-gradient PGD (solver validation, not an independent baseline) $91$--$100\%$, and prediction
 flips stay $0$--$1.8\%$ for all methods. \Cref{fig:attack_comparison} visualizes the equilibrium-damage
 column.
 
@@ -33,7 +35,7 @@ column.
 \caption{Equilibrium damage $\norm{\Delta Z^\star}_2$ at $\varepsilon{=}0.10$ across 10 seeds, for the
 one-query \AEGIS (SVD) attack against classification-loss PGD, IFT-gradient (shift) PGD, and a random
 baseline, on Cora, Citeseer, and WikiCS. Visual companion to \cref{tab:attack_full}: one analytic
-\AEGIS query inflicts $1.5$--$3.1\times$ the damage of a $50$-step Cls-PGD run per dataset, at a fraction
+\AEGIS query inflicts $1.6$--$3.1\times$ the damage of a $50$-step Cls-PGD run per dataset, at a fraction
 of its cost.}
 \label{fig:attack_comparison}
 \end{figure}

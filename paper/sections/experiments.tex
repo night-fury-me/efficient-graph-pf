@@ -32,7 +32,7 @@ WikiCS   & $\ms{77.9}{0.4}$ & $\ms{.34}{.04}$ & $\ms{.66}{.04}$ & $\ms{3.8}{.4}$
 \end{tabular*}
 \end{table}
 
-\textbf{One query, not a search.} \AEGIS spends its whole budget in one analytic query: the leading singular direction of $S_c$ is the perturbation that moves the equilibrium most (\cref{prop:attack}), with no optimisation loop. Three checks confirm it tracks a real fault line, not the victim's gradients. \emph{It transfers:} a separately trained surrogate (no shared gradients) recovers $99\%$ of the one-query equilibrium damage ($\cos{=}0.99$), versus $44{\pm}4\%$ for a $512$-query black-box search. \emph{It is efficient:} one query matches or beats $50$-step PGD~\cite{madry2018towards} on equilibrium damage at $\varepsilon{=}0.10$ (\cref{tab:attack_full}), a $\mathbf{74}$--$\mathbf{156\times}$ per-query advantage, though prediction flips stay under $2\%$ at this budget. \emph{It is faithful:} finite differences reproduce the $S_c$ ranking ($\tau{=}0.999$).
+\textbf{One query, not a search.} \AEGIS spends its whole budget in one analytic query: the leading singular direction of $S_c$ is the perturbation that moves the equilibrium most (\cref{prop:attack}), with no optimisation loop. Three checks confirm it tracks a real fault line, not the victim's gradients. \emph{It transfers:} a separately trained surrogate (no shared gradients) recovers $99\%$ of the one-query equilibrium damage ($\cos{=}0.99$), versus $44{\pm}4\%$ for a $512$-query black-box search. \emph{It is efficient:} one query matches or beats $50$-step PGD~\cite{madry2018towards} on equilibrium damage at $\varepsilon{=}0.10$ (\cref{tab:attack_full}), a $\mathbf{78}$--$\mathbf{157\times}$ per-query advantage, though prediction flips stay under $2\%$ at this budget. \emph{It is faithful:} finite differences reproduce the $S_c$ ranking ($\tau{=}0.999$).
 
 \begin{table}[t]
 \centering
@@ -66,7 +66,7 @@ WikiCS   & $\ms{2.10}{.22}$ & $\ms{0.67}{.11}$ & $\ms{1.93}{.20}$ & $\ms{0.53}{.
 \begin{minipage}[t]{0.655\textwidth}
 \centering
 \includegraphics[width=\linewidth]{figures/fig_greedy_curves.pdf}
-\caption{Cumulative damage from sequential discrete edge removal vs.\ $k$ (IGNN, 50-node subgraph, 10 seeds). \AEGIS \emph{matches} label-aware Greedy on Citeseer/WikiCS and recovers $\mathbf{54}$--$\mathbf{67\%}$ of its Cora damage at $k{=}5$--$10$ with no label access.}
+\caption{Cumulative damage from sequential discrete edge removal vs.\ $k$ (IGNN, 50-node subgraph, 10 seeds). \AEGIS \emph{matches} the greedy shift-oracle on Citeseer/WikiCS and recovers $\mathbf{54}$--$\mathbf{67\%}$ of its Cora damage at $k{=}5$--$10$ from a single closed-form $S_c$ ranking, with no per-edge search.}
 \label{fig:greedy_topk}
 \end{minipage}
 \end{figure*}

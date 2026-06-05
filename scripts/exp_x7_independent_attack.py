@@ -107,6 +107,90 @@ def compute_view(model, X, A_hat, idx, A_sub):
     return Z_sub, ctx_sub, S_c, edge_list
 
 
+def simba_blackbox(target, Z_sub, ctx_sub, edge_list, eps, M, gen, preds_clean):
+    """SimBA-style query attacker on the L2 (Frobenius) edge ball, maximising the
+    REAL reconverged equilibrium shift. Budget = M model queries. A principled
+    (adaptive) replacement for pure random search."""
+    A_sub = ctx_sub["A_hat"]
+    n = len(edge_list)
+    delta = torch.zeros(n, device=A_sub.device)
+    step = 1.5 * eps / (n ** 0.5)
+
+    def dmg(dl):
+        return measure_attack(target, Z_sub, ctx_sub,
+                              apply_perturbation(A_sub, edge_list, dl), preds_clean)
+
+    cur_d, _cur_fl = dmg(delta)
+    queries = 1
+    best_d, best_fl, best_delta = cur_d, _cur_fl, delta.clone()
+    while queries < M:
+        order = torch.randperm(n, generator=gen, device=A_sub.device)
+        improved = False
+        for c in order.tolist():
+            if queries >= M:
+                break
+            for s in (step, -step):
+                if queries >= M:
+                    break
+                trial = delta.clone()
+                trial[c] += s
+                nrm = trial.norm()
+                if nrm > eps:
+                    trial = trial * (eps / nrm)
+                d, fl = dmg(trial)
+                queries += 1
+                if d > cur_d:
+                    delta, cur_d = trial, d
+                    improved = True
+                    if d > best_d:
+                        best_d, best_fl, best_delta = d, fl, trial.clone()
+                    break
+        if not improved:
+            break  # a full coordinate pass with no accepted move -> converged
+    return best_delta, best_d, best_fl
+
+
+def nes_blackbox(target, Z_sub, ctx_sub, edge_list, eps, M, gen, preds_clean,
+                 pop=20, sigma_frac=0.1):
+    """NES query attacker: antithetic finite-difference gradient estimate of the
+    real equilibrium shift, projected ascent on the L2 ball. Budget = M queries."""
+    A_sub = ctx_sub["A_hat"]
+    n = len(edge_list)
+    sigma = sigma_frac * eps
+    step = 2.5 * eps / max(M // pop, 1)
+
+    def dmg(dl):
+        return measure_attack(target, Z_sub, ctx_sub,
+                              apply_perturbation(A_sub, edge_list, dl), preds_clean)
+
+    delta = torch.zeros(n, device=A_sub.device)
+    best_d, best_fl, best_delta = -1.0, 0, delta.clone()
+    queries = 0
+    while queries + pop <= M:
+        grad = torch.zeros(n, device=A_sub.device)
+        for _ in range(pop // 2):
+            u = torch.randn(n, generator=gen, device=A_sub.device)
+            u = u / (u.norm() + 1e-12)
+            dp, dm = delta + sigma * u, delta - sigma * u
+            d_p, f_p = dmg(dp)
+            d_m, f_m = dmg(dm)
+            queries += 2
+            grad += (d_p - d_m) / (2 * sigma) * u
+            for cd, cf, cvec in ((d_p, f_p, dp), (d_m, f_m, dm)):
+                if cd > best_d:
+                    best_d, best_fl, best_delta = cd, cf, cvec.clone()
+        gn = grad.norm()
+        if gn > 1e-12:
+            delta = delta + step * grad / gn
+        nrm = delta.norm()
+        if nrm > eps:
+            delta = delta * (eps / nrm)
+    d, fl = dmg(delta)
+    if d > best_d:
+        best_d, best_fl, best_delta = d, fl, delta.clone()
+    return best_delta, best_d, best_fl
+
+
 def run_single(ds_name, data, seed, device):
     try:
         X = data["X"].to(device)
@@ -153,16 +237,25 @@ def run_single(ds_name, data, seed, device):
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-        # --- 2. Black-box random search: best-of-M, REAL damage, no gradients/no S_c ---
+        # --- 2. Independent black-box query attackers at the SAME M-query budget.
+        #     Pure random search (RS) is the weak reference the baseline audit flagged
+        #     as a strawman; SimBA and NES are principled ADAPTIVE query attackers. Each
+        #     gets M queries; we report all three and take the STRONGEST as the
+        #     black-box. None uses gradients or S_c -> genuinely independent. ---
         g = torch.Generator(device=A_sub.device).manual_seed(seed * 7919 + 1)
-        dmg_bb, flips_bb = -1.0, 0
+        dmg_rs, flips_rs = -1.0, 0
         for _ in range(M):
             v = torch.randn(n_edges, generator=g, device=A_sub.device)
             v = v / v.norm() * EPS
-            A_v = apply_perturbation(A_sub, edge_list, v)
-            d, fl = measure_attack(target, Z_sub, ctx_sub, A_v, preds_clean)
-            if d > dmg_bb:
-                dmg_bb, flips_bb = d, fl
+            d, fl = measure_attack(target, Z_sub, ctx_sub,
+                                   apply_perturbation(A_sub, edge_list, v), preds_clean)
+            if d > dmg_rs:
+                dmg_rs, flips_rs = d, fl
+        _, dmg_simba, flips_simba = simba_blackbox(target, Z_sub, ctx_sub, edge_list, EPS, M, g, preds_clean)
+        _, dmg_nes, flips_nes = nes_blackbox(target, Z_sub, ctx_sub, edge_list, EPS, M, g, preds_clean)
+        bb_kind, dmg_bb, flips_bb = max(
+            (("rs", dmg_rs, flips_rs), ("simba", dmg_simba, flips_simba), ("nes", dmg_nes, flips_nes)),
+            key=lambda t: t[1])
 
         # --- 3. Transfer: surrogate directions applied to the TARGET (best of svd +/-, Cls-PGD).
         #     SVD is an unsigned direction so both signs are fair game; the PGD delta is already
@@ -180,7 +273,12 @@ def run_single(ds_name, data, seed, device):
             "n_nodes": n_nodes, "n_edges": n_edges,
             "dmg_aegis": dmg_aegis, "dmg_blackbox": dmg_bb, "dmg_transfer": dmg_tr,
             "flips_aegis": flips_aegis, "flips_blackbox": flips_bb, "flips_transfer": flips_tr,
-            "transfer_kind": which_tr,
+            "transfer_kind": which_tr, "bb_kind": bb_kind,
+            # per-attacker black-box damage at the same M-query budget
+            "dmg_bb_rs": dmg_rs, "dmg_bb_simba": dmg_simba, "dmg_bb_nes": dmg_nes,
+            "rs_frac": dmg_rs / max(dmg_aegis, 1e-12),
+            "simba_frac": dmg_simba / max(dmg_aegis, 1e-12),
+            "nes_frac": dmg_nes / max(dmg_aegis, 1e-12),
             # fraction of AEGIS damage reached by each independent attacker (<1 => AEGIS leads)
             "blackbox_frac": dmg_bb / max(dmg_aegis, 1e-12),
             "transfer_frac": dmg_tr / max(dmg_aegis, 1e-12),

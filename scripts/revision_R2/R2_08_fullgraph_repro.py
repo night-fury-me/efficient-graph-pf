@@ -111,14 +111,20 @@ def main():
                 print(f"  AEGIS fullgraph OOM on {dname} seed={seed}: {exc}")
                 continue
             degree_edges = degree_ranking(A_hat)
-            # Random baseline
+            # Random baseline: average over 5 shuffles for a stable denominator.
+            # (Non-load-bearing: the paper's full-graph amplification is AEGIS/degree,
+            #  not AEGIS/random, so this only stabilises the diagnostic aegis_over_random.)
             rng = np.random.default_rng(seed)
-            rand_edges = list(set(aegis_edges))
-            rng.shuffle(rand_edges)
+            rand_shuffles = []
+            for _ in range(5):
+                _re = list(set(aegis_edges))
+                rng.shuffle(_re)
+                rand_shuffles.append(_re)
             for k in K_LIST:
                 d_a = cumulative_damage(model, X, A_hat, aegis_edges, k)
                 d_d = cumulative_damage(model, X, A_hat, degree_edges, k)
-                d_r = cumulative_damage(model, X, A_hat, rand_edges, k)
+                d_r = float(np.mean([cumulative_damage(model, X, A_hat, _re, k)
+                                     for _re in rand_shuffles]))
                 rows.append({
                     "dataset": dname,
                     "seed": seed,

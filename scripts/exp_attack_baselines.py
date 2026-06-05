@@ -49,6 +49,7 @@ try:
 except Exception:
     pass
 EPS = 0.01
+N_RANDOM_DRAWS = 5  # average Random over this many draws for a stable AtkAdv denominator
 
 
 # ---------------------------------------------------------------
@@ -284,16 +285,16 @@ def run_single(dataset_name, data, seed, device):
 
         U_c, sigma_c, Vh_c = torch.linalg.svd(S_c, full_matrices=False)
 
-        # Generate attack perturbations
+        # Generate attack perturbations (deterministic methods; Random handled
+        # separately below so it can be averaged over several draws)
         attacks = {
             "AEGIS (SVD)": aegis_svd_attack(S_c, Vh_c, edge_list, A_sub, EPS),
             "Degree": degree_proportional_attack(A_sub, edge_list, EPS),
             "Spectral": spectral_heuristic_attack(A_sub, edge_list, EPS),
             "Betweenness": betweenness_centrality_attack(A_sub, edge_list, EPS),
-            "Random": random_attack(edge_list, A_sub, EPS),
         }
 
-        # Measure damage for each method
+        # Measure damage for each deterministic method
         results = []
         for method_name, dA in attacks.items():
             ctx_pert = {**ctx_sub, "A_hat": A_sub + dA}
@@ -305,6 +306,21 @@ def run_single(dataset_name, data, seed, device):
                 "method": method_name,
                 "damage": damage,
             })
+
+        # Random baseline: average over N_RANDOM_DRAWS independent draws so the
+        # AtkAdv denominator is stable (a single draw carries ~16-24% CoV across
+        # seeds; the repo's greedy script already uses 5 shuffles).
+        rand_damages = []
+        for _ in range(N_RANDOM_DRAWS):
+            dA_r = random_attack(edge_list, A_sub, EPS)
+            Z_pert = reconverge(model, Z_sub, {**ctx_sub, "A_hat": A_sub + dA_r})
+            rand_damages.append(float((Z_pert - Z_sub).norm()))
+        results.append({
+            "dataset": dataset_name,
+            "seed": seed,
+            "method": "Random",
+            "damage": float(np.mean(rand_damages)),
+        })
 
         # Compute AtkAdv vs Random for each method
         random_damage = [r["damage"] for r in results if r["method"] == "Random"][0]

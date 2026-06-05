@@ -135,52 +135,71 @@ def measure_attack(model, Z_clean, ctx_sub, A_pert, preds_clean):
 
 
 def pgd_attack(model, Z_clean, ctx_sub, target, edge_list, epsilon,
-               objective="classification", y_sub=None, n_steps=50):
-    """PGD attack with configurable objective."""
+               objective="classification", y_sub=None, n_steps=50,
+               n_restarts=3, inner_iter=120):
+    """Faithful PGD on the L2 (Frobenius) edge-perturbation ball.
+
+    Fixes the baseline-audit gaps (pgd.md):
+      * Gradient is backprop through a CONVERGED inner fixed-point solve. For the
+        contractive IGNN (kappa<=0.9) the unrolled gradient sum_k J_z^k J_A
+        converges to the implicit-function-theorem (resolvent) gradient
+        (I-J_z)^{-1} J_A, so this is a genuine IFT-gradient PGD, not a truncated
+        unroll. It uses the model's own operator (NOT S_c), so it stays an
+        independent baseline (no circularity with AEGIS).
+      * L2-normalised ascent step grad/||grad|| on the Frobenius ball (NOT a sign /
+        L_inf step) and NO spurious per-coordinate clamp.
+      * Random restarts: keep the perturbation with the largest realised objective.
+    """
     A = ctx_sub["A_hat"]
     n_edges = len(edge_list)
-    step_size = epsilon / 10.0
-    # Initialize with small random noise to avoid gradient singularity
-    # at ||Z_new - Z_clean|| = 0 (norm gradient is undefined at zero)
-    delta_init = torch.randn(n_edges, device=A.device) * (epsilon * 0.01)
-    norm_init = delta_init.norm()
-    if norm_init > epsilon:
-        delta_init = delta_init * (epsilon / norm_init)
-    delta = delta_init.requires_grad_(True)
+    step_size = 2.5 * epsilon / n_steps  # standard PGD step to traverse the ball
 
-    for step in range(n_steps):
+    def build_A(delta):
         A_pert = A.clone()
         for k, (i, j) in enumerate(edge_list):
-            A_pert = A_pert.clone()
             A_pert[i, j] = A[i, j] + delta[k]
             A_pert[j, i] = A[j, i] + delta[k]
-        ctx_pert = {**ctx_sub, "A_hat": A_pert}
+        return A_pert
 
-        Z = Z_clean.detach().clone()
-        with torch.enable_grad():
-            for _ in range(50):
-                Z_new = model.operator(Z, ctx_pert)
-                if (Z_new - Z).detach().norm() < 1e-7:
-                    break
-                Z = Z_new
-
-            if objective == "classification":
-                logits = model.head(Z_new)
-                loss = -F_func.cross_entropy(logits, y_sub)
-            else:
-                diff = Z_new - Z_clean.detach()
-                loss = -diff.pow(2).sum()
-
-        grad = torch.autograd.grad(loss, delta, retain_graph=False)[0]
+    def realised(delta):
         with torch.no_grad():
-            delta.data -= step_size * grad.sign()
-            delta.data.clamp_(-epsilon / (n_edges ** 0.5), epsilon / (n_edges ** 0.5))
-            norm = delta.data.norm()
-            if norm > epsilon:
-                delta.data *= epsilon / norm
-        delta = delta.detach().requires_grad_(True)
+            Zp = reconverge(model, Z_clean, {**ctx_sub, "A_hat": build_A(delta.detach())})
+            if objective == "classification":
+                return float(F_func.cross_entropy(model.head(Zp), y_sub).item())
+            return float((Zp - Z_clean).norm().item())
 
-    return delta.detach()
+    best_delta, best_obj = None, -float("inf")
+    for _ in range(n_restarts):
+        d = torch.randn(n_edges, device=A.device) * (epsilon * 0.01)
+        if d.norm() > epsilon:
+            d = d * (epsilon / d.norm())
+        delta = d.requires_grad_(True)
+        for _step in range(n_steps):
+            ctx_pert = {**ctx_sub, "A_hat": build_A(delta)}
+            Z = Z_clean.detach().clone()
+            with torch.enable_grad():
+                for _ in range(inner_iter):  # converge -> unrolled grad == IFT grad
+                    Z_new = model.operator(Z, ctx_pert)
+                    if (Z_new - Z).detach().norm() < 1e-7:
+                        break
+                    Z = Z_new
+                if objective == "classification":
+                    loss = -F_func.cross_entropy(model.head(Z_new), y_sub)
+                else:
+                    loss = -(Z_new - Z_clean.detach()).pow(2).sum()
+            grad = torch.autograd.grad(loss, delta)[0]
+            with torch.no_grad():
+                gn = grad.norm()
+                if gn > 1e-12:
+                    delta.data -= step_size * grad / gn        # L2-normalised ascent
+                dn = delta.data.norm()
+                if dn > epsilon:
+                    delta.data *= epsilon / dn                 # project onto L2 ball
+            delta = delta.detach().requires_grad_(True)
+        obj = realised(delta)
+        if obj > best_obj:
+            best_obj, best_delta = obj, delta.detach().clone()
+    return best_delta
 
 
 def run_single(ds_name, data, seed, eps, device):
