@@ -79,7 +79,7 @@ Mettack~\cite{zugner2019adversarial} in the early-warning regime $k\!\in\!\{1,\l
 
 \begin{table}[t]
 \centering
-\caption{Threat models and outputs. Only \AEGIS both names vulnerability-driving edges ($\bullet$ in
+\caption{Threat models and outputs. Only \AEGIS both names vulnerability-driving edges ($\checkmark$ in
 ``Edges'') \emph{and} returns a per-node certificate (``Cert.''), from one closed-form query. The
 certifiers target a \emph{discrete}-edit threat model (a bounded edit \emph{count}), whereas \AEGIS
 bounds a \emph{continuous} edge-weight budget $\norm{\delta\Ahat}_F$, so they are complementary rather
@@ -92,11 +92,11 @@ than comparable on a single radius axis.}
 \toprule
 Method & Threat model & Edges & Cert. \\
 \midrule
-\AEGIS & continuous $\norm{\delta\Ahat}_F$ ball & $\bullet$ & $\bullet$ \\
-GR-BCD/PR-BCD~\cite{geisler2021robustness} & discrete edge edits & $\bullet$ & -- \\
-AGNNCert~\cite{li2025agnncert} & bounded edit count & -- & $\bullet$ \\
-Convex relax.~\cite{zugner2019certifiable} & bounded perturbation & -- & $\bullet$ \\
-Collective smooth.~\cite{schuchardt2021collective} & random edge flips & -- & $\bullet$ \\
+\AEGIS & continuous $\norm{\delta\Ahat}_F$ ball & $\checkmark$ & $\checkmark$ \\
+GR-BCD/PR-BCD~\cite{geisler2021robustness} & discrete edge edits & $\checkmark$ & -- \\
+AGNNCert~\cite{li2025agnncert} & bounded edit count & -- & $\checkmark$ \\
+Convex relax.~\cite{zugner2019certifiable} & bounded perturbation & -- & $\checkmark$ \\
+Collective smooth.~\cite{schuchardt2021collective} & random edge flips & -- & $\checkmark$ \\
 \bottomrule
 \end{tabular}%
 }
