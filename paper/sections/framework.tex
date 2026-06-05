@@ -3,11 +3,18 @@
 \label{sec:framework}
 %% ===================================================================
 
-The previous section isolated the two Jacobians, $J_z$ and $J_A$, through which the adjacency moves the equilibrium. \AEGIS packages them into one operator, the constrained sensitivity matrix $S_c$, never formed explicitly but only applied to vectors (\cref{alg:aegis}). \Cref{fig:pipeline} shows the four stages.
+The previous section isolated the two Jacobians, $J_z$ and $J_A$, through which the adjacency moves the equilibrium. \AEGIS packages them into one operator, the constrained sensitivity matrix $S_c$, never formed explicitly but only applied to vectors (\cref{alg:aegis,fig:pipeline}).
 
 \textbf{The constrained sensitivity operator.} $S_c$ is the full sensitivity $S$ cut down to the perturbations the threat model permits: one column per existing edge, symmetric under $(i,j)\!\leftrightarrow\!(j,i)$. The edge basis has unit Frobenius norm, so $\sigma_1(S_c)$ matches the budget $\norm{\delta\Ahat}_F{=}\varepsilon$; the $N^2 \to |E|$ restriction $P_c$ is the standard duplication-matrix reduction~\cite{magnus2019matrix}. One randomized SVD of $S_c$ yields the three audit readings together, the optimal attack direction (\cref{prop:attack}), the per-edge ranking $v_{ij}{=}\norm{[S_c]_{:,k}}_2$, and the per-node radius $r_v$ (\cref{prop:radius}); the same operator then \emph{certifies} (\cref{sec:conformal}) and \emph{defends} (\cref{sec:defense}).
 
-\begin{algorithm}[H]
+\begin{proposition}[Maximally Sensitive First-Order Structural Perturbation]
+\label{prop:attack}
+The perturbation $\delta A^*$ maximizing $\norm{\Delta \zstar}$ to first order subject to $\norm{\delta A}_F \leq \varepsilon$ is $\delta A^* = \varepsilon \cdot \mathrm{reshape}(v_1, N \times N)$, where $v_1$ is the leading right singular vector of $S$, with shift $\varepsilon \cdot \sigma_1(S)$. Restricted to the threat model's feasible set (symmetric, edge-supported; \cref{sec:background}) the maximizer is instead the leading right singular vector of the constrained $S_c$ in the edge basis $\{b_k\}$, with shift $\varepsilon\,\sigma_1(S_c){\leq}\varepsilon\,\sigma_1(S)$; the unconstrained $\mathrm{reshape}(v_1)$ is generally infeasible.
+\end{proposition}
+
+This direction maximises hidden-state shift, not label change, so it pinpoints the most dangerous use of the budget, yet still aligns empirically with classification damage (\cref{sec:adaptive}).
+
+\begin{algorithm}[t]
 \caption{\AEGIS matrix-free vulnerability analysis. $S_c$ is queried but never formed; the dense fallback ($N\!\leq\!200$) builds $S_c$ and runs an exact SVD.}
 \label{alg:aegis}
 \begin{algorithmic}[1]
@@ -24,14 +31,7 @@ The previous section isolated the two Jacobians, $J_z$ and $J_A$, through which 
 \end{algorithmic}
 \end{algorithm}
 
-\begin{proposition}[Maximally Sensitive First-Order Structural Perturbation]
-\label{prop:attack}
-The perturbation $\delta A^*$ maximizing $\norm{\Delta \zstar}$ to first order subject to $\norm{\delta A}_F \leq \varepsilon$ is $\delta A^* = \varepsilon \cdot \mathrm{reshape}(v_1, N \times N)$, where $v_1$ is the leading right singular vector of $S$, with shift $\varepsilon \cdot \sigma_1(S)$. Restricted to the threat model's feasible set (symmetric, edge-supported; \cref{sec:background}) the maximizer is instead the leading right singular vector of the constrained $S_c$ in the edge basis $\{b_k\}$, with shift $\varepsilon\,\sigma_1(S_c){\leq}\varepsilon\,\sigma_1(S)$; the unconstrained $\mathrm{reshape}(v_1)$ is generally infeasible.
-\end{proposition}
-
-This direction maximises hidden-state shift, not label change, so it pinpoints the most dangerous use of the budget rather than certifying a global margin, yet still aligns empirically with classification damage (\cref{sec:adaptive}).
-
-\textbf{Matrix-free operator.} Scale rests on never forming $S_c$: every reading is a product $S_c v=(I{-}J_z)^{-1}J_A P_c v$, applied in $O(Nd)$ memory rather than the $O((Nd)^2)$ of a dense $S_c$. Contractivity ($\kappa{<}1$) expands the resolvent $(I{-}J_z)^{-1}$ as a geometric Neumann series ($K{\in}[20,50]$ for $\kappa{<}0.8$), each term a forward-mode JVP that applies $P_c$ implicitly; only for $N\leq 200$ do we form $J_z,J_A$ directly. A randomized SVD~\cite{halko2011finding} returns the leading $(\sigma_1,v_1)$, symmetrised to keep the attack feasible. One query suffices because the spectrum is well separated (gap $0.39$--$0.50$; \cref{fig:sc_heatmap}); removing the $O((Nd)^3)$ dense solve lifts the $N{\approx}300$ ceiling to $N{=}7{,}650$ (\cref{app:phase_scal}).
+\textbf{Matrix-free operator.} Scale rests on never forming $S_c$: every reading is a product $S_c v=(I{-}J_z)^{-1}J_A P_c v$, applied in $O(Nd)$ memory rather than the $O((Nd)^2)$ of a dense $S_c$. Contractivity ($\kappa{<}1$) expands the resolvent $(I{-}J_z)^{-1}$ as a geometric Neumann series ($K{\in}[20,50]$ for $\kappa{<}0.8$), each term a forward-mode JVP that applies $P_c$ implicitly; only for $N\leq 200$ do we form $J_z,J_A$ directly. A randomized SVD~\cite{halko2011finding} returns the leading $(\sigma_1,v_1)$, symmetrised to keep the attack feasible. One query suffices because the spectrum is well separated: \cref{fig:sc_heatmap} shows $|S_c|$ on a Cora ego-graph with $\sigma_1$ a clear $43\%$ above $\sigma_2$ (gap $0.39$--$0.50$ across the suite). Removing the $O((Nd)^3)$ dense solve lifts the $N{\approx}300$ ceiling to $N{=}7{,}650$ (\cref{app:phase_scal}). The same query returns all four artifacts in $0.24$\,s (\cref{tab:compute}), the cost of the cheapest single tool and ${\sim}700\times$ below their union, which still omits the per-node radius.
 
 \begin{figure}[t]
 \centering
@@ -39,4 +39,25 @@ This direction maximises hidden-state shift, not label change, so it pinpoints t
 \caption{$|S_c|$ on a 50-node Cora ego-graph (IGNN, $N{=}50$, $d{=}16$, $|E|{=}61$, seed~0). Vermilion: top-3 edges by $|v_1|$ (SVD-optimal direction). Sidebar: singular spectrum ($\sigma_1{=}41.2$, $43\%$ gap to $\sigma_2$).}
 \label{fig:sc_heatmap}
 \end{figure}
+
+\begin{table}[t]
+\centering
+\caption{One \AEGIS query yields all four audit artifacts at the cost of the single cheapest tool and ${\sim}700\times$ below the union of separate ones (Cora, 10 seeds, RTX 4090, 50-node subgraph; smoothing $N{=}10^4$). Artifacts: attack \textbf{Dir}ection, per-edge \textbf{Rank}ing, per-node \textbf{Rad}ius, \textbf{Cert}ificate.}
+\label{tab:compute}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l r r c c c c@{}}
+\toprule
+& & & \multicolumn{4}{c}{Artifacts} \\
+\cmidrule(lr){4-7}
+Method & Time\,(s) & $\times$\AEGIS & Dir & Rank & Rad. & Cert \\
+\midrule
+\AEGIS one query & $0.24$ & $1$ & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ \\
+GR-BCD ($125$\,ep) & $0.19$ & $0.8$ & $\bullet$ & $\bullet$ & -- & -- \\
+PR-BCD ($125$\,ep) & $2.21$ & $9$ & $\bullet$ & $\bullet$ & -- & -- \\
+Smoothing ($10^4$) & $169$ & $695$ & -- & -- & -- & $\bullet$ \\
+Union & $169$ & $696$ & $\bullet$ & $\bullet$ & -- & $\bullet$ \\
+\bottomrule
+\end{tabular*}
+\end{table}
 

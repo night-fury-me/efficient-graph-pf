@@ -324,3 +324,61 @@ page-budget impact.
 
 **Remaining:** none. Defense pillar stays in `sec:defense` (benchmarked vs the robust-architecture
 thread); deliberately not re-plotted on the audit/certify/cost radar.
+
+---
+
+## 11. Update 2026-06-05 — Opt-B analytic matrix-free operator; EXP-1 Pubmed un-dropped
+
+**What.** Implemented the Opt-B plan (`paper/review/opt_b_analytic_matrixfree_plan.md`): replaced the
+autograd JVP/VJP Jacobian applications in `iem.scalable.ScalableSensitivity` with the IGNN's **closed-form**
+Jacobian (opt-in via `ignn_weight=W` + `extract_ignn_weight`). The four applications are now pure matmuls
+(`J_z v = φ′⊙(Â V Wᵀ)`, `J_zᵀ u = Â(φ′⊙U)W`, `J_A δA = φ′⊙(δA Z Wᵀ)`, `J_Aᵀ u = (φ′⊙U)W Zᵀ`), so the
+per-rmatvec `N×N` autograd backward graph that OOM'd full-graph Pubmed is gone. Wired into `build_op`
+(`exp_fullgraph_attack_table.py`) with a duck-typed autograd fallback, so EXP-1's whole measurement path
+(σ₁ / attack / certify) inherits it. Status: ✅ done & verified.
+
+**Verified.** `scripts/_verify_opt_b_analytic.py`: analytic `==` autograd to **machine precision** across the
+full rSVD (σ₁ and v₁) — Cora 50-node fp64 (`rel ~1e-16`) and full Cora N=2708 fp32; **19× faster**. The lone
+apparent mismatch (adjoint identity) is a *shared* Neumann-truncation artifact (`analytic=autograd=3.6e-6`,
+`|Δ|=1.7e-15`), not an analytic defect. `scripts/_verify_opt_b_pubmed.py`: full-graph Pubmed (N=19,717,
+κ=0.877) — analytic σ₁=172.6 at **6.29 GB**, while the same autograd measurement **OOMs at 24 GB**.
+
+**EXP-1 Pubmed un-dropped.** `exp1_defense_baseline.py --datasets Pubmed` (no code change; `max_penalty_N=6000`
+auto-skips the dense σ₁-penalty) — 50 models (10 seeds × {baseline, cap×4}), wall 88 min, **peak 6.3 GB**. Clean
+monotonic cap frontier matching Cora/Citeseer: cert_frac 0.60→0.94 as cap tightens 0.8→0.5 (κ 0.79→0.49).
+`results/exp1/exp1_pubmed.csv`; `exp1_defense_baseline_findings.md` updated (Pubmed rows + "dropped" note
+replaced); details in `results/exp1/opt_b_analytic_findings.md`.
+
+**Lesson (honesty).** The old findings-note "a single VJP exceeds 24 GB" was imprecise: a single VJP fits at
+~8 GB; it is the **full rSVD** at κ≈0.88 (per-rmatvec graph + dense δA/grad_A co-resident) that exhausts the
+card. Re-tested on a properly-trained (not under-trained) model to confirm the boundary reproduces.
+
+**Remaining.** σ₁(S_c) **penalty** (Defense A) on Pubmed still needs a sparse/subgraph penalty path (the dense
+`N×N` δA in training is the only remaining `N>6000` blocker); Pubmed is cap-frontier-only for now.
+
+---
+
+## 12. Update 2026-06-05 — Sparse-attention GAT fills the 3 OOM cells in fig:tau_heatmap
+
+**What.** The GAT-2 row of the continuous→discrete transfer heatmap had 3 OOM cells (Pubmed, WikiCS, Amazon
+Fraud). Root cause was NOT the IGNN operator: `ExplicitGAT.forward_hidden` built a dense `(H, N, N)` attention
+tensor (O(N²·H)) so full-graph GAT *training* OOM'd >24 GB (the τ sensitivity runs on a 40-node subgraph and
+was never the bottleneck). Rewrote it to **sparse edge-indexed attention** (scatter-softmax over edges, O(E·H));
+kept the dense path as `_forward_hidden_dense` for the equivalence test. Status: ✅ done & verified.
+
+**Verified.** `scripts/_verify_sparse_gat.py`: sparse == dense in eval mode to **machine precision** —
+forward (~1e-18), logits (~1e-17), and the FD sensitivity S over all (i,j) probes (~1e-14, the quantity τ uses);
+scale check N=20,000 fits at 3.67 GB where dense needs 12.8 GB for one attention tensor.
+
+**Re-run.** `scripts/_rerun_gat_oom_cells.py` — GAT-2 × {Pubmed, WikiCS, Amazon Fraud} × 10 seeds appended to
+`results/tau_all_datasets.csv` (now the full 420-row grid; peak ≤ 17 GB, Amazon Fraud densest). Figure
+regenerated (`make_fig_tau_heatmap.py`), OOM boxes → real values, footnote OOM claim replaced.
+
+**Finding.** GAT transfer is **bimodal**, not uniformly weak: edge-weighted τ is low on the small graphs
+(Cora +0.32, Citeseer +0.50, Amazon Photo +0.23) but high on the large ones (Pubmed +0.75, WikiCS +0.71,
+Amazon Fraud +0.82). The weak-transfer impression was an artifact of only having the small graphs.
+
+**Remaining (paper prose, NOT auto-edited).** experiments.tex/introduction.tex: 390→420 runs, 39/39→42/42 cells,
+remove "Cross-hatch: GPU OOM" caption, per-cell sd max 0.041→0.068, median τ +0.99→+0.98, and the "GAT transfers
+better unweighted" note (now 4/6). The paper's τ-stat pipeline doesn't match a naive CSV read (Δτ +0.16/+0.90 vs
+the paper's +0.25/+0.65), so left for the authors. Details: `results/sparse_gat_findings.md`.

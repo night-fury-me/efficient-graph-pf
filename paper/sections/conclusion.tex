@@ -3,8 +3,8 @@
 \label{sec:conclusion}
 %% ===================================================================
 
-From one matrix-free object, $S_c$, \AEGIS unifies auditing, certification, and defense as readings of a single operator, the same $\sigma_1(S_c)$ that names the worst perturbation also bounding its radius and, penalized, the defense; it extends to any GNN with continuous edge-weight message passing, with a closed-form safety characterisation (\cref{thm:phase_transition}) for contractive implicit models.
+From one matrix-free object, $S_c$, \AEGIS unifies auditing, certification, and defense as readings of a single operator, the same $\sigma_1(S_c)$ that names the worst perturbation also bounding its radius and, penalized, the defense, with a closed-form safety characterisation (\cref{thm:phase_transition}) for the contractive implicit case.
 
 \textbf{Limitations.} The radii $r_v$ are first-order; \AEGIS-Conformal assumes exchangeability and runs densely at $N{=}200$; standard GAT, binary-mask architectures, and insertion attacks lie outside scope (\cref{sec:explicit_extension,sec:background}); and the $\ecrit$ track costs ${\sim}6\%$ accuracy. \AEGIS audits vulnerability, not physics: a contractive surrogate cannot model voltage collapse, so it complements rather than replaces power-flow contingency screening~\cite{donon2019graph,nakiganda2023graph,varbella2024contingency}.
 
-\textbf{Disclosure.} We propose a 90-day coordinated-notification window: the diagnostic path ($r_v$, $v_{ij}$) releases unconditionally, while attack-direction reconstruction (\cref{alg:aegis}) is gated behind ethics review, since it yields the most damaging $\delta A^*$ (\cref{prop:attack}); the diagnostic scores are dual-use but released as a defender's tool.
+\textbf{Disclosure.} We propose a 90-day coordinated-notification window: the diagnostic path ($r_v$, $v_{ij}$) releases unconditionally as a defender's tool, while attack-direction reconstruction (\cref{alg:aegis}) is gated behind ethics review, since it yields the most damaging $\delta A^*$ (\cref{prop:attack}).

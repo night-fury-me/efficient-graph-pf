@@ -55,12 +55,20 @@ equilibrium-damage table itself is promoted to the main text (\cref{tab:attack_f
 
 \subsection{Comparison with Prior Structural Baselines}
 \label{app:baselines}
-\Cref{tab:baselines} reports head-to-head numbers against the GR-BCD and PR-BCD structural
-attackers~\cite{geisler2021robustness}. \AEGIS is a label-free one-query proxy; the question is how much
-of each gold-standard signal it retains. GR-BCD aligns with $S_c$ on Pubmed ($\tau{=}{+}0.69$) but
-decorrelates on Cora ($\tau{=}{+}0.16$); the budgets shown ($k{\le}10$) are \AEGIS's early-warning
-regime, where its one-pass diagnostic is competitive, while GR-BCD/PR-BCD dominate raw damage at the
-high budgets they target. AGNNCert~\cite{li2025agnncert} is a sound certificate against a bounded
+\Cref{tab:baselines} and \cref{fig:exp3_budget_sweep} put \AEGIS head-to-head with faithful GR-BCD and
+PR-BCD attackers~\cite{geisler2021robustness}, re-implemented from the official block-coordinate
+algorithm and optimizing the equilibrium shift. \AEGIS is a label-free one-query proxy; the question is
+how much of each gold-standard signal it retains. Because that ranking reads off the first-order
+sensitivity the iterative attackers climb by gradient, one query reaches what their $125$-epoch optimizer
+converges to: across all six datasets and the full budget sweep $k\!\in\!\{1,\ldots,50\}$, \AEGIS's single
+closed-form query matches the attacker's equilibrium damage to within ${\sim}8\%$ and frequently exceeds
+it. It ties or
+beats both attackers at $k{=}1$ on every dataset, because the myopic greedy and relaxed attackers are not
+globally optimal. Rank agreement is moderate and dataset-dependent ($\tau{=}0.35$--$0.81$,
+mean ${\approx}0.5$): the orderings differ, but the damage they inflict does not. \Cref{tab:da_decomp}
+decomposes that ranking: the sensitivity $v_{ij}$ adds agreement over an edge-weight-only baseline on
+every dataset, and is decisive on three (Citeseer's edge-weight ranking alone gives $\tau{\approx}0$),
+so the agreement is not carried by $A_{ij}$. AGNNCert~\cite{li2025agnncert} is a sound certificate against a bounded
 \emph{number} of discrete edge edits (a majority vote over hash-partitioned sub-graphs), whereas
 \AEGIS's $r_v$ bounds a \emph{continuous} edge-weight budget $\norm{\delta\Ahat}_F$; the two target
 different threat models and are complementary rather than comparable on one radius axis. \AEGIS also
@@ -68,6 +76,29 @@ beats degree-proportional, edge-betweenness, and spectral rankings at $\varepsil
 ($+6$--$148\%$ AtkAdv, Wilcoxon $p{<}0.001$) and inflicts $3$--$10\times$ more equilibrium damage than
 Mettack~\cite{zugner2019adversarial} in the early-warning regime $k\!\in\!\{1,\ldots,5\}$
 ($\mathbf{149/150}$ paired wins, $p{<}10^{-43}$).
+
+\begin{table}[t]
+\centering
+\caption{Threat models and outputs. Only \AEGIS both names vulnerability-driving edges ($\bullet$ in
+``Edges'') \emph{and} returns a per-node certificate (``Cert.''), from one closed-form query. The
+certifiers target a \emph{discrete}-edit threat model (a bounded edit \emph{count}), whereas \AEGIS
+bounds a \emph{continuous} edge-weight budget $\norm{\delta\Ahat}_F$, so they are complementary rather
+than comparable on a single radius axis.}
+\label{tab:threat_model}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l l c c@{}}
+\toprule
+Method & Threat model & Edges & Cert. \\
+\midrule
+\AEGIS & continuous $\norm{\delta\Ahat}_F$ ball & $\bullet$ & $\bullet$ \\
+GR-BCD/PR-BCD~\cite{geisler2021robustness} & discrete edge edits & $\bullet$ & -- \\
+AGNNCert~\cite{li2025agnncert} & bounded edit count & -- & $\bullet$ \\
+Convex relax.~\cite{zugner2019certifiable} & bounded perturbation & -- & $\bullet$ \\
+Collective smooth.~\cite{schuchardt2021collective} & random edge flips & -- & $\bullet$ \\
+\bottomrule
+\end{tabular*}
+\end{table}
 
 \Cref{fig:positioning} positions these threads on a seven-axis capability radar, each polygon tracing
 the \emph{frontier} of its thread (the best any cited method in it achieves on that axis). No single
@@ -82,19 +113,64 @@ thread rather than scored on this audit-and-certify radar.
 
 Among the certifiers it scores, AGNNCert~\citep{li2025agnncert} is deterministic ($T{=}30$--$80$ subgraph evaluations) and localized smoothing~\citep{schuchardt2023localized} is a \emph{collective} certificate at ${\sim}10^5$ samples/node; both require specialised retraining and name no vulnerability-driving edges.
 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_exp3_budget_sweep.pdf}
+\caption{Damage-equivalence across the budget sweep (10 seeds). Absolute equilibrium-shift damage
+$\norm{\Delta\zstar}$ of \AEGIS's single closed-form query against faithful $125$-epoch GR-BCD and
+PR-BCD attackers~\cite{geisler2021robustness}, per dataset, versus deletion budget $k$. \AEGIS (blue) is
+an explicit curve; its near-coincidence with the two iterative attackers is the damage-equivalence: one
+label-free query recovers, and often exceeds, the equilibrium damage a $125$-epoch optimizer reaches.}
+\label{fig:exp3_budget_sweep}
+\end{figure*}
+
 \begin{table}[t]
 \centering
-\caption{\AEGIS vs.\ external baselines (10 seeds). GR-BCD~\cite{geisler2021robustness} is the
-BCD-family scalable structural attacker (PR-BCD is the same paper's larger-budget variant, see text).}
+\caption{\AEGIS's one query vs.\ faithful GR-BCD/PR-BCD~\cite{geisler2021robustness} (10 seeds): rank
+agreement $\tau$ (\AEGIS's $A_{ij}v_{ij}$ ranking vs.\ GR-BCD's selection) and the damage ratio
+$\norm{\Delta\zstar}_{\AEGIS}/\norm{\Delta\zstar}_{\text{attacker}}$ at the smallest and largest budget.
+Ratios near $1$ are the damage-equivalence ($\geq 1$ means \AEGIS does at least as much); per-$k$ curves
+in \cref{fig:exp3_budget_sweep}.}
 \label{tab:baselines}
 \footnotesize
-\setlength{\tabcolsep}{3pt}
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l l c c r@{}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l c c c c c c@{}}
 \toprule
-Baseline & Setting & \AEGIS & Baseline & $\tau$ \\
+& & & \multicolumn{2}{c}{\AEGIS/GR-BCD} & \multicolumn{2}{c}{\AEGIS/PR-BCD} \\
+\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Dataset & $|E|$ & $\tau$ & $k{=}1$ & $k{=}50$ & $k{=}1$ & $k{=}50$ \\
 \midrule
-GR-BCD & Pubmed $k{=}10$ & $0.356$ & $0.350$ & $\mathbf{+0.69}$ \\
-GR-BCD & Cora $k{=}5$ & $0.643$ & $1.207$ & $+0.16$ \\
+Cora         & $61$ & $+0.44$ & $1.01$ & $0.99$ & $1.01$ & $0.99$ \\
+Citeseer     & $73$ & $+0.37$ & $1.00$ & $0.97$ & $1.00$ & $0.96$ \\
+Pubmed       & $53$ & $+0.81$ & $1.00$ & $0.99$ & $1.00$ & $0.99$ \\
+WikiCS       & $55$ & $+0.35$ & $1.33$ & $1.00$ & $1.33$ & $0.99$ \\
+Amazon       & $85$ & $+0.60$ & $1.00$ & $0.99$ & $1.00$ & $0.99$ \\
+Amazon Fraud & $78$ & $+0.46$ & $1.00$ & $1.01$ & $1.00$ & $0.99$ \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Edge weight vs.\ sensitivity: rank agreement with GR-BCD for the full $A_{ij}v_{ij}$ ranking
+($\tau_{Av}$), edge-weight-only ($\tau_{A}$), and sensitivity-only ($\tau_{v}$), with the sensitivity
+increment $\Delta\tau{=}\tau_{Av}{-}\tau_{A}$ and the damage of the full ranking relative to each
+component ($D_{Av}/D_A$, $D_{Av}/D_v$; means over $k$). The increment is positive on every dataset and
+the full ranking out-damages edge-weight-alone everywhere; on Citeseer/Pubmed/Amazon\,Fraud the
+sensitivity is decisive (e.g.\ Citeseer $\tau_A{\approx}0$).}
+\label{tab:da_decomp}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}l c c c c c c@{}}
+\toprule
+Dataset & $\tau_{Av}$ & $\tau_{A}$ & $\tau_{v}$ & $\Delta\tau$ & $D_{Av}/D_A$ & $D_{Av}/D_v$ \\
+\midrule
+Cora         & $+0.44$ & $+0.29$ & $+0.56$ & $+0.14$ & $1.07$ & $1.59$ \\
+Citeseer     & $+0.37$ & $-0.01$ & $+0.76$ & $+0.39$ & $1.15$ & $1.26$ \\
+Pubmed       & $+0.81$ & $+0.63$ & $+0.94$ & $+0.18$ & $1.45$ & $1.00$ \\
+WikiCS       & $+0.35$ & $+0.28$ & $+0.35$ & $+0.07$ & $1.03$ & $1.11$ \\
+Amazon       & $+0.60$ & $+0.41$ & $+0.59$ & $+0.19$ & $1.05$ & $1.82$ \\
+Amazon Fraud & $+0.46$ & $+0.19$ & $+0.24$ & $+0.27$ & $1.77$ & $1.80$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -167,6 +243,42 @@ edges), so removing a handful excises a negligible slice. Reaching subgraph-scal
 $2$--$8\%$ of edges masked, and adaptive recomputation erodes the gain a further $1$--$2$\,pp. \AEGIS
 therefore \emph{localizes} risk for attribution and triage rather than yielding a few-edge defense, the
 failure mode that sober-look critiques~\cite{mujkanovic2022defenses} flag.
+
+\textbf{Unification value (one knob, three coherent effects).} \Cref{fig:exp2_comovement} sweeps the
+$\sigma_1(S_c)$ penalty $\lambda$ on Cora and Citeseer (10 seeds): \AEGIS's attack damage, $\sigma_1(S_c)$
+itself, and an \emph{independent} GR-BCD attacker's damage all fall together. The independent curve is
+the non-definitional point, since GR-BCD never sees $\sigma_1$, yet penalizing it blunts that attacker by
+two orders of magnitude. \Cref{fig:exp2_frontier} compares the two controls on the attacker-damage versus
+accuracy frontier: at matched accuracy the $\sigma_1(S_c)$ penalty blunts the independent attacker more
+than a generic spectral cap on $\norm{W}$, so the coupled operator is the more accuracy-efficient control
+for the attack axis. Per unit $\sigma_1$ the two are similar, since $\sigma_1$ bounds the equilibrium
+shift; the operator's value is reaching a given sensitivity at higher accuracy, together with the
+single-knob coherence above.
+
+The cost and completeness behind the unification are reported in \cref{tab:compute}. The ${\sim}700\times$
+gap to the union of separate tools is dominated by the randomized-smoothing certificate's $10^4$ forward
+passes, and that union, even fully assembled, names no edge from its certificate nor any certificate from
+its attack, so it never delivers the per-node radius a single query reads for free.
+
+\begin{figure*}[t]
+\centering
+\begin{minipage}[t]{0.49\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figures/fig_exp2_comovement.pdf}
+\caption{One knob, coherent movement: over the $\sigma_1(S_c)$ penalty sweep, \AEGIS attack damage,
+$\sigma_1(S_c)$, and an independent GR-BCD attacker's damage fall together (fraction of the $\lambda{=}0$
+baseline; 10 seeds).}
+\label{fig:exp2_comovement}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figures/fig_exp2_frontier.pdf}
+\caption{Independent-attacker frontier: at matched accuracy the $\sigma_1(S_c)$ penalty blunts a faithful
+GR-BCD attacker more than a generic spectral cap on $\norm{W}$ (lower is better; 10 seeds).}
+\label{fig:exp2_frontier}
+\end{minipage}
+\end{figure*}
+
 
 \subsection{Per-Architecture Characterization (Explicit GNNs)}
 \label{app:explicit}
