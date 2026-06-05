@@ -142,7 +142,7 @@ in score units. The quadratic constant $C_v$ is the price of leaving the linear 
 $L_J/(2(1-\kappa)^2)$ with its two resolvents, scaled by the readout gap. Carrying the quadratic term is
 what makes the certificate sound rather than merely first-order: the bare $\sigma_1(S_c)\varepsilon$
 screen can be breached just past $r_v$, whereas $L_1^{c}\varepsilon+C_v\varepsilon^2$ over-states the
-true drop for every $\varepsilon<\ecrit$, which is why the empirical gate is conservative ($0.92$--$0.98$
+true drop for every $\varepsilon<\ecrit$, which is why the empirical gate is conservative ($0.95$--$1.00$
 at $\varepsilon=0.05$) rather than tight.
 
 \begin{remark}[Where rigor stops, honestly]
@@ -231,7 +231,7 @@ calibration and test nodes share one realized adjacency, and an IGNN's output at
 whole graph, so the scores are not i.i.d.\ and exchangeability must be imposed by design (inductive
 sampling, or a transductive-exchangeability argument as in \citealp{zargarbashi2023conformal}). We
 therefore state \eqref{eq:robcov} as sound under (C1), with the empirical coverage (clean coverage
-$\approx0.90$) and the worst-case gate ($0.90$ at $\varepsilon=0.01$, $0.92$--$0.98$ at
+$\approx0.90$) and the worst-case gate ($0.90$ at $\varepsilon=0.01$, $0.95$--$1.00$ at
 $\varepsilon=0.05$, zero equilibrium divergence across all $4138$ gate nodes) as evidence that (C1)
 holds well enough on these graphs. The reduction to \citet{zargarbashi2023conformal} is faithful: their
 construction yields robust coverage from any uniform worst-case score envelope, and

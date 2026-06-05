@@ -39,7 +39,7 @@ $\gW:=\norm{W}_2/\rho(W)\ge1$.
 The quantity $\gW$ is audited per model rather than controlled a priori: spectral normalization (A2)
 caps $\norm{W}_2$ but not $\rho(W)$, so in principle $\rho(W)\to0$ at fixed $\norm{W}_2$ would send
 $\gW\to\infty$. We therefore measure $\gW$ on each trained model ($\gW\in[1.19,2.47]$ on the suite,
-with the a-posteriori certificate $\gW\le\kappa_2(V_W)$, the eigenvector conditioning of $W$) and report
+with the a-posteriori certificate $\gW\le\kappa_2(V_W)$, the eigenvector conditioning of $W$ that also governs the ReLU slack $\eta$ (\cref{rem:eta_relu}), so the two share this band) and report
 the bracket constant as a function of that value. Every constant below is computable post-training from
 $\rho(W),\norm{W}_2,\norm{\Ahat}_2$ and the edge set.
 

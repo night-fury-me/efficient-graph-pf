@@ -2,7 +2,7 @@
 %% Appendix F. Detailed Experimental Results and Reproducibility
 %% Per-dataset tables and breakdowns behind sec:experiments, the
 %% fraud-detector walk-through, and the reproducibility note. Adds the
-%% two verified orphan figures (fig_attack_comparison, fig_positioning).
+%% attack-comparison figure (fig_attack_comparison; fig_positioning lives in the intro).
 %% Labels app:experiments / app:attack_full / app:baselines /
 %% app:smoothing / app:phase_scal / app:ablations / app:explicit /
 %% app:fraud / app:repro and the table/figure labels are preserved.
@@ -303,7 +303,7 @@ higher headline score. Acc: full-graph test accuracy.}
 \toprule
 Model & Tight. & AtkAdv & $\tau$ & Acc \\
 \midrule
-IGNN (eq.) & $\ms{1.01}{.00}$ & $\ms{7.6}{0.5}\times$ & $\ms{+.32}{.04}$ & $\ms{77.5}{1.7}$ \\
+IGNN (eq.) & $\ms{1.01}{.00}$ & $\ms{3.6}{0.6}\times$ & $\ms{+.32}{.04}$ & $\ms{77.5}{1.7}$ \\
 \midrule
 GCN-2 & $\ms{1.00}{.00}$ & $\ms{3.6}{0.6}\times$ & $\ms{-.04}{.03}$ & $\ms{78.9}{0.9}$ \\
 GCN-4 & $\ms{1.02}{.00}$ & $\ms{3.4}{0.4}\times$ & $\ms{+.49}{.02}$ & $\ms{78.3}{1.8}$ \\
@@ -317,16 +317,16 @@ APPNP & $\ms{1.02}{.00}$ & $\ms{3.4}{0.3}\times$ & $\ms{+.35}{.01}$ & $\ms{\math
 
 \textbf{GAT$^\dagger$ scope.} Standard GAT uses $A$ as a binary mask, so $\partial Z/\partial A_{ij}{=}0$
 on existing edges and $S_c$ is undefined; our GAT$^\dagger$ modulates attention by the edge weight
-($h_i'=\sum_j\Ahat_{ij}\alpha_{ij}Wh_j$), restoring differentiability and yielding tightness $0.99$,
-AtkAdv $4.4\times$, $\tau{=}{+}0.56$. Binary-mask architectures (hard attention, max/min aggregation,
+($h_i'=\sum_j\Ahat_{ij}\alpha_{ij}Wh_j$), restoring differentiability and yielding tightness $1.01$,
+AtkAdv $2.1\times$, $\tau{=}{+}0.54$. Binary-mask architectures (hard attention, max/min aggregation,
 GATv2~\cite{brody2022how}-style dynamic-attention masking) fall outside the framework. \textbf{Robust
 backbones.} Under the $\sigma_1(W){\le}0.9$ cap, RobustGCN-lite~\cite{zhu2019robust} and
 GNNGuard-lite~\cite{zhang2020gnnguard} match or exceed IGNN; the cap is a precondition (without it
 $\kappa{>}1$ voids \cref{thm:phase_transition}). \textbf{Cross-dataset transfer detail.} The
 edge-weighted $A_{ij}v_{ij}$ ranking beats a pure edge-weight baseline by $\Delta\tau{\approx}{+}0.16$,
 rising to $+0.90$ on the fraud graph where uniform weights are uninformative, so $v_{ij}$ adds rank
-information beyond the weight. GAT-2$^\dagger$ is the exception: attention reweights edges, so the
-unweighted $v_{ij}$ transfers better there ($+0.61$ vs.\ $+0.56$). \Cref{prop:transfer}'s sufficient
+information beyond the weight. GAT$^\dagger$ is the exception: attention reweights edges, so the
+unweighted $v_{ij}$ transfers better there ($+0.54$ vs.\ $+0.32$). \Cref{prop:transfer}'s sufficient
 pairwise condition holds for $\mathbf{47}$--$\mathbf{62\%}$ of edge pairs, so the global $\tau$ is
 empirical, not implied; where unweighted $v_{ij}$ is uninformative (GCN-2's near-uniform 2-hop shifts)
 the weighted ranking recovers the order via the edge weight ($-0.28{\to}{+}0.99$, Citeseer).
